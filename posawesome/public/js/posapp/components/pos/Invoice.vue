@@ -73,7 +73,6 @@
             :no-data-text="__('Charges not found')"
             hide-details
             :filter="deliveryChargesFilter"
-            :disabled="readonly"
             @change="update_delivery_charges()"
           >
             <template v-slot:item="data">
@@ -165,6 +164,7 @@
             class="elevation-1"
             :items-per-page="itemsPerPage"
             hide-default-footer
+            @item-expanded="preserveItemState"
           >
             <template v-slot:item.qty="{ item }">{{
               formtFloat(item.qty)
@@ -309,6 +309,22 @@
                           ? true
                           : false
                       "
+                    ></v-text-field>
+                  </v-col>
+                  <!-- Total -->
+                  <v-col cols="4">
+                    <v-text-field
+                      dense
+                      outlined
+                      color="primary"
+                      :label="frappe._('Item Total')"
+                      background-color="white"
+                      hide-details
+                      :prefix="currencySymbol(pos_profile.currency)"
+                      :value="formtCurrency(item.qty * item.rate)"
+                      @change="updateItemTotal(item, $event)"
+                      id="total"
+                      :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="4">
@@ -889,6 +905,13 @@ export default {
   },
 
   computed: {
+    // converts floating number with precision
+    grandTotal() {
+      return this.items.reduce((total, item) => {
+        return flt(total + item.qty * item.rate, this.currency_precision);
+      }, 0);
+    },
+  //
     total_qty() {
       this.close_payments();
       let qty = 0;
@@ -924,6 +947,32 @@ export default {
   },
 
   methods: {
+    // total field
+    updateItemTotal(item, newTotal) {
+    if (!item || item.qty <= 0) return;
+
+    const parsedTotal = this.flt(this.parseFormattedCurrency(newTotal), this.currency_precision);
+    item.rate = this.flt(parsedTotal / item.qty, this.currency_precision);
+    
+    // Mark the item as modified so it doesn't reset
+    item.modified = true;
+
+    this.$set(this.items, this.items.indexOf(item), item);
+    },
+
+    parseFormattedCurrency(value) {
+      return parseFloat(value.toString().replace(/[^\d.-]/g, ""));
+    },
+
+    preserveItemState({ item, value }) {
+      // Find the existing item in the list and keep the modified values
+      const index = this.items.findIndex(i => i.posa_row_id === item.posa_row_id);
+      if (index !== -1) {
+        this.$set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
+      }
+    },
+    //
+
     remove_item(item) {
       const index = this.items.findIndex(
         (el) => el.posa_row_id == item.posa_row_id
@@ -1736,6 +1785,16 @@ export default {
     },
 
     update_item_detail(item) {
+      // preserve total field value
+      let existingItem = this.items.find(i => i.posa_row_id === item.posa_row_id);
+      if (existingItem) {
+        // Preserve the modified values before updating
+        item.rate = existingItem.rate;
+        item.amount = existingItem.amount;
+      }
+      // Now update the item normally (make sure this doesn’t override rate/amount)
+      this.$set(this.items, this.items.indexOf(existingItem), item);
+      //
       if (!item.item_code || this.invoice_doc.is_return) {
         return;
       }
@@ -1764,7 +1823,7 @@ export default {
             tax_category: "",
             transaction_type: "selling",
             update_stock: this.pos_profile.update_stock,
-            price_list: this.get_price_list(),
+            price_list: this.pos_profile.custom_allow_user_to_edit_item_total ? null : this.get_price_list(), // Run only if checkbox is NOT checked
             has_batch_no: item.has_batch_no,
             serial_no: item.serial_no,
             batch_no: item.batch_no,
@@ -1846,8 +1905,11 @@ export default {
               vm.customer_info = {
                 ...message,
               };
+              if (vm.pos_profile.custom_allow_user_to_edit_item_total != 1) {
+                console.log("Updating price list...");
+                vm.update_price_list(); // Run only if checkbox is NOT checked
+              }
             }
-            vm.update_price_list();
           },
         });
       }
@@ -2992,8 +3054,13 @@ export default {
     },
     expanded(data_value) {
       // this.update_items_details(data_value);
-      if (data_value.length > 0) {
-        this.update_item_detail(data_value[0]);
+        if (data_value.length > 0) {
+        // Only update if item does not already have modified values
+        let expandedItem = this.items.find(i => i.posa_row_id === data_value[0].posa_row_id);
+        
+        if (expandedItem && !expandedItem.modified) {
+          this.update_item_detail(data_value[0]);
+        }
       }
     },
     discount_percentage_offer_name() {
