@@ -57,7 +57,7 @@
         class="items px-2 py-1 mt-0 pt-0"
         v-if="pos_profile.posa_use_delivery_charges"
       >
-        <v-col cols="8" class="pb-0 mb-0 pr-0 pt-0">
+        <v-col cols="3" class="pb-0 mb-0 pr-0 pt-0">
           <v-autocomplete
             dense
             clearable
@@ -90,7 +90,7 @@
             </template>
           </v-autocomplete>
         </v-col>
-        <v-col cols="4" class="pb-0 mb-0 pt-0">
+        <v-col cols="3" class="pb-0 mb-0 pt-0">
           <v-text-field
             dense
             outlined
@@ -102,6 +102,21 @@
             :prefix="currencySymbol(pos_profile.currency)"
             disabled
           ></v-text-field>
+        </v-col>
+        <!-- Inclusive Tax Switch -->
+        <v-col cols="3" class="pb-0 mb-0 pt-0 d-flex align-center">
+          <v-switch
+            v-model="inclusive_tax"
+            color="primary"
+            inset
+            dense
+            hide-details
+            class="small-switch mt-n2"
+          >
+            <template v-slot:label>
+              <span class="ml-n2 mt-1 d-block">{{ frappe._('Inclusive Tax') }}</span>
+            </template>
+          </v-switch>
         </v-col>
       </v-row>
       <v-row
@@ -325,6 +340,19 @@
                       @change="updateItemTotal(item, $event)"
                       id="total"
                       :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="4">
+                    <v-text-field
+                      dense
+                      outlined
+                      color="primary"
+                      :label="frappe._('Tax Amount')"
+                      background-color="white"
+                      hide-details
+                      :prefix="currencySymbol(pos_profile.currency)"
+                      :value="formtCurrency(getItemTax(item))"
+                      readonly
                     ></v-text-field>
                   </v-col>
                   <v-col cols="4">
@@ -854,6 +882,7 @@ export default {
   mixins: [format],
   data() {
     return {
+      inclusive_tax: true,
       pos_profile: "",
       pos_opening_shift: "",
       stock_settings: "",
@@ -972,6 +1001,22 @@ export default {
       }
     },
     //
+
+    getItemTax(item) {
+      // Use the tax_rate from the item, or a default from pos_profile if needed.
+      let tax_rate = item.tax_rate || this.pos_profile.default_tax_rate || 0;
+      let item_total = item.qty * item.rate;
+
+      if (this.invoice_doc.inclusive_tax) {
+        // For tax-inclusive pricing:
+        // tax = item_total - (item_total / (1 + tax_rate/100))
+        return item_total - (item_total / (1 + (tax_rate / 100)));
+      } else {
+        // For tax-exclusive pricing:
+        // tax = item_total * (tax_rate/100)
+        return item_total * (tax_rate / 100);
+      }
+    },
 
     remove_item(item) {
       const index = this.items.findIndex(
@@ -1306,6 +1351,7 @@ export default {
       doc.posa_delivery_charges = this.selcted_delivery_charges.name;
       doc.posa_delivery_charges_rate = this.delivery_charges_rate || 0;
       doc.posting_date = this.posting_date;
+      doc.inclusive_tax = this.inclusive_tax; 
       return doc;
     },
 
@@ -1521,7 +1567,10 @@ export default {
       if (this.invoice_doc.doctype == "Sales Order") {
         evntBus.$emit("show_payment", "true");
         const invoice_doc = await this.process_invoice_from_order();
-        evntBus.$emit("send_invoice_doc_payment", invoice_doc);
+        evntBus.$emit("send_invoice_doc_payment", {
+          ...invoice_doc,
+          inclusive_tax: this.inclusive_tax // Add this line
+        });
       } else if (this.invoice_doc.doctype == "Sales Invoice") {
         const sales_invoice_item = this.invoice_doc.items[0];
         var sales_invoice_item_doc = {};
@@ -1542,16 +1591,25 @@ export default {
         if (sales_invoice_item_doc.sales_order) {
           evntBus.$emit("show_payment", "true");
           const invoice_doc = await this.process_invoice_from_order();
-          evntBus.$emit("send_invoice_doc_payment", invoice_doc);
+          evntBus.$emit("send_invoice_doc_payment", {
+            ...invoice_doc,
+            inclusive_tax: this.inclusive_tax // Add this line
+          });
         } else {
           evntBus.$emit("show_payment", "true");
           const invoice_doc = this.process_invoice();
-          evntBus.$emit("send_invoice_doc_payment", invoice_doc);
+          evntBus.$emit("send_invoice_doc_payment", {
+            ...invoice_doc,
+            inclusive_tax: this.inclusive_tax // Add this line
+          });
         }
       } else {
         evntBus.$emit("show_payment", "true");
         const invoice_doc = this.process_invoice();
-        evntBus.$emit("send_invoice_doc_payment", invoice_doc);
+        evntBus.$emit("send_invoice_doc_payment", {
+          ...invoice_doc,
+          inclusive_tax: this.inclusive_tax // Add this line
+        });
       }
     },
 
@@ -2950,6 +3008,9 @@ export default {
   },
 
   mounted() {
+    if (this.invoice_doc && this.invoice_doc.inclusive_tax === undefined) {
+      this.invoice_doc.inclusive_tax = this.inclusive_tax;
+    }
     evntBus.$on("register_pos_profile", (data) => {
       this.pos_profile = data.pos_profile;
       this.customer = data.pos_profile.customer;
@@ -3043,6 +3104,11 @@ export default {
     document.removeEventListener("keydown", this.shortSelectDiscount);
   },
   watch: {
+    inclusive_tax(newVal) {
+      if (this.invoice_doc) {
+        this.invoice_doc.inclusive_tax = newVal;
+      }
+    },
     customer() {
       this.close_payments();
       evntBus.$emit("set_customer", this.customer);
@@ -3098,5 +3164,10 @@ export default {
 }
 .disable-events {
   pointer-events: none;
+}
+.small-switch .v-label {
+  margin-left: -6px; 
+  margin-top: 4px; /* Adjust this value as needed */
+  display: block;
 }
 </style>
