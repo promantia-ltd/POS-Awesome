@@ -25,14 +25,14 @@
       <v-row align="center" class="items px-2 py-1">
         <v-col
           v-if="pos_profile.posa_allow_sales_order"
-          cols="9"
+          cols="7"
           class="pb-2 pr-0"
         >
           <Customer></Customer>
         </v-col>
         <v-col
           v-if="!pos_profile.posa_allow_sales_order"
-          cols="12"
+          cols="10"
           class="pb-2"
         >
           <Customer></Customer>
@@ -49,6 +49,21 @@
             v-model="invoiceType"
             :disabled="invoiceType == 'Return'"
           ></v-select>
+        </v-col>
+        <!-- Inclusive Tax Switch -->
+        <v-col cols="2" class="pb-0 mb-0 pt-0 d-flex align-center">
+          <v-switch
+            v-model="inclusive_tax"
+            color="primary"
+            inset
+            dense
+            hide-details
+            class="small-switch mt-n2"
+          >
+            <template v-slot:label>
+              <span class="ml-n2 mt-1 d-block">{{ frappe._('Inclusive Tax') }}</span>
+            </template>
+          </v-switch>
         </v-col>
       </v-row>
 
@@ -102,21 +117,6 @@
             :prefix="currencySymbol(pos_profile.currency)"
             disabled
           ></v-text-field>
-        </v-col>
-        <!-- Inclusive Tax Switch -->
-        <v-col cols="3" class="pb-0 mb-0 pt-0 d-flex align-center">
-          <v-switch
-            v-model="inclusive_tax"
-            color="primary"
-            inset
-            dense
-            hide-details
-            class="small-switch mt-n2"
-          >
-            <template v-slot:label>
-              <span class="ml-n2 mt-1 d-block">{{ frappe._('Inclusive Tax') }}</span>
-            </template>
-          </v-switch>
         </v-col>
       </v-row>
       <v-row
@@ -340,19 +340,6 @@
                       @change="updateItemTotal(item, $event)"
                       id="total"
                       :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="4">
-                    <v-text-field
-                      dense
-                      outlined
-                      color="primary"
-                      :label="frappe._('Tax Amount')"
-                      background-color="white"
-                      hide-details
-                      :prefix="currencySymbol(pos_profile.currency)"
-                      :value="formtCurrency(getItemTax(item))"
-                      readonly
                     ></v-text-field>
                   </v-col>
                   <v-col cols="4">
@@ -1001,23 +988,6 @@ export default {
       }
     },
     //
-
-    getItemTax(item) {
-      // Use the tax_rate from the item, or a default from pos_profile if needed.
-      let tax_rate = item.tax_rate || this.pos_profile.default_tax_rate || 0;
-      let item_total = item.qty * item.rate;
-
-      if (this.invoice_doc.inclusive_tax) {
-        // For tax-inclusive pricing:
-        // tax = item_total - (item_total / (1 + tax_rate/100))
-        return item_total - (item_total / (1 + (tax_rate / 100)));
-      } else {
-        // For tax-exclusive pricing:
-        // tax = item_total * (tax_rate/100)
-        return item_total * (tax_rate / 100);
-      }
-    },
-
     remove_item(item) {
       const index = this.items.findIndex(
         (el) => el.posa_row_id == item.posa_row_id
