@@ -336,7 +336,7 @@
                       background-color="white"
                       hide-details
                       :prefix="currencySymbol(pos_profile.currency)"
-                      :value="formtCurrency(item.qty * item.rate)"
+                      :value="formtCurrency(item.qty * item.rate || 0.00)"
                       @change="updateItemTotal(item, $event)"
                       id="total"
                       :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
@@ -1851,7 +1851,7 @@ export default {
             tax_category: "",
             transaction_type: "selling",
             update_stock: this.pos_profile.update_stock,
-            price_list: this.pos_profile.custom_allow_user_to_edit_item_total ? null : this.get_price_list(), // Run only if checkbox is NOT checked
+            price_list: this.get_price_list(),
             has_batch_no: item.has_batch_no,
             serial_no: item.serial_no,
             batch_no: item.batch_no,
