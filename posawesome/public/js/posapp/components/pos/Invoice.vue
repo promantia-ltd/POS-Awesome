@@ -265,6 +265,7 @@
                         [
                           setFormatedFloat(item, 'qty', null, false, $event),
                           calc_stock_qty(item, $event),
+                          resetDiscountOnQtyChange(item),
                         ]
                       "
                       :rules="[isNumber]"
@@ -337,7 +338,7 @@
                       hide-details
                       :prefix="currencySymbol(pos_profile.currency)"
                       :value="formtCurrency(item.qty * item.rate || 0.00)"
-                      @change="updateItemTotal(item, $event)"
+                      @change="[updateItemTotal(item, $event),  resetDiscountOnQtyChange(item),]" 
                       id="total"
                       :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
                     ></v-text-field>
@@ -388,17 +389,9 @@
                       :value="formtCurrency(item.discount_amount)"
                       :rules="[isNumber]"
                       @change="
-                        [
-                          setFormatedCurrency(
-                            item,
-                            'discount_amount',
-                            null,
-                            true,
-                            $event
-                          ),
-                          ,
-                          calc_prices(item, $event),
-                        ]
+                        pos_profile.custom_allow_user_to_edit_item_total
+                          ? applyCustomDiscount(item, $event)
+                          : calc_prices(item, $event)
                       "
                       :prefix="currencySymbol(pos_profile.currency)"
                       id="discount_amount"
@@ -408,8 +401,6 @@
                         !!item.posa_offer_applied ||
                         !pos_profile.posa_allow_user_to_edit_item_discount ||
                         !!invoice_doc.is_return
-                          ? true
-                          : false
                       "
                     ></v-text-field>
                   </v-col>
@@ -1975,6 +1966,31 @@ export default {
       } else {
         this.additional_discount_percentage = 0;
         this.discount_amount = 0;
+      }
+    },
+
+    resetDiscountOnQtyChange(item) {
+      item.discount_amount = 0.00; // Reset discount amount
+      item.modified = true; // Mark as modified
+      
+      this.$set(this.items, this.items.indexOf(item), item);
+    },
+
+    applyCustomDiscount(item, value) {
+      if (value < 0) {
+        item.discount_amount = 0;
+      } else {
+        // Get item total from the field
+        const itemTotal = this.parseFormattedCurrency(document.getElementById("total").value);
+
+        // Subtract discount amount from item total and update RATE
+        item.rate = flt(item.rate) - flt(value);
+        item.discount_amount = this.flt(value, this.currency_precision);
+        
+        // Mark the item as modified
+        item.modified = true;
+
+        this.$set(this.items, this.items.indexOf(item), item);
       }
     },
 
