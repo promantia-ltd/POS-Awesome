@@ -647,6 +647,40 @@
                       :value="item.posa_notes"
                     ></v-textarea>
                   </v-col>
+                  <!-- Sales Person -->
+                  <v-col >
+                    <v-autocomplete
+                      dense
+                      clearable
+                      auto-select-first
+                      outlined
+                      color="primary"
+                      :label="frappe._('Sales Person')"
+                      v-model="item.sales_person"
+                      :items="sales_persons"
+                      item-text="sales_person_name"
+                      item-value="name"
+                      background-color="white"
+                      :no-data-text="__('Sales Person not found')"
+                      hide-details
+                      :filter="salesPersonFilter"
+                    >
+                      <template v-slot:item="data">
+                        <template>
+                          <v-list-item-content>
+                            <v-list-item-title
+                              class="primary--text subtitle-1"
+                              v-html="data.item.sales_person_name"
+                            ></v-list-item-title>
+                            <v-list-item-subtitle
+                              v-if="data.item.sales_person_name != data.item.name"
+                              v-html="`ID: ${data.item.name}`"
+                            ></v-list-item-subtitle>
+                          </v-list-item-content>
+                        </template>
+                      </template>
+                    </v-autocomplete>
+                  </v-col>
                 </v-row>
               </td>
             </template>
@@ -860,7 +894,10 @@ export default {
   mixins: [format],
   data() {
     return {
+      //
       inclusive_tax: true,
+      sales_persons: [],
+      //
       pos_profile: "",
       pos_opening_shift: "",
       stock_settings: "",
@@ -977,6 +1014,72 @@ export default {
       if (index !== -1) {
         this.$set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
       }
+    },
+    // Sales Person
+    get_sales_person_names() {
+      const vm = this;
+      if (
+        vm.pos_profile.posa_local_storage &&
+        localStorage.sales_persons_storage
+      ) {
+        vm.sales_persons = JSON.parse(
+          localStorage.getItem("sales_persons_storage")
+        );
+      }
+      frappe.call({
+        method: "posawesome.posawesome.api.posapp.get_sales_person_names",
+        callback: function (r) {
+          if (r.message) {
+            vm.sales_persons = r.message;
+            if (vm.pos_profile.posa_local_storage) {
+              localStorage.setItem("sales_persons_storage", "");
+              localStorage.setItem(
+                "sales_persons_storage",
+                JSON.stringify(r.message)
+              );
+            }
+          }
+        },
+      });
+    },
+
+    salesPersonFilter(item, queryText, itemText) {
+      const textOne = item.sales_person_name
+        ? item.sales_person_name.toLowerCase()
+        : "";
+      const textTwo = item.name.toLowerCase();
+      const searchText = queryText.toLowerCase();
+
+      return (
+        textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
+      );
+    },
+
+    updateSalesTeam() {
+      const salesTeamMap = new Map();
+      let totalAmount = 0;
+
+      // Calculate total amount and aggregate by sales person
+      this.items.forEach(item => {
+        if (item.sales_person) {
+          const amount = item.qty * item.rate;
+          totalAmount += amount;
+          const current = salesTeamMap.get(item.sales_person) || 0;
+          salesTeamMap.set(item.sales_person, current + amount);
+        }
+      });
+
+      // Convert map to sales_team array with allocated percentages
+      const sales_team = [];
+      salesTeamMap.forEach((amount, salesPerson) => {
+        const percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
+        sales_team.push({
+          sales_person: salesPerson,
+          allocated_percentage: percentage
+        });
+      });
+
+      this.invoice_doc.sales_team = sales_team;
     },
     //
     remove_item(item) {
@@ -1122,6 +1225,9 @@ export default {
       ) {
         this.expanded.push(new_item);
       }
+      // Sales Person
+      new_item.sales_person = "";
+      //
       return new_item;
     },
 
@@ -1313,6 +1419,9 @@ export default {
       doc.posa_delivery_charges_rate = this.delivery_charges_rate || 0;
       doc.posting_date = this.posting_date;
       doc.inclusive_tax = this.inclusive_tax; 
+      // Sales Person
+      doc.sales_team = this.invoice_doc.sales_team || [];
+      //
       return doc;
     },
 
@@ -1403,6 +1512,9 @@ export default {
           posa_notes: item.posa_notes,
           posa_delivery_date: item.posa_delivery_date,
           price_list_rate: item.price_list_rate,
+          // Sales Person
+          custom_sales_person: item.sales_person,
+          //
         };
         items_list.push(new_item);
       });
@@ -2994,9 +3106,12 @@ export default {
   },
 
   mounted() {
+    //
+    this.get_sales_person_names();
     if (this.invoice_doc && this.invoice_doc.inclusive_tax === undefined) {
       this.invoice_doc.inclusive_tax = this.inclusive_tax;
     }
+    //
     evntBus.$on("register_pos_profile", (data) => {
       this.pos_profile = data.pos_profile;
       this.customer = data.pos_profile.customer;
@@ -3034,6 +3149,12 @@ export default {
       } else {
         evntBus.$emit("set_pos_coupons", data.posa_coupons);
       }
+      // Sales Person
+      this.items = data.items.map(item => ({
+        ...item,
+        sales_person: item.custom_sales_person || ""  // Map backend field to frontend
+      }));
+      //
     });
     evntBus.$on("load_order", (data) => {
       this.new_order(data);
@@ -3123,6 +3244,9 @@ export default {
     items: {
       deep: true,
       handler(items) {
+        // Sales Person
+        this.updateSalesTeam();
+        //
         this.handelOffers();
         this.$forceUpdate();
       },
