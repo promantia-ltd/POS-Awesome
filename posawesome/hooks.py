@@ -18,7 +18,6 @@ app_license = "GPLv3"
 # app_include_css = "/assets/posawesome/css/posawesome.css"
 # app_include_js = "/assets/posawesome/js/posawesome.js"
 app_include_js = [
-    "/assets/posawesome/node_modules/vuetify/dist/vuetify.js",
     "posawesome.bundle.js",
 ]
 
@@ -257,15 +256,12 @@ fixtures = [
                     "POS Profile-posa_allow_reconcile_payments",
                     "POS Profile-column_break_uolvm",
                     "POS Profile-posa_allow_mpesa_reconcile_payments",
-                    "POS Profile-custom_allow_user_to_edit_item_total",
-                    "Sales Invoice Item-custom_sales_person",
                 ),
             ]
         ],
     },
     {
         "doctype": "Property Setter",
-        "filters": [["name", "in", ("Sales Invoice-posa_pos_opening_shift-no_copy",
-                                    "POS Profile-posa_tax_inclusive-hidden")]],
+        "filters": [["name", "in", ("Sales Invoice-posa_pos_opening_shift-no_copy")]],
     },
 ]

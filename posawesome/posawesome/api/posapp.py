@@ -15,7 +15,6 @@ from erpnext.accounts.party import get_party_bank_account
 from erpnext.stock.doctype.batch.batch import (
     get_batch_no,
     get_batch_qty,
-    set_batch_nos,
 )
 from erpnext.accounts.doctype.payment_request.payment_request import (
     get_dummy_message,
@@ -533,13 +532,12 @@ def update_invoice(data):
             item.is_free_item = 0
         add_taxes_from_tax_template(item, invoice_doc)
 
-    if invoice_doc.get("inclusive_tax"):
-
+    if frappe.get_cached_value(
+        "POS Profile", invoice_doc.pos_profile, "posa_tax_inclusive"
+    ):
         if invoice_doc.get("taxes"):
             for tax in invoice_doc.taxes:
-                tax.included_in_rate = 1
                 tax.included_in_print_rate = 1
-        invoice_doc.run_method("calculate_taxes_and_totals")
 
     today_date = getdate()
     if (
@@ -620,8 +618,8 @@ def submit_invoice(invoice, data):
 
     payments = invoice_doc.payments
 
-    if frappe.get_value("POS Profile", invoice_doc.pos_profile, "posa_auto_set_batch"):
-        set_batch_nos(invoice_doc, "warehouse", throw=True)
+    # if frappe.get_value("POS Profile", invoice_doc.pos_profile, "posa_auto_set_batch"):
+    #     set_batch_nos(invoice_doc, "warehouse", throw=True)
     set_batch_nos_for_bundels(invoice_doc, "warehouse", throw=True)
 
     invoice_doc.flags.ignore_permissions = True
@@ -912,10 +910,9 @@ def get_items_details(pos_profile, items_data):
             for item in items_data:
                 item_code = item.get("item_code")
                 item_stock_qty = get_stock_availability(item_code, warehouse)
-                has_batch_no, has_serial_no = frappe.get_value(
+                (has_batch_no, has_serial_no) = frappe.db.get_value(
                     "Item", item_code, ["has_batch_no", "has_serial_no"]
                 )
-
                 uoms = frappe.get_all(
                     "UOM Conversion Detail",
                     filters={"parent": item_code},
