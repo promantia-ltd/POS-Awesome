@@ -532,12 +532,13 @@ def update_invoice(data):
             item.is_free_item = 0
         add_taxes_from_tax_template(item, invoice_doc)
 
-    if frappe.get_cached_value(
-        "POS Profile", invoice_doc.pos_profile, "posa_tax_inclusive"
-    ):
+    if invoice_doc.get("inclusive_tax"):
+
         if invoice_doc.get("taxes"):
             for tax in invoice_doc.taxes:
+                tax.included_in_rate = 1
                 tax.included_in_print_rate = 1
+        invoice_doc.run_method("calculate_taxes_and_totals")
 
     today_date = getdate()
     if (

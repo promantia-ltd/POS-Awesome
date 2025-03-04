@@ -45,13 +45,13 @@
 
 ### How to Install
 
-#### ASAERP:
+#### Frappe Cloud:
 
-One-click installation is available if you are hosting on [ASAERP](https://asaerp.com) from [here](https://asaerp.com/dashboard/marketplace)
+One-click installing available if you are hosting on FC from [here](https://frappecloud.com/marketplace/apps/posawesome)
 
 #### Self Hosting:
 
-1. `bench get-app branch version-15 https://github.com/ASATechnologies/POS-Awesome.git`
+1. `bench get-app branch version-14 https://github.com/yrestom/POS-Awesome.git`
 2. `bench setup requirements`
 3. `bench build --app posawesome`
 4. `bench restart`
