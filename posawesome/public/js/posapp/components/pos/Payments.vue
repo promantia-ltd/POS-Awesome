@@ -270,7 +270,7 @@
           </v-row>
         </div>
         <v-divider></v-divider>
-        <v-row class="pb-0 mb-2" align="start">
+        <!-- <v-row class="pb-0 mb-2" align="start">
           <v-col cols="12">
             <v-autocomplete density="compact" clearable variant="outlined" color="primary"
               :label="frappe._('Sales Person')" v-model="sales_person" :items="sales_persons"
@@ -289,7 +289,7 @@
               </template>
             </v-autocomplete>
           </v-col>
-        </v-row>
+        </v-row> -->
       </div>
     </v-card>
 

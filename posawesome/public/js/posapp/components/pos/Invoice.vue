@@ -24,10 +24,10 @@
     </v-dialog>
     <v-card style="max-height: 70vh; height: 70vh" class="cards my-0 py-0 mt-3 bg-grey-lighten-5">
       <v-row align="center" class="items px-2 py-1">
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="9" class="pb-2 pr-0">
+        <v-col v-if="pos_profile.posa_allow_sales_order" cols="7" class="pb-2 pr-0">
           <Customer></Customer>
         </v-col>
-        <v-col v-if="!pos_profile.posa_allow_sales_order" cols="12" class="pb-2">
+        <v-col v-if="!pos_profile.posa_allow_sales_order" cols="10" class="pb-2">
           <Customer></Customer>
         </v-col>
         <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
@@ -35,14 +35,29 @@
             :items="invoiceTypes" :label="frappe._('Type')" v-model="invoiceType"
             :disabled="invoiceType == 'Return'"></v-select>
         </v-col>
+         <!-- Inclusive Tax Switch -->
+        <v-col cols="2" class="pb-0 mb-0 pt-0 d-flex align-center">
+          <v-switch
+            v-model="inclusive_tax"
+            color="primary"
+            inset
+            dense
+            hide-details
+            class="small-switch mt-n2"
+          >
+            <template v-slot:label>
+              <span class="ml-n2 mt-1 d-block">{{ frappe._('Inclusive Tax') }}</span>
+            </template>
+          </v-switch>
+        </v-col>
       </v-row>
 
       <v-row align="center" class="items px-2 py-1 mt-0 pt-0" v-if="pos_profile.posa_use_delivery_charges">
-        <v-col cols="8" class="pb-0 mb-0 pr-0 pt-0">
+        <v-col cols="3" class="pb-0 mb-0 pr-0 pt-0">
           <v-autocomplete density="compact" clearable auto-select-first variant="outlined" color="primary"
             :label="frappe._('Delivery Charges')" v-model="selected_delivery_charge" :items="delivery_charges"
             item-title="name" item-value="name" return-object bg-color="white" :no-data-text="__('Charges not found')"
-            hide-details :customFilter="deliveryChargesFilter" :disabled="readonly"
+            hide-details :customFilter="deliveryChargesFilter"
             @update:model-value="update_delivery_charges()">
             <template v-slot:item="{ props, item }">
               <v-list-item v-bind="props">
@@ -52,7 +67,7 @@
             </template>
           </v-autocomplete>
         </v-col>
-        <v-col cols="4" class="pb-0 mb-0 pt-0">
+        <v-col cols="3" class="pb-0 mb-0 pt-0">
           <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Delivery Charges Rate')"
             bg-color="white" hide-details :model-value="formatCurrency(delivery_charges_rate)"
             :prefix="currencySymbol(pos_profile.currency)" disabled></v-text-field>
@@ -77,7 +92,7 @@
       <div class="my-0 py-0 overflow-y-auto" style="max-height: 60vh">
         <v-data-table :headers="items_headers" :items="items" v-model:expanded="expanded" show-expand
           item-value="posa_row_id" class="elevation-1" :items-per-page="itemsPerPage" expand-on-click
-          hide-default-footer>
+          hide-default-footer @item-expanded="preserveItemState">
           <template v-slot:item.qty="{ item }">{{
             formatFloat(item.qty)
           }}</template>
@@ -129,6 +144,7 @@
                       [
                         setFormatedFloat(item, 'qty', null, false, $event),
                         calc_stock_qty(item, $event),
+                        resetDiscountOnQtyChange(item),
                       ]
                       " :rules="[isNumber]" :disabled="!!item.posa_is_offer || !!item.posa_is_replace"></v-text-field>
                 </v-col>
@@ -164,6 +180,22 @@
                         : false
                         "></v-text-field>
                 </v-col>
+                  <!-- Total -->
+                  <v-col cols="4">
+                    <v-text-field
+                      dense
+                      outlined
+                      color="primary"
+                      :label="frappe._('Item Total')"
+                      background-color="white"
+                      hide-details
+                      :prefix="currencySymbol(pos_profile.currency)"
+                      :value="formtCurrency(item.qty * item.rate || 0.00)"
+                      @change="[updateItemTotal(item, $event),  resetDiscountOnQtyChange(item),]" 
+                      id="total"
+                      :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
+                    ></v-text-field>
+                  </v-col>
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary"
                     :label="frappe._('Discount Percentage')" bg-color="white" hide-details
@@ -200,7 +232,9 @@
                           $event
                         ),
                         ,
-                        calc_prices(item, $event),
+                        pos_profile.custom_allow_user_to_edit_item_total
+                          ? applyCustomDiscount(item, $event)
+                          : calc_prices(item, $event)
                       ]
                       " :prefix="currencySymbol(pos_profile.currency)" id="discount_amount" :disabled="!!item.posa_is_offer ||
                         !!item.posa_is_replace ||
@@ -306,6 +340,40 @@
                     rows="1" :label="frappe._('Additional Notes')" v-model="item.posa_notes"
                     :model-value="item.posa_notes"></v-textarea>
                 </v-col>
+		<!-- Sales Person -->
+                  <v-col >
+                    <v-autocomplete
+                      dense
+                      clearable
+                      auto-select-first
+                      outlined
+                      color="primary"
+                      :label="frappe._('Sales Person')"
+                      v-model="item.sales_person"
+                      :items="sales_persons"
+                      item-text="sales_person_name"
+                      item-value="name"
+                      background-color="white"
+                      :no-data-text="__('Sales Person not found')"
+                      hide-details
+                      :filter="salesPersonFilter"
+                    >
+                      <template v-slot:item="data">
+                        <template>
+                          <v-list-item-content>
+                            <v-list-item-title
+                              class="primary--text subtitle-1"
+                              v-html="data.item.sales_person_name"
+                            ></v-list-item-title>
+                            <v-list-item-subtitle
+                              v-if="data.item.sales_person_name != data.item.name"
+                              v-html="`ID: ${data.item.name}`"
+                            ></v-list-item-subtitle>
+                          </v-list-item-content>
+                        </template>
+                      </template>
+                    </v-autocomplete>
+                  </v-col>
               </v-row>
             </td>
           </template>
@@ -415,6 +483,10 @@ export default {
   mixins: [format],
   data() {
     return {
+      //
+      inclusive_tax: true,
+      sales_persons: [],
+      //
       pos_profile: "",
       pos_opening_shift: "",
       stock_settings: "",
@@ -466,6 +538,13 @@ export default {
   },
 
   computed: {
+    // converts floating number with precision
+    grandTotal() {
+      return this.items.reduce((total, item) => {
+        return flt(total + item.qty * item.rate, this.currency_precision);
+      }, 0);
+    },
+  //
     total_qty() {
       this.close_payments();
       let qty = 0;
@@ -501,6 +580,97 @@ export default {
   },
 
   methods: {
+    // total field
+    updateItemTotal(item, newTotal) {
+    if (!item || item.qty <= 0) return;
+
+    const parsedTotal = this.flt(this.parseFormattedCurrency(newTotal), this.currency_precision);
+    item.rate = this.flt(parsedTotal / item.qty, this.currency_precision);
+    
+    // Mark the item as modified so it doesn't reset
+    item.modified = true;
+
+    this.$set(this.items, this.items.indexOf(item), item);
+    },
+
+    parseFormattedCurrency(value) {
+      return parseFloat(value.toString().replace(/[^\d.-]/g, ""));
+    },
+
+    preserveItemState({ item, value }) {
+      // Find the existing item in the list and keep the modified values
+      const index = this.items.findIndex(i => i.posa_row_id === item.posa_row_id);
+      if (index !== -1) {
+        this.$set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
+      }
+    },
+    // Sales Person
+    get_sales_person_names() {
+      const vm = this;
+      if (
+        vm.pos_profile.posa_local_storage &&
+        localStorage.sales_persons_storage
+      ) {
+        vm.sales_persons = JSON.parse(
+          localStorage.getItem("sales_persons_storage")
+        );
+      }
+      frappe.call({
+        method: "posawesome.posawesome.api.posapp.get_sales_person_names",
+        callback: function (r) {
+          if (r.message) {
+            vm.sales_persons = r.message;
+            if (vm.pos_profile.posa_local_storage) {
+              localStorage.setItem("sales_persons_storage", "");
+              localStorage.setItem(
+                "sales_persons_storage",
+                JSON.stringify(r.message)
+              );
+            }
+          }
+        },
+      });
+    },
+
+    salesPersonFilter(item, queryText, itemText) {
+      const textOne = item.sales_person_name
+        ? item.sales_person_name.toLowerCase()
+        : "";
+      const textTwo = item.name.toLowerCase();
+      const searchText = queryText.toLowerCase();
+
+      return (
+        textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
+      );
+    },
+
+    updateSalesTeam() {
+      const salesTeamMap = new Map();
+      let totalAmount = 0;
+
+      // Calculate total amount and aggregate by sales person
+      this.items.forEach(item => {
+        if (item.sales_person) {
+          const amount = item.qty * item.rate;
+          totalAmount += amount;
+          const current = salesTeamMap.get(item.sales_person) || 0;
+          salesTeamMap.set(item.sales_person, current + amount);
+        }
+      });
+
+      // Convert map to sales_team array with allocated percentages
+      const sales_team = [];
+      salesTeamMap.forEach((amount, salesPerson) => {
+        const percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
+        sales_team.push({
+          sales_person: salesPerson,
+          allocated_percentage: percentage
+        });
+      });
+
+      this.invoice_doc.sales_team = sales_team;
+    },
+    //
     remove_item(item) {
       const index = this.items.findIndex(
         (el) => el.posa_row_id == item.posa_row_id
@@ -644,6 +814,9 @@ export default {
       ) {
         this.expanded.push(new_item);
       }
+      // Sales Person
+      new_item.sales_person = "";
+      //
       return new_item;
     },
 
@@ -853,6 +1026,10 @@ export default {
       doc.posa_delivery_charges = this.selected_delivery_charge.name;
       doc.posa_delivery_charges_rate = this.delivery_charges_rate || 0;
       doc.posting_date = this.posting_date;
+      doc.inclusive_tax = this.inclusive_tax; 
+      // Sales Person
+      doc.sales_team = this.invoice_doc.sales_team || [];
+      //
       return doc;
     },
 
@@ -943,6 +1120,9 @@ export default {
           posa_notes: item.posa_notes,
           posa_delivery_date: item.posa_delivery_date,
           price_list_rate: item.price_list_rate,
+          // Sales Person
+          custom_sales_person: item.sales_person,
+          //
         };
         items_list.push(new_item);
       });
@@ -1068,7 +1248,10 @@ export default {
       if (this.invoice_doc.doctype == "Sales Order") {
         this.eventBus.emit("show_payment", "true");
         const invoice_doc = await this.process_invoice_from_order();
-        this.eventBus.emit("send_invoice_doc_payment", invoice_doc);
+        this.evntBus.emit("send_invoice_doc_payment", {
+          invoice_doc,
+          inclusive_tax: this.inclusive_tax // Add this line
+        });
       } else if (this.invoice_doc.doctype == "Sales Invoice") {
         const sales_invoice_item = this.invoice_doc.items[0];
         var sales_invoice_item_doc = {};
@@ -1089,16 +1272,25 @@ export default {
         if (sales_invoice_item_doc.sales_order) {
           this.eventBus.emit("show_payment", "true");
           const invoice_doc = await this.process_invoice_from_order();
-          this.eventBus.emit("send_invoice_doc_payment", invoice_doc);
+          this.evntBus.emit("send_invoice_doc_payment", {
+            invoice_doc,
+            inclusive_tax: this.inclusive_tax // Add this line
+          });
         } else {
           this.eventBus.emit("show_payment", "true");
           const invoice_doc = this.process_invoice();
-          this.eventBus.emit("send_invoice_doc_payment", invoice_doc);
+          this.evntBus.emit("send_invoice_doc_payment", {
+            invoice_doc,
+            inclusive_tax: this.inclusive_tax // Add this line
+          });
         }
       } else {
         this.eventBus.emit("show_payment", "true");
         const invoice_doc = this.process_invoice();
-        this.eventBus.emit("send_invoice_doc_payment", invoice_doc);
+        this.evntBus.emit("send_invoice_doc_payment", {
+          invoice_doc,
+          inclusive_tax: this.inclusive_tax // Add this line
+        });
       }
     },
 
@@ -1333,6 +1525,16 @@ export default {
     },
 
     update_item_detail(item) {
+      // preserve total field value
+      let existingItem = this.items.find(i => i.posa_row_id === item.posa_row_id);
+      if (existingItem) {
+        // Preserve the modified values before updating
+        item.rate = existingItem.rate;
+        item.amount = existingItem.amount;
+      }
+      // Now update the item normally (make sure this doesn’t override rate/amount)
+      this.$set(this.items, this.items.indexOf(existingItem), item);
+      //
       if (!item.item_code || this.invoice_doc.is_return) {
         return;
       }
@@ -1443,6 +1645,10 @@ export default {
               vm.customer_info = {
                 ...message,
               };
+              if (vm.pos_profile.custom_allow_user_to_edit_item_total != 1) {
+                console.log("Updating price list...");
+                vm.update_price_list(); // Run only if checkbox is NOT checked
+              }
             }
             vm.update_price_list();
           },
@@ -1482,6 +1688,31 @@ export default {
       } else {
         this.additional_discount_percentage = 0;
         this.discount_amount = 0;
+      }
+    },
+
+    resetDiscountOnQtyChange(item) {
+      item.discount_amount = 0.00; // Reset discount amount
+      item.modified = true; // Mark as modified
+      
+      this.$set(this.items, this.items.indexOf(item), item);
+    },
+
+    applyCustomDiscount(item, value) {
+      if (value < 0) {
+        item.discount_amount = 0;
+      } else {
+        // Get item total from the field
+        const itemTotal = this.parseFormattedCurrency(document.getElementById("total").value);
+
+        // Subtract discount amount from item total and update RATE
+        item.rate = flt(item.rate) - flt(value);
+        item.discount_amount = this.flt(value, this.currency_precision);
+        
+        // Mark the item as modified
+        item.modified = true;
+
+        this.$set(this.items, this.items.indexOf(item), item);
       }
     },
 
@@ -2493,6 +2724,12 @@ export default {
   },
 
   mounted() {
+    //
+    this.get_sales_person_names();
+    if (this.invoice_doc && this.invoice_doc.inclusive_tax === undefined) {
+      this.invoice_doc.inclusive_tax = this.inclusive_tax;
+    }
+    //
     this.eventBus.on("register_pos_profile", (data) => {
       this.pos_profile = data.pos_profile;
       this.customer = data.pos_profile.customer;
@@ -2520,6 +2757,12 @@ export default {
     });
     this.eventBus.on("load_invoice", (data) => {
       this.load_invoice(data);
+      // Sales Person
+      this.items = data.items.map(item => ({
+        ...item,
+        sales_person: item.custom_sales_person || ""  // Map backend field to frontend
+      }));
+      //
     });
     this.eventBus.on("load_order", (data) => {
       this.new_order(data);
@@ -2576,6 +2819,11 @@ export default {
     document.removeEventListener("keydown", this.shortSelectDiscount);
   },
   watch: {
+    inclusive_tax(newVal) {
+      if (this.invoice_doc) {
+        this.invoice_doc.inclusive_tax = newVal;
+      }
+    },
     customer() {
       this.close_payments();
       this.eventBus.emit("set_customer", this.customer);
@@ -2587,8 +2835,13 @@ export default {
     },
     expanded(data_value) {
       // this.update_items_details(data_value);
-      if (data_value.length > 0) {
-        this.update_item_detail(data_value[0]);
+        if (data_value.length > 0) {
+        // Only update if item does not already have modified values
+        let expandedItem = this.items.find(i => i.posa_row_id === data_value[0].posa_row_id);
+        
+        if (expandedItem && !expandedItem.modified) {
+          this.update_item_detail(data_value[0]);
+        }
       }
     },
     discount_percentage_offer_name() {
@@ -2599,6 +2852,9 @@ export default {
     items: {
       deep: true,
       handler(items) {
+        // Sales Person
+        this.updateSalesTeam();
+        //
         this.handelOffers();
         this.$forceUpdate();
       },
@@ -2627,5 +2883,10 @@ export default {
 
 .disable-events {
   pointer-events: none;
+}
+.small-switch .v-label {
+  margin-left: -6px; 
+  margin-top: 4px; /* Adjust this value as needed */
+  display: block;
 }
 </style>
