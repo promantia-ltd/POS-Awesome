@@ -506,7 +506,8 @@ def update_invoice(data):
     frappe.flags.ignore_account_permission = True
 
     if invoice_doc.is_return and invoice_doc.return_against:
-        ref_doc = frappe.get_cached_doc(invoice_doc.doctype, invoice_doc.return_against)
+        ref_doc = frappe.get_cached_doc(invoice_doc.doctype, invoice_doc.return_against)  
+        invoice_doc.update_outstanding_for_self = False      
         if not ref_doc.update_stock:
             invoice_doc.update_stock = 0
         if len(invoice_doc.payments) == 0:
