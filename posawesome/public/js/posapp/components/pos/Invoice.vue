@@ -575,7 +575,7 @@ export default {
     // Mark the item as modified so it doesn't reset
     item.modified = true;
 
-    this.$set(this.items, this.items.indexOf(item), item);
+    this.set(this.items, this.items.indexOf(item), item);
     },
 
     parseFormattedCurrency(value) {
@@ -586,7 +586,7 @@ export default {
       // Find the existing item in the list and keep the modified values
       const index = this.items.findIndex(i => i.posa_row_id === item.posa_row_id);
       if (index !== -1) {
-        this.$set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
+        this.set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
       }
     },
     // Sales Person
@@ -1680,7 +1680,7 @@ export default {
       item.discount_amount = 0.00; // Reset discount amount
       item.modified = true; // Mark as modified
       
-      this.$set(this.items, this.items.indexOf(item), item);
+      this.set(this.items, this.items.indexOf(item), item);
     },
 
     applyCustomDiscount(item, value) {
@@ -1697,7 +1697,7 @@ export default {
         // Mark the item as modified
         item.modified = true;
 
-        this.$set(this.items, this.items.indexOf(item), item);
+        this.set(this.items, this.items.indexOf(item), item);
       }
     },
 
