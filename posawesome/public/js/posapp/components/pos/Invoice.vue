@@ -1518,7 +1518,7 @@ export default {
         item.amount = existingItem.amount;
       }
       // Now update the item normally (make sure this doesn’t override rate/amount)
-      this.$set(this.items, this.items.indexOf(existingItem), item);
+      this.set(this.items, this.items.indexOf(existingItem), item);
       //
       if (!item.item_code || this.invoice_doc.is_return) {
         return;
