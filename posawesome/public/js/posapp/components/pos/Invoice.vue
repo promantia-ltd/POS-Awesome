@@ -1236,7 +1236,7 @@ export default {
       if (this.invoice_doc.doctype == "Sales Order") {
         this.eventBus.emit("show_payment", "true");
         const invoice_doc = await this.process_invoice_from_order();
-        this.evntBus.emit("send_invoice_doc_payment", {
+        this.eventBus.emit("send_invoice_doc_payment", {
           invoice_doc,
           inclusive_tax: this.inclusive_tax // Add this line
         });
@@ -1260,14 +1260,14 @@ export default {
         if (sales_invoice_item_doc.sales_order) {
           this.eventBus.emit("show_payment", "true");
           const invoice_doc = await this.process_invoice_from_order();
-          this.evntBus.emit("send_invoice_doc_payment", {
+          this.eventBus.emit("send_invoice_doc_payment", {
             invoice_doc,
             inclusive_tax: this.inclusive_tax // Add this line
           });
         } else {
           this.eventBus.emit("show_payment", "true");
           const invoice_doc = this.process_invoice();
-          this.evntBus.emit("send_invoice_doc_payment", {
+          this.eventBus.emit("send_invoice_doc_payment", {
             invoice_doc,
             inclusive_tax: this.inclusive_tax // Add this line
           });
@@ -1275,7 +1275,7 @@ export default {
       } else {
         this.eventBus.emit("show_payment", "true");
         const invoice_doc = this.process_invoice();
-        this.evntBus.emit("send_invoice_doc_payment", {
+        this.eventBus.emit("send_invoice_doc_payment", {
           invoice_doc,
           inclusive_tax: this.inclusive_tax // Add this line
         });
