@@ -190,7 +190,7 @@
                       bg-color="white"
                       hide-details
                       :prefix="currencySymbol(pos_profile.currency)"
-                      :model-value="formtCurrency(item.qty * item.rate || 0.00)"
+                      :model-value="formatCurrency(item.qty * item.rate || 0.00)"
                       @change="[updateItemTotal(item, $event),  resetDiscountOnQtyChange(item),]" 
                       id="total"
                       :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
