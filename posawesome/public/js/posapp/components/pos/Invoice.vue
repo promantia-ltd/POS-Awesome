@@ -183,14 +183,14 @@
                   <!-- Total -->
                   <v-col cols="4">
                     <v-text-field
-                      dense
-                      outlined
+                      density="compact"
+                      variant="outlined"
                       color="primary"
                       :label="frappe._('Item Total')"
-                      background-color="white"
+                      bg-color="white"
                       hide-details
                       :prefix="currencySymbol(pos_profile.currency)"
-                      :value="formtCurrency(item.qty * item.rate || 0.00)"
+                      :model-value="formtCurrency(item.qty * item.rate || 0.00)"
                       @change="[updateItemTotal(item, $event),  resetDiscountOnQtyChange(item),]" 
                       id="total"
                       :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
