@@ -342,38 +342,23 @@
                 </v-col>
 		<!-- Sales Person -->
                   <v-col >
-                    <v-autocomplete
-                      dense
-                      clearable
-                      auto-select-first
-                      outlined
-                      color="primary"
-                      :label="frappe._('Sales Person')"
-                      v-model="item.sales_person"
-                      :items="sales_persons"
-                      item-text="sales_person_name"
-                      item-value="name"
-                      background-color="white"
-                      :no-data-text="__('Sales Person not found')"
-                      hide-details
-                      :filter="salesPersonFilter"
-                    >
-                      <template v-slot:item="data">
-                        <template>
-                          <v-list-item-content>
-                            <v-list-item-title
-                              class="primary--text subtitle-1"
-                              v-html="data.item.sales_person_name"
-                            ></v-list-item-title>
-                            <v-list-item-subtitle
-                              v-if="data.item.sales_person_name != data.item.name"
-                              v-html="`ID: ${data.item.name}`"
-                            ></v-list-item-subtitle>
-                          </v-list-item-content>
-                        </template>
-                      </template>
-                    </v-autocomplete>
-                  </v-col>
+            <v-autocomplete density="compact" clearable variant="outlined" color="primary"
+              :label="frappe._('Sales Person')" v-model="item.sales_person" :items="sales_persons"
+              item-title="sales_person_name" item-value="name" bg-color="white"
+              :no-data-text="__('Sales Person not found')" hide-details :customFilter="salesPersonFilter"
+              >
+              <template v-slot:item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <v-list-item-title class="text-primary text-subtitle-1">
+                    <div v-html="item.raw.sales_person_name"></div>
+                  </v-list-item-title>
+                  <v-list-item-subtitle v-if="item.raw.sales_person_name != item.raw.name">
+                    <div v-html="`ID: ${item.raw.name}`"></div>
+                  </v-list-item-subtitle>
+                </v-list-item>
+              </template>
+            </v-autocomplete>
+          </v-col>
               </v-row>
             </td>
           </template>
