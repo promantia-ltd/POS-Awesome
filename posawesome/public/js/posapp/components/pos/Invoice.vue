@@ -574,8 +574,8 @@ export default {
     
     // Mark the item as modified so it doesn't reset
     item.modified = true;
-
-    this.set(this.items, this.items.indexOf(item), item);
+    this.$forceUpdate();
+    //this.set(this.items, this.items.indexOf(item), item);
     },
 
     parseFormattedCurrency(value) {
@@ -586,7 +586,10 @@ export default {
       // Find the existing item in the list and keep the modified values
       const index = this.items.findIndex(i => i.posa_row_id === item.posa_row_id);
       if (index !== -1) {
-        this.set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
+        this.items[index].rate=item.rate;
+	this.items[index].amount=item.amount;
+	this.$forceUpdate();
+	//this.set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
       }
     },
     // Sales Person
@@ -1518,7 +1521,8 @@ export default {
         item.amount = existingItem.amount;
       }
       // Now update the item normally (make sure this doesn’t override rate/amount)
-      this.set(this.items, this.items.indexOf(existingItem), item);
+      //this.set(this.items, this.items.indexOf(existingItem), item);
+      this.$forceUpdate();
       //
       if (!item.item_code || this.invoice_doc.is_return) {
         return;
@@ -1679,8 +1683,8 @@ export default {
     resetDiscountOnQtyChange(item) {
       item.discount_amount = 0.00; // Reset discount amount
       item.modified = true; // Mark as modified
-      
-      this.set(this.items, this.items.indexOf(item), item);
+      this.$forceUpdate();
+      //this.set(this.items, this.items.indexOf(item), item);
     },
 
     applyCustomDiscount(item, value) {
@@ -1696,8 +1700,8 @@ export default {
         
         // Mark the item as modified
         item.modified = true;
-
-        this.set(this.items, this.items.indexOf(item), item);
+        this.$forceUpdate();
+        //this.set(this.items, this.items.indexOf(item), item);
       }
     },
 
