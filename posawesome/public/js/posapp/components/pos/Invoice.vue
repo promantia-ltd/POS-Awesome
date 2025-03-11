@@ -569,6 +569,9 @@ export default {
     updateItemTotal(item, newTotal) {
     if (!item || item.qty <= 0) return;
     newTotal = newTotal.srcElement.value;
+    if ( typeof(newTotal) == "undefined" || newTotal == null || newTotal == "") {
+      newTotal = 0;
+    }
     const parsedTotal = this.flt(this.parseFormattedCurrency(newTotal), this.currency_precision);
     item.rate = this.flt(parsedTotal / item.qty, this.currency_precision);
     
@@ -587,9 +590,9 @@ export default {
       const index = this.items.findIndex(i => i.posa_row_id === item.posa_row_id);
       if (index !== -1) {
         this.items[index].rate=item.rate;
-	    this.items[index].amount=item.amount;
-	    this.items[index].rate = item.rate; 
-	    // this.set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
+	      this.items[index].amount=item.amount;
+	      this.items[index].rate = item.rate; 
+	      // this.set(this.items, index, { ...this.items[index], rate: item.rate, amount: item.amount });
       }
     },
     // Sales Person
