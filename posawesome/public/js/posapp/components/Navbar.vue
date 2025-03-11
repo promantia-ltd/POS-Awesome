@@ -14,12 +14,12 @@
         <span right>{{ pos_profile.name }}</span>
       </v-btn>
       <div class="text-center">
-        <v-menu target="[y]">
+        <v-menu>
           <template v-slot:activator="{ props }">
             <v-btn color="primary" theme="dark" variant="text" v-bind="props">Menu</v-btn>
           </template>
-          <v-card class="mx-auto" max-width="300" tile>
-            <v-list density="compact" v-model="menu_item" color="primary">
+          <v-card class="mx-auto" max-width="300">
+            <v-list v-model="menu_item" color="primary">
 
               <v-list-item @click="close_shift_dialog" v-if="!pos_profile.posa_hide_closing_shift && item == 0">
                 <template v-slot:prepend>
