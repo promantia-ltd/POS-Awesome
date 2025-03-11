@@ -994,7 +994,9 @@ export default {
     // total field
     updateItemTotal(item, newTotal) {
     if (!item || item.qty <= 0) return;
-
+    if ( typeof(newTotal) == "undefined" || newTotal == null || newTotal == "") {
+      newTotal = 0;
+    }
     const parsedTotal = this.flt(this.parseFormattedCurrency(newTotal), this.currency_precision);
     item.rate = this.flt(parsedTotal / item.qty, this.currency_precision);
     
