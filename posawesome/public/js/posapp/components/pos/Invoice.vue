@@ -1726,6 +1726,7 @@ export default {
           item.rate = item.price_list_rate;
           item.discount_amount = 0;
         } else if (newValue > item.price_list_rate) {
+          item.rate = newValue;
           item.discount_amount = 0;
         }
       } else if (event.target.id === "discount_amount") {
