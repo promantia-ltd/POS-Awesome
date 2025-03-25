@@ -1709,35 +1709,41 @@ export default {
     },
 
     calc_prices(item, value, $event) {
+      newValue = value.srcElement._value 
+      if ( typeof(newValue) == "undefined" || newValue == null || newValue == "") {
+        newValue = 0;
+       }
+      newValue = this.flt(this.parseFormattedCurrency(newValue), this.currency_precision);
       if (event.target.id === "rate") {
         item.discount_percentage = 0;
-        if (value < item.price_list_rate) {
+        if (newValue < item.price_list_rate) {
+          item.rate = newValue;
           item.discount_amount = this.flt(
-            this.flt(item.price_list_rate) - flt(value),
+            this.flt(item.price_list_rate) - this.flt(newValue),
             this.currency_precision
           );
-        } else if (value < 0) {
+        } else if (newValue < 0) {
           item.rate = item.price_list_rate;
           item.discount_amount = 0;
-        } else if (value > item.price_list_rate) {
+        } else if (newValue > item.price_list_rate) {
           item.discount_amount = 0;
         }
       } else if (event.target.id === "discount_amount") {
-        if (value < 0) {
+        if (newValue < 0) {
           item.discount_amount = 0;
           item.discount_percentage = 0;
         } else {
-          item.rate = flt(item.price_list_rate) - flt(value);
+          item.rate = flt(item.price_list_rate) - flt(newValue);
           item.discount_percentage = 0;
         }
       } else if (event.target.id === "discount_percentage") {
-        if (value < 0) {
+        if (newValue < 0) {
           item.discount_amount = 0;
           item.discount_percentage = 0;
         } else {
           item.rate = this.flt(
             flt(item.price_list_rate) -
-            (flt(item.price_list_rate) * flt(value)) / 100,
+            (flt(item.price_list_rate) * flt(newValue)) / 100,
             this.currency_precision
           );
           item.discount_amount = this.flt(
