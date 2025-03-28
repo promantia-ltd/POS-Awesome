@@ -93,18 +93,55 @@
         <v-data-table :headers="items_headers" :items="items" v-model:expanded="expanded" show-expand
           item-value="posa_row_id" class="elevation-1" :items-per-page="itemsPerPage" expand-on-click
           hide-default-footer @item-expanded="preserveItemState">
-          <template v-slot:item.qty="{ item }">{{
-            formatFloat(item.qty)
-          }}</template>
-          <template v-slot:item.rate="{ item }">{{ currencySymbol(pos_profile.currency) }}
-            {{ formatCurrency(item.rate) }}</template>
-          <template v-slot:item.amount="{ item }">{{ currencySymbol(pos_profile.currency) }}
-            {{
-              formatCurrency(
-                flt(item.qty, float_precision) *
-                flt(item.rate, currency_precision)
-              )
-            }}</template>
+          <template v-slot:item.qty="{ item }">
+            <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('')"
+                    bg-color="white" hide-details :model-value="formatFloat(item.qty)" @change="
+                      [
+                        this.setFormatedFloat(item, 'qty', null, false, $event.srcElement._value),
+                        this.calc_stock_qty(item, $event.srcElement._value),
+                        this.resetDiscountOnQtyChange(item),
+                      ]
+                      " :rules="[isNumber]" :disabled="!!item.posa_is_offer || !!item.posa_is_replace">
+            </v-text-field>
+          </template>
+          <template v-slot:item.rate="{ item }">
+            <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('')"
+                    bg-color="white" hide-details :prefix="currencySymbol(pos_profile.currency)"
+                    :model-value="formatCurrency(item.rate)" @change="
+                      [
+                        setFormatedCurrency(
+                          item,
+                          'rate',
+                          null,
+                          false,
+                          $event.srcElement._value
+                        ),
+                        calc_prices(item, $event.srcElement._value),
+                      ]
+                      " :rules="[isNumber]" :disabled="!!item.posa_is_offer ||
+                        !!item.posa_is_replace ||
+                        !!item.posa_offer_applied ||
+                        !pos_profile.posa_allow_user_to_edit_rate ||
+                        !!invoice_doc.is_return
+                        ? true
+                        : false
+                        ">
+            </v-text-field>
+          </template>
+          <template v-slot:item.amount="{ item }">
+            <v-text-field
+                      density="compact"
+                      variant="outlined"
+                      color="primary"
+                      :label="frappe._('')"
+                      bg-color="white"
+                      hide-details
+                      :prefix="currencySymbol(pos_profile.currency)"
+                      :model-value="formatCurrency(item.qty * item.rate || 0.00)"
+                      @change="[updateItemTotal(item, $event),  resetDiscountOnQtyChange(item),]" 
+                      :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
+                    ></v-text-field>
+          </template>
           <template v-slot:item.posa_is_offer="{ item }">
             <v-checkbox-btn :model-value="!!item.posa_is_offer || !!item.posa_is_replace" class="center"
               disabled></v-checkbox-btn>
@@ -143,7 +180,7 @@
                     bg-color="white" hide-details :model-value="formatFloat(item.qty)" @change="
                       [
                         setFormatedFloat(item, 'qty', null, false, $event),
-                        calc_stock_qty(item, $event),
+                        calc_stock_qty(item, $event.srcElement._value ),
                         resetDiscountOnQtyChange(item),
                       ]
                       " :rules="[isNumber]" :disabled="!!item.posa_is_offer || !!item.posa_is_replace"></v-text-field>
@@ -1791,6 +1828,7 @@ export default {
     },
 
     calc_stock_qty(item, value) {
+      console.log(value);
       item.stock_qty = item.conversion_factor * value;
     },
 
