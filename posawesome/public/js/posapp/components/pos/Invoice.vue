@@ -2795,15 +2795,15 @@ export default {
     });
   },
   beforeUnmount() {
-    evntBus.$off("register_pos_profile");
-    evntBus.$off("add_item");
-    evntBus.$off("update_customer");
-    evntBus.$off("fetch_customer_details");
-    evntBus.$off("clear_invoice");
-    evntBus.$off("set_offers");
-    evntBus.$off("update_invoice_offers");
-    evntBus.$off("update_invoice_coupons");
-    evntBus.$off("set_all_items");
+    this.eventBus.off("register_pos_profile");
+    this.eventBus.off("add_item");
+    this.eventBus.off("update_customer");
+    this.eventBus.off("fetch_customer_details");
+    this.eventBus.off("clear_invoice");
+    this.eventBus.off("set_offers");
+    this.eventBus.off("update_invoice_offers");
+    this.eventBus.off("update_invoice_coupons");
+    this.eventBus.off("set_all_items");
   },
   created() {
     document.addEventListener("keydown", this.shortOpenPayment.bind(this));

@@ -26,11 +26,18 @@
                 </p>
               </v-col>
             </v-row>
-            <v-row align="center" no-gutters class="mb-1">
+            <v-row :align="center" no-gutters class="mb-1">
               <v-col md="4" cols="12">
                 <v-select density="compact" variant="outlined" hide-details clearable bg-color="white"
                   v-model="pos_profile_search" :items="pos_profiles_list" item-value="name"
                   label="Select POS Profile"></v-select>
+              </v-col>
+              <v-col md="4" cols="8">
+                <v-switch v-model="include_paid" color="primary" inset dense hide-details class="small-switch mt-n2">
+                  <template v-slot:label>
+                    <span class="ml-n2 mt-1 d-block">{{ frappe._('Show Paid Invoice') }}</span>
+                  </template>
+                </v-switch>
               </v-col>
               <v-col> </v-col>
               <v-col md="3" cols="12">
@@ -107,7 +114,7 @@
                 </p>
               </v-col>
             </v-row>
-            <v-row align="center" no-gutters class="mb-1">
+            <v-row :align="center" no-gutters class="mb-1">
               <v-col md="4" cols="12" class="mr-1">
                 <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Search by Name')"
                   bg-color="white" hide-details v-model="mpesa_search_name" clearable></v-text-field>
@@ -215,6 +222,7 @@ export default {
   data: function () {
     return {
       dialog: false,
+      include_paid: false,
       pos_profile: "",
       pos_opening_shift: "",
       customer_name: "",
@@ -435,6 +443,7 @@ export default {
             company: this.company,
             currency: this.pos_profile.currency,
             pos_profile_name: this.pos_profile_search,
+            include_paid: this.include_paid
           }
         )
         .then((r) => {
@@ -657,8 +666,8 @@ export default {
     });
   },
   beforeUnmount() {
-    evntBus.$off("update_customer");
-    evntBus.$off("fetch_customer_details");
+    this.eventBus.off("update_customer");
+    this.eventBus.off("fetch_customer_details");
   },
 };
 </script>
@@ -683,4 +692,9 @@ input[total_selected_invoices] {
 input[total_selected_mpesa_payments] {
   text-align: right;
 }
+.small-switch .v-label {
+   margin-left: -6px; 
+   margin-top: 4px; /* Adjust this value as needed */
+   display: block;
+ }
 </style>

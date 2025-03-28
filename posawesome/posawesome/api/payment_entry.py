@@ -128,38 +128,68 @@ def set_paid_amount_and_received_amount(
 
 
 @frappe.whitelist()
-def get_outstanding_invoices(company, currency, customer=None, pos_profile_name=None):
+def get_outstanding_invoices(company, currency, customer=None, pos_profile_name=None, include_paid="false"):
+    print(company + " " + currency + " " + include_paid)
+    print(get_party_account("Customer", customer, company))
     if customer:
-        precision = frappe.get_precision("Sales Invoice", "outstanding_amount") or 2
-        outstanding_invoices = _get_outstanding_invoices(
-            party_type="Customer",
-            party=customer,
-            account=get_party_account("Customer", customer, company),
-        )
-        invoices_list = []
-        customer_name = frappe.get_cached_value("Customer", customer, "customer_name")
-        for invoice in outstanding_invoices:
-            if invoice.get("currency") == currency:
-                if pos_profile_name and frappe.get_cached_value(
-                    "Sales Invoice", invoice.get("voucher_no"), "pos_profile"
-                ) != pos_profile_name:
-                    continue
-                outstanding_amount = invoice.outstanding_amount
-                if outstanding_amount > 0.5 / (10**precision):
-                    invoice_dict = {
-                        "name": invoice.get("voucher_no"),
-                        "customer": customer,
-                        "customer_name": customer_name,
-                        "outstanding_amount": invoice.get("outstanding_amount"),
-                        "grand_total": invoice.get("invoice_amount"),
-                        "due_date": invoice.get("due_date"),
-                        "posting_date": invoice.get("posting_date"),
-                        "currency": invoice.get("currency"),
-                        "pos_profile": pos_profile_name,
+        if include_paid == "false":
+            precision = frappe.get_precision("Sales Invoice", "outstanding_amount") or 2
+            outstanding_invoices = _get_outstanding_invoices(
+                party_type="Customer",
+                party=customer,
+                account=[get_party_account("Customer", customer, company)],
+            )
+            invoices_list = []
+            customer_name = frappe.get_cached_value("Customer", customer, "customer_name")
+            for invoice in outstanding_invoices:
+                if invoice.get("currency") == currency:
+                    if pos_profile_name and frappe.get_cached_value(
+                        "Sales Invoice", invoice.get("voucher_no"), "pos_profile"
+                    ) != pos_profile_name:
+                        continue
+                    outstanding_amount = invoice.outstanding_amount
+                    if outstanding_amount > 0.5 / (10**precision):
+                        invoice_dict = {
+                            "name": invoice.get("voucher_no"),
+                            "customer": customer,
+                            "customer_name": customer_name,
+                            "outstanding_amount": invoice.get("outstanding_amount"),
+                            "grand_total": invoice.get("invoice_amount"),
+                            "due_date": invoice.get("due_date"),
+                            "posting_date": invoice.get("posting_date"),
+                            "currency": invoice.get("currency"),
+                            "pos_profile": pos_profile_name,
 
-                    }
-                    invoices_list.append(invoice_dict)
-        return invoices_list
+                        }
+                        invoices_list.append(invoice_dict)
+            return invoices_list
+        else:
+            filters = {
+            "company": company,
+            "outstanding_amount": ("=", 0),
+            "is_return": 0
+            }
+            if customer:
+                filters.update({"customer": customer})
+            if pos_profile_name:
+                filters.update({"pos_profile": pos_profile_name})
+            invoices = frappe.get_all(
+                "Sales Invoice",
+                filters=filters,
+                fields=[
+                    "name",
+                    "customer",
+                    "customer_name",
+                    "outstanding_amount",
+                    "grand_total",
+                    "due_date",
+                    "posting_date",
+                    "currency",
+                    "pos_profile",
+                ],
+                order_by="due_date asc",
+            )
+            return invoices
     else:
         filters = {
             "company": company,
@@ -189,7 +219,6 @@ def get_outstanding_invoices(company, currency, customer=None, pos_profile_name=
             order_by="due_date asc",
         )
         return invoices
-
 
 @frappe.whitelist()
 def get_unallocated_payments(customer, company, currency, mode_of_payment=None):
