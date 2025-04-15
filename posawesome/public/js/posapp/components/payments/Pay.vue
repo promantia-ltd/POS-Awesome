@@ -32,10 +32,11 @@
                   v-model="pos_profile_search" :items="pos_profiles_list" item-value="name"
                   label="Select POS Profile"></v-select>
               </v-col>
-              <v-col md="4" cols="8">
+              <v-col> </v-col>
+              <v-col md="4" cols="6">
                 <v-switch v-model="include_paid" color="primary" inset dense hide-details class="small-switch mt-n2">
                   <template v-slot:label>
-                    <span class="ml-n2 mt-1 d-block">{{ frappe._('Show Paid Invoice') }}</span>
+                    <span class="ml-n0 mt-4 d-block">{{ frappe._('Show Paid Invoice') }}</span>
                   </template>
                 </v-switch>
               </v-col>

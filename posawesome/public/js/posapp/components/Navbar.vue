@@ -78,9 +78,6 @@
 
           <v-list-item-title>{{ company }}</v-list-item-title>
 
-          <v-btn icon @click.stop="mini = !mini">
-            <v-icon icon="mdi-chevron-left"></v-icon>
-          </v-btn>
         </v-list-item>
         <!-- <MyPopup/> -->
         <v-list v-model="item" color="white">

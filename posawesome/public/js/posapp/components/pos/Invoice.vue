@@ -46,7 +46,7 @@
             class="small-switch mt-n2"
           >
             <template v-slot:label>
-              <span class="ml-n2 mt-1 d-block">{{ frappe._('Inclusive Tax') }}</span>
+              <span class="ml-n0 mt-4 d-block">{{ frappe._('Inclusive Tax') }}</span>
             </template>
           </v-switch>
         </v-col>
@@ -2923,7 +2923,7 @@ export default {
 }
 .small-switch .v-label {
   margin-left: -6px; 
-  margin-top: 4px; /* Adjust this value as needed */
+  margin-top: 20px; /* Adjust this value as needed */
   display: block;
 }
 </style>
