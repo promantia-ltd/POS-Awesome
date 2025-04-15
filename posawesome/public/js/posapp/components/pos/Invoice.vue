@@ -91,7 +91,7 @@
 
       <div class="my-0 py-0 overflow-y-auto" style="max-height: 60vh">
         <v-data-table :headers="items_headers" :items="items" v-model:expanded="expanded" show-expand
-          item-value="posa_row_id" class="elevation-1" :items-per-page="itemsPerPage" expand-on-click
+          item-value="posa_row_id" class="elevation-1" :items-per-page="itemsPerPage"
           hide-default-footer @item-expanded="preserveItemState">
           <template v-slot:item.qty="{ item }">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('')"
