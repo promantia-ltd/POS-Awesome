@@ -408,15 +408,22 @@ export default {
     view(id) {
       var vm = this;
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.search_invoices_for_return",
+        method: "posawesome.posawesome.api.posapp.search_invoices_with_items",
         args: {
           invoice_name: id,
           company: vm.company
         },
         async: false,
         callback: function (r) {
-          if (r.message) {
+          if (r.message && r.message.length > 0 && r.message[0].items) {
             vm.eventBus.emit("open_paid", r.message[0].items);
+          } else {
+            vm.eventBus.emit("show_message", {
+              title: __(`Invoice has no items`, [
+                id,
+              ]),
+              color: "warning",
+            });
           }
         },
       });

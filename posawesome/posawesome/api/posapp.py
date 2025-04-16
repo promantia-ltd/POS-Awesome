@@ -506,7 +506,6 @@ def update_invoice(data):
 
     if invoice_doc.is_return and invoice_doc.return_against:
         ref_doc = frappe.get_cached_doc(invoice_doc.doctype, invoice_doc.return_against)
-        invoice_doc.update_outstanding_for_self = False
         if not ref_doc.update_stock:
             invoice_doc.update_stock = 0
         if len(invoice_doc.payments) == 0:
@@ -573,6 +572,9 @@ def submit_invoice(invoice, data):
                 "Company", invoice_doc.company, "default_cash_account"
             )
         }
+    
+    if invoice_doc.is_return and invoice_doc.return_against:
+        invoice_doc.update_outstanding_for_self = True if data["is_cashback"] == 'true' else False 
 
     # creating advance payment
     if data.get("credit_change"):
@@ -1208,6 +1210,24 @@ def set_customer_info(customer, fieldname, value=""):
             "Customer", customer, "customer_primary_contact", contact_doc.name
         )
 
+@frappe.whitelist()
+def search_invoices_with_items(invoice_name, company):
+    invoices_list = frappe.get_list(
+        "Sales Invoice",
+        filters={
+            "name": ["like", f"%{invoice_name}%"],
+            "company": company,
+            "docstatus": 1,
+            "is_return": 0,
+        },
+        fields=["name"],
+        limit_page_length=0,
+        order_by="customer",
+    )
+    data = []
+    for invoice in invoices_list:
+        data.append(frappe.get_doc("Sales Invoice", invoice["name"]))
+    return data
 
 @frappe.whitelist()
 def search_invoices_for_return(invoice_name, company):

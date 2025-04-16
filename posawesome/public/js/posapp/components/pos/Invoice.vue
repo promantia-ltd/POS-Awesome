@@ -118,7 +118,7 @@
                         ),
                         calc_prices(item, $event.srcElement._value),
                       ]
-                      " :rules="[isNumber]" :disabled="!!item.posa_is_offer ||
+                      " :rules="[isNumber]" id="gridRate" :disabled="!!item.posa_is_offer ||
                         !!item.posa_is_replace ||
                         !!item.posa_offer_applied ||
                         !pos_profile.posa_allow_user_to_edit_rate ||
@@ -1751,7 +1751,7 @@ export default {
         newValue = 0;
        }
       newValue = this.flt(this.parseFormattedCurrency(newValue), this.currency_precision);
-      if (event.target.id === "rate") {
+      if (event.target.id === "rate" || event.target.id === "gridRate") {
         item.discount_percentage = 0;
         if (newValue < item.price_list_rate) {
           item.rate = newValue;
