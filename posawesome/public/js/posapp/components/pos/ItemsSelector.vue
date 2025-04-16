@@ -400,18 +400,22 @@ export default {
     },
     scan_barcoud() {
       const vm = this;
-      onScan.attachTo(document, {
-        suffixKeyCodes: [],
-        keyCodeMapper: function (oEvent) {
-          oEvent.stopImmediatePropagation();
-          return onScan.decodeKeyEvent(oEvent);
-        },
-        onScan: function (sCode) {
-          setTimeout(() => {
-            vm.trigger_onscan(sCode);
-          }, 300);
-        },
-      });
+      try {
+        onScan.attachTo(document, {
+          suffixKeyCodes: [],
+          keyCodeMapper: function (oEvent) {
+            oEvent.stopImmediatePropagation();
+            return onScan.decodeKeyEvent(oEvent);
+          },
+          onScan: function (sCode) {
+            setTimeout(() => {
+              vm.trigger_onscan(sCode);
+            }, 300);
+          },
+        });
+      } catch (error) {
+        console.log(error);
+      }
     },
     trigger_onscan(sCode) {
       if (this.filtered_items.length == 0) {
@@ -601,7 +605,7 @@ export default {
 
   mounted() {
     this.scan_barcoud();
-  },
+  }
 };
 </script>
 

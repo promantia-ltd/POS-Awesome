@@ -5,6 +5,7 @@
         <v-card class="main mx-auto bg-grey-lighten-5 mt-3 p-3 pb-16 overflow-y-auto"
           style="max-height: 94vh; height: 94vh">
           <Customer></Customer>
+          <PaidInvoice></PaidInvoice>
           <v-divider></v-divider>
           <div>
             <v-row>
@@ -55,6 +56,12 @@
               <template v-slot:item.outstanding_amount="{ item }">
                 <span class="text-primary">{{ currencySymbol(item.currency) }}
                   {{ formatCurrency(item.outstanding_amount) }}</span>
+              </template>
+              <template v-slot:item.actions="{ item }">
+                <div class="d-flex ga-2 justify-end">
+                  <v-icon color="medium-emphasis" icon="mdi-eye-arrow-right" size="small" @click="view(item.name)"></v-icon>
+
+                </div>
               </template>
             </v-data-table>
             <v-divider></v-divider>
@@ -216,6 +223,7 @@
 
 import format from "../../format";
 import Customer from "../pos/Customer.vue";
+import PaidInvoice from "../pos/PaidInvoice.vue";
 import UpdateCustomer from "../pos/UpdateCustomer.vue";
 
 export default {
@@ -282,6 +290,12 @@ export default {
           sortable: true,
           key: "outstanding_amount",
         },
+        {
+          title: __("Actions"),
+          align: "end",
+          sortable: false,
+          key: "actions",
+        }
       ],
       unallocated_payments_headers: [
         {
@@ -359,6 +373,7 @@ export default {
   components: {
     Customer,
     UpdateCustomer,
+    PaidInvoice
   },
 
   methods: {
@@ -389,6 +404,23 @@ export default {
             this.create_opening_voucher();
           }
         });
+    },
+    view(id) {
+      var vm = this;
+      frappe.call({
+        method: "posawesome.posawesome.api.posapp.search_invoices_for_return",
+        args: {
+          invoice_name: id,
+          company: vm.company
+        },
+        async: false,
+        callback: function (r) {
+          if (r.message) {
+            vm.eventBus.emit("open_paid", r.message[0].items);
+          }
+        },
+      });
+      //const found = books.value.find(book => book.id === id)
     },
     get_available_pos_profiles() {
       if (!this.pos_profile.posa_allow_mpesa_reconcile_payments) return;
