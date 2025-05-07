@@ -257,16 +257,24 @@ export default {
     },
     add_item(item) {
       item = { ...item };
-      if (item.has_variants) {
-        this.eventBus.emit("open_variants_model", item, this.items);
-      } else {
-        if (!item.qty || item.qty === 1) {
-          item.qty = Math.abs(this.qty);
-        }
-        this.eventBus.emit("add_item", item);
-        this.qty = 1;
-      }
-    },
+        if (item.has_variants) {
+          this.eventBus.emit("open_variants_model", item, this.items);
+        } else {
+          if (!item.qty || item.qty === 1) {
+        item.qty = Math.abs(this.qty);
+            }
+    if (
+      this.pos_profile.posa_use_delivery_charges &&
+      this.pos_profile.posa_auto_set_delivery_charges
+    ) {
+      this.eventBus.emit("auto_set_delivery_charge");
+    }
+
+    this.eventBus.emit("add_item", item);
+    this.qty = 1;
+  }
+},
+
     enter_event() {
       let match = false;
       if (!this.filtered_items.length || !this.first_search) {

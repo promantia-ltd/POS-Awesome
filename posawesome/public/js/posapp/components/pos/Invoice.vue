@@ -426,24 +426,21 @@
                   : false
                   "></v-text-field>
             </v-col>
+
             <v-col v-if="pos_profile.posa_use_percentage_discount" cols="6" class="pa-1">
-              <v-text-field :model-value="formatFloat(additional_discount_percentage)" @change="
-                [
-                  setFormatedFloat(
-                    additional_discount_percentage,
-                    'additional_discount_percentage',
-                    null,
-                    false,
-                    $event
-                  ),
-                  update_discount_umount(),
-                ]
-                " :rules="[isNumber]" :label="frappe._('Additional Discount %')" suffix="%" ref="percentage_discount"
-                variant="outlined" density="compact" color="warning" hide-details :disabled="!pos_profile.posa_allow_user_to_edit_additional_discount ||
-                  discount_percentage_offer_name
-                  ? true
-                  : false
-                  "></v-text-field>
+              <v-text-field
+                    v-model="additional_discount_percentage"
+                    @change="update_discount_umount"
+                    :rules="[isNumber]"
+                    :label="frappe._('Additional Discount %')"
+                    suffix="%"
+                    ref="percentage_discount"
+                    variant="outlined"
+                    density="compact"
+                    color="warning"
+                    hide-details
+                    :disabled="!pos_profile.posa_allow_user_to_edit_additional_discount || discount_percentage_offer_name"
+                  ></v-text-field>
             </v-col>
             <v-col cols="6" class="pa-1 mt-2">
               <v-text-field :model-value="formatCurrency(total_items_discount_amount)"
@@ -2780,6 +2777,20 @@ export default {
         ? "Order"
         : "Invoice";
     });
+
+    this.eventBus.on("auto_set_delivery_charge", () => {
+  if (
+    this.delivery_charges.length > 0 &&
+    !this.selected_delivery_charge
+  ) {
+    // optionally pick based on is_default
+    const default_charge = this.delivery_charges.find(dc => dc.is_default);
+    this.selected_delivery_charge = default_charge || this.delivery_charges[0];
+    this.update_delivery_charges();
+  }
+});
+
+
     this.eventBus.on("add_item", (item) => {
       this.add_item(item);
     });
