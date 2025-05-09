@@ -168,8 +168,9 @@
           </v-col>
           <v-col v-if="invoice_doc.rounded_total" cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Rounded Total')"
-              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.rounded_total)" disabled
-              :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
+              bg-color="white" hide-details :model-value="formatCurrency(
+              pos_profile.disable_rounded_total ? invoice_doc.grand_total : invoice_doc.rounded_total)" disabled
+              :prefix="currencySymbol(invoice_doc.currency)" ></v-text-field>
           </v-col>
           <v-col cols="6" v-if="pos_profile.posa_allow_sales_order && invoiceType == 'Order'">
             <v-menu ref="order_delivery_date" v-model="order_delivery_date" :close-on-content-click="false"
@@ -960,14 +961,16 @@ export default {
       return this.flt(total, this.currency_precision);
     },
     diff_payment() {
-      let diff_payment = this.flt(
-        (this.invoice_doc.rounded_total || this.invoice_doc.grand_total) -
-        this.total_payments,
-        this.currency_precision
-      );
-      this.paid_change = -diff_payment;
-      return diff_payment;
-    },
+      const total = this.pos_profile?.disable_rounded_total
+          ? this.invoice_doc.grand_total
+          : (this.invoice_doc.rounded_total || this.invoice_doc.grand_total);
+          const diff_payment = this.flt(
+          total - this.total_payments,
+          this.currency_precision
+          );
+          this.paid_change = -diff_payment;
+          return diff_payment;
+},
     credit_change() {
       let change = -this.diff_payment;
       if (this.paid_change > change) return 0;

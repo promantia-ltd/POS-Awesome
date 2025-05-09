@@ -1042,6 +1042,7 @@ export default {
         this.additional_discount_percentage
       );
       doc.posa_pos_opening_shift = this.pos_opening_shift.name;
+      doc.disable_rounded_total = this.pos_profile.disable_rounded_total ? 1 : 0;
       doc.payments = this.get_payments();
       doc.taxes = [];
       doc.is_return = this.invoice_doc.is_return;
