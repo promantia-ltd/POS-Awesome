@@ -31,76 +31,45 @@
         </v-row>
         <v-divider></v-divider>
 
-      <div v-if="is_cashback">
-        <v-row class="pyments px-1 py-0" v-for="payment in invoice_doc.payments" :key="payment.name">
-          <v-col cols="6" v-if="!is_mpesa_c2b_payment(payment)">
-            <v-text-field
-              density="compact"
-              variant="outlined"
-              color="primary"
-              :label="frappe._(payment.mode_of_payment)"
-              bg-color="white"
-              hide-details
-              v-model.number="payment.amount"
-              type="number"
-              step="0.01"
-              @blur="payment.amount = flt(payment.amount)"
-              :rules="[isNumber, v => validateAmount(v, payment)]"
-              :prefix="currencySymbol(invoice_doc.currency)"
-              :readonly="invoice_doc.is_return ? true : false"
-      />
-    </v-col>
-
-    <v-col
-      v-if="!is_mpesa_c2b_payment(payment)"
-      :cols="6
-        ? (payment.type != 'Phone' ||
-          payment.amount == 0 ||
-          !request_payment_field) &&
-        !is_mpesa_c2b_payment(payment)
-        : 3"
-    >
-      <v-btn
-        block
-        class=""
-        color="primary"
-        theme="dark"
-        @click="set_full_amount(payment.idx)"
-      >
-        {{ payment.mode_of_payment }}
-      </v-btn>
-    </v-col>
-
-    <v-col v-if="is_mpesa_c2b_payment(payment)" :cols="12" class="pl-3">
-      <v-btn
-        block
-        class=""
-        color="success"
-        theme="dark"
-        @click="mpesa_c2b_dialg(payment)"
-      >
-        {{ __(`Get Payments ${payment.mode_of_payment}`) }}
-      </v-btn>
-    </v-col>
-
-    <v-col
-      v-if="payment.type == 'Phone' && payment.amount > 0 && request_payment_field"
-      :cols="3"
-      class="pl-1"
-    >
-      <v-btn
-        block
-        class=""
-        color="success"
-        theme="dark"
-        :disabled="payment.amount == 0"
-        @click="(phone_dialog = true), (payment.amount = flt(payment.amount, 0))"
-      >
-        {{ __("Request") }}
-      </v-btn>
-    </v-col>
-  </v-row>
-</div>
+        <div v-if="is_cashback">
+          <v-row class="pyments px-1 py-0" v-for="payment in invoice_doc.payments" :key="payment.name">
+            <v-col cols="6" v-if="!is_mpesa_c2b_payment(payment)">
+              <v-text-field density="compact" variant="outlined" color="primary"
+                :label="frappe._(payment.mode_of_payment)" bg-color="white" hide-details
+                :model-value="formatCurrency(payment.amount)" @change="
+                  setFormatedCurrency(payment, 'amount', null, true, $event)
+                  " :rules="[isNumber]" :prefix="currencySymbol(invoice_doc.currency)"
+                @focus="set_rest_amount(payment.idx)" :readonly="invoice_doc.is_return ? true : false"></v-text-field>
+            </v-col>
+            <v-col v-if="!is_mpesa_c2b_payment(payment)" :cols="6
+              ? (payment.type != 'Phone' ||
+                payment.amount == 0 ||
+                !request_payment_field) &&
+              !is_mpesa_c2b_payment(payment)
+              : 3
+              ">
+              <v-btn block class="" color="primary" theme="dark" @click="set_full_amount(payment.idx)">{{
+                payment.mode_of_payment }}</v-btn>
+            </v-col>
+            <v-col v-if="is_mpesa_c2b_payment(payment)" :cols="12" class="pl-3">
+              <v-btn block class="" color="success" theme="dark" @click="mpesa_c2b_dialg(payment)">
+                {{ __(`Get Payments ${payment.mode_of_payment}`) }}
+              </v-btn>
+            </v-col>
+            <v-col v-if="
+              payment.type == 'Phone' &&
+              payment.amount > 0 &&
+              request_payment_field
+            " :cols="3" class="pl-1">
+              <v-btn block class="" color="success" theme="dark" :disabled="payment.amount == 0" @click="
+                (phone_dialog = true),
+                (payment.amount = flt(payment.amount, 0))
+                ">
+                {{ __("Request") }}
+              </v-btn>
+            </v-col>
+          </v-row>
+        </div>
 
         <v-row class="pyments px-1 py-0" v-if="
           invoice_doc &&
@@ -168,9 +137,8 @@
           </v-col>
           <v-col v-if="invoice_doc.rounded_total" cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Rounded Total')"
-              bg-color="white" hide-details :model-value="formatCurrency(
-              pos_profile.disable_rounded_total ? invoice_doc.grand_total : invoice_doc.rounded_total)" disabled
-              :prefix="currencySymbol(invoice_doc.currency)" ></v-text-field>
+              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.rounded_total)" disabled
+              :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
           <v-col cols="6" v-if="pos_profile.posa_allow_sales_order && invoiceType == 'Order'">
             <v-menu ref="order_delivery_date" v-model="order_delivery_date" :close-on-content-click="false"
@@ -519,19 +487,7 @@ export default {
         return;
       }
 
-      const invoice_total = flt(this.invoice_doc.rounded_total || this.invoice_doc.grand_total);
-        const total_payments_entered = this.invoice_doc.payments.reduce((sum, payment) => {
-          return sum + flt(payment.amount || 0);
-        }, 0);
 
-        if (total_payments_entered > invoice_total) {
-          this.eventBus.emit("show_message", {
-            title: `Total payment (${this.formatCurrency(total_payments_entered)}) exceeds invoice total (${this.formatCurrency(invoice_total)})`,
-            color: "error",
-          });
-          frappe.utils.play_sound("error");
-          return;
-        }
 
       this.is_sucessful_invoice = this.submit_invoice(print);
 
@@ -961,16 +917,14 @@ export default {
       return this.flt(total, this.currency_precision);
     },
     diff_payment() {
-      const total = this.pos_profile?.disable_rounded_total
-          ? this.invoice_doc.grand_total
-          : (this.invoice_doc.rounded_total || this.invoice_doc.grand_total);
-          const diff_payment = this.flt(
-          total - this.total_payments,
-          this.currency_precision
-          );
-          this.paid_change = -diff_payment;
-          return diff_payment;
-},
+      let diff_payment = this.flt(
+        (this.invoice_doc.rounded_total || this.invoice_doc.grand_total) -
+        this.total_payments,
+        this.currency_precision
+      );
+      this.paid_change = -diff_payment;
+      return diff_payment;
+    },
     credit_change() {
       let change = -this.diff_payment;
       if (this.paid_change > change) return 0;

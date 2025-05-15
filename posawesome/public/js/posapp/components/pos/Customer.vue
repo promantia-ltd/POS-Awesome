@@ -25,7 +25,6 @@
         </v-list-item>
       </template>
     </v-autocomplete>
-    {{ console.log("my ccustomers", customers) }}
     <div class="mb-8">
       <UpdateCustomer></UpdateCustomer>
     </div>
@@ -65,9 +64,7 @@ export default {
         },
         callback: function (r) {
           if (r.message) {
-            console.log(vm.customers)
             vm.customers = r.message;
-            console.log(vm.customers)
             if (vm.pos_profile.posa_local_storage) {
               localStorage.setItem('customer_storage', '');
               localStorage.setItem(
