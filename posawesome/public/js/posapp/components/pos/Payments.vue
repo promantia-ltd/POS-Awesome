@@ -112,32 +112,38 @@
         <v-row class="px-1 py-0">
           <v-col cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Net Total')"
-              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.net_total)" disabled
+              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.net_total)" readonly
               :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
           <v-col cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Tax and Charges')"
-              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.total_taxes_and_charges)" disabled
+              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.total_taxes_and_charges)" readonly
               :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
           <v-col cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Total Amount')"
-              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.total)" disabled
+              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.total)" readonly
               :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
           <v-col cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Discount Amount')"
-              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.discount_amount)" disabled
+              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.discount_amount)" readonly
               :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
+        <v-col cols="12">
+            <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Delivery Charge')"
+              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.custom_delivery_charge_rate || 0)"
+              readonly :prefix="currencySymbol(invoice_doc.currency)"
+            ></v-text-field>
+        </v-col>
           <v-col cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Grand Total')"
-              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.grand_total)" disabled
+              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.grand_total)" readonly
               :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
           <v-col v-if="invoice_doc.rounded_total" cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Rounded Total')"
-              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.rounded_total)" disabled
+              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.rounded_total)" readonly
               :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
           <v-col cols="6" v-if="pos_profile.posa_allow_sales_order && invoiceType == 'Order'">

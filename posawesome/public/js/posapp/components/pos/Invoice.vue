@@ -452,10 +452,10 @@
             </v-col>
 
             <v-col cols="6" class="pa-1 mt-2">
-              <v-text-field :model-value="formatCurrency(subtotal)" :prefix="currencySymbol(pos_profile.currency)"
+              <v-text-field :model-value="formatCurrency(subtotal, 3)" :prefix="currencySymbol(pos_profile.currency)"
                 :label="frappe._('Total')" variant="outlined" density="compact" readonly hide-details
-                color="success"></v-text-field>
-            </v-col>
+            color="success"></v-text-field>
+          </v-col> 
           </v-row>
         </v-col>
         <v-col cols="5">
@@ -590,7 +590,10 @@ export default {
       });
       sum -= this.flt(this.discount_amount);
       sum += this.flt(this.delivery_charges_rate);
-      return this.flt(sum, this.currency_precision);
+      const result = Math.round(sum * 100) / 100;
+      const final = Math.round(result * 100) / 100;
+
+      return final;
     },
     total_items_discount_amount() {
       let sum = 0;
@@ -1044,6 +1047,7 @@ export default {
       doc.additional_discount_percentage = flt(
         this.additional_discount_percentage
       );
+      doc.custom_delivery_charge_rate = this.delivery_charges_rate || 0
       doc.posa_pos_opening_shift = this.pos_opening_shift.name;
       doc.payments = this.get_payments();
       doc.taxes = [];
@@ -2779,6 +2783,17 @@ export default {
       this.invoiceType = this.pos_profile.posa_default_sales_order
         ? "Order"
         : "Invoice";
+    });
+     this.eventBus.on("auto_set_delivery_charge", () => {
+      if (
+        this.delivery_charges.length > 0 &&
+        !this.selected_delivery_charge
+      ) {
+        // optionally pick based on is_default
+        const default_charge = this.delivery_charges.find(dc => dc.is_default);
+        this.selected_delivery_charge = default_charge || this.delivery_charges[0];
+        this.update_delivery_charges();
+        }
     });
     this.eventBus.on("add_item", (item) => {
       this.add_item(item);

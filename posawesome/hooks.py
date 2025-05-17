@@ -258,6 +258,7 @@ fixtures = [
                     "POS Profile-posa_allow_mpesa_reconcile_payments",
                     "POS Profile-custom_allow_user_to_edit_item_total",
                     "Sales Invoice Item-custom_sales_person",
+                    "Sales Invoice-custom_delivery_charge_rate"
                 ),
             ]
         ],
