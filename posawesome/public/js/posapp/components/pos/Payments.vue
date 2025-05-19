@@ -130,12 +130,22 @@
               bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.discount_amount)" readonly
               :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
-        <v-col cols="12">
-            <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Delivery Charge')"
-              bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.custom_delivery_charge_rate || 0)"
-              readonly :prefix="currencySymbol(invoice_doc.currency)"
-            ></v-text-field>
-        </v-col>
+    
+<v-col cols="12">
+  <v-text-field
+    density="compact"
+    variant="outlined"
+    color="primary"
+    :label="frappe._('Delivery Charge')"
+    bg-color="white"
+    hide-details
+    :model-value="formatCurrency(invoice_doc.custom_delivery_charge_rate || 0)"
+    readonly
+    :prefix="currencySymbol(invoice_doc.currency)"
+  ></v-text-field>
+</v-col>
+
+
           <v-col cols="6">
             <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Grand Total')"
               bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.grand_total)" readonly
