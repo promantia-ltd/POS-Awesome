@@ -34,12 +34,11 @@
         <div v-if="is_cashback">
           <v-row class="pyments px-1 py-0" v-for="payment in invoice_doc.payments" :key="payment.name">
             <v-col cols="6" v-if="!is_mpesa_c2b_payment(payment)">
-              <v-text-field density="compact" variant="outlined" color="primary"
-                :label="frappe._(payment.mode_of_payment)" bg-color="white" hide-details
-                :model-value="formatCurrency(payment.amount)" @change="
-                  setFormatedCurrency(payment, 'amount', null, true, $event)
-                  " :rules="[isNumber]" :prefix="currencySymbol(invoice_doc.currency)"
-                @focus="set_rest_amount(payment.idx)" :readonly="invoice_doc.is_return ? true : false"></v-text-field>
+                <v-text-field density="compact" variant="outlined" color="primary"
+                  :label="frappe._(payment.mode_of_payment)" bg-color="white" hide-details
+                    v-model="payment.amount" :rules="[isNumber]" :prefix="currencySymbol(invoice_doc.currency)"
+                    @focus="set_rest_amount(payment.idx)" :readonly="invoice_doc.is_return ? true : false" 
+                ></v-text-field>  
             </v-col>
             <v-col v-if="!is_mpesa_c2b_payment(payment)" :cols="6
               ? (payment.type != 'Phone' ||
@@ -131,19 +130,11 @@
               :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
           </v-col>
     
-<v-col cols="12">
-  <v-text-field
-    density="compact"
-    variant="outlined"
-    color="primary"
-    :label="frappe._('Delivery Charge')"
-    bg-color="white"
-    hide-details
-    :model-value="formatCurrency(invoice_doc.custom_delivery_charge_rate || 0)"
-    readonly
-    :prefix="currencySymbol(invoice_doc.currency)"
-  ></v-text-field>
-</v-col>
+          <v-col cols="6">
+              <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Delivery Charge')"
+                bg-color="white" hide-details :model-value="formatCurrency(invoice_doc.custom_delivery_charge_rate || 0)" readonly
+                :prefix="currencySymbol(invoice_doc.currency)"></v-text-field>
+          </v-col>
 
 
           <v-col cols="6">
@@ -1011,7 +1002,6 @@ export default {
   mounted: function () {
     this.$nextTick(function () {
       this.eventBus.on("send_invoice_doc_payment", (invoice_doc) => {
-        console.log(invoice_doc);
         this.invoice_doc = invoice_doc.invoice_doc;
         const default_payment = this.invoice_doc.payments.find(
           (payment) => payment.default == 1
@@ -1020,8 +1010,8 @@ export default {
         this.is_write_off_change = 0;
         if (default_payment && !invoice_doc.is_return) {
           default_payment.amount = this.flt(
-            invoice_doc.rounded_total || invoice_doc.grand_total,
-            this.currency_precision
+          this.invoice_doc.rounded_total || this.invoice_doc.grand_total,
+          this.currency_precision
           );
         }
         if (invoice_doc.is_return) {
