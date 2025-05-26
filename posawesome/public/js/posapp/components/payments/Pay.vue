@@ -47,7 +47,7 @@
               </v-col>
             </v-row>
             <v-data-table :headers="invoices_headers" :items="outstanding_invoices" item-key="name"
-              class="elevation-1 mt-0" show-select v-model="selected_invoices" :loading="invoices_loading"
+              class="elevation-1 mt-0" show-select v-model="selected_invoices" :loading="invoices_loading" return-object
               checkbox-color="primary" @item-selected="onInvoiceSelected">
               <template v-slot:item.grand_total="{ item }">
                 {{ currencySymbol(item.currency) }}

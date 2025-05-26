@@ -72,12 +72,10 @@ export default {
     close_dialog() {
       this.varaintsDialog = false;
     },
-    formatCurrency(value, precision = 3) {
-    value = parseFloat(value);
-    const multiplier = Math.pow(10, precision);
-    const rounded_up = Math.ceil(value * multiplier) / multiplier;
-    return rounded_up.toFixed(precision).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-},
+    formatCurrency(value) {
+      value = parseFloat(value);
+      return value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    },
     updateFiltredItems() {
       this.$nextTick(function () {
         const values = [];

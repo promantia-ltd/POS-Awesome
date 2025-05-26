@@ -427,23 +427,10 @@
                   "></v-text-field>
             </v-col>
             <v-col v-if="pos_profile.posa_use_percentage_discount" cols="6" class="pa-1">
-              <v-text-field :model-value="formatFloat(additional_discount_percentage)" @change="
-                [
-                  setFormatedFloat(
-                    additional_discount_percentage,
-                    'additional_discount_percentage',
-                    null,
-                    false,
-                    $event
-                  ),
-                  update_discount_umount(),
-                ]
-                " :rules="[isNumber]" :label="frappe._('Additional Discount %')" suffix="%" ref="percentage_discount"
-                variant="outlined" density="compact" color="warning" hide-details :disabled="!pos_profile.posa_allow_user_to_edit_additional_discount ||
-                  discount_percentage_offer_name
-                  ? true
-                  : false
-                  "></v-text-field>
+              <v-text-field v-model="additional_discount_percentage" @change="update_discount_umount" @blur="format_discount_input"
+                :rules="[isNumber]" :label="frappe._('Additional Discount %')" ref="percentage_discount" variant="outlined"
+                  density="compact" color="warning" hide-details :disabled="!pos_profile.posa_allow_user_to_edit_additional_discount || discount_percentage_offer_name"
+              ></v-text-field>
             </v-col>
             <v-col cols="6" class="pa-1 mt-2">
               <v-text-field :model-value="formatCurrency(total_items_discount_amount)"
@@ -452,7 +439,7 @@
             </v-col>
 
             <v-col cols="6" class="pa-1 mt-2">
-              <v-text-field :model-value="formatCurrency(subtotal, 3)" :prefix="currencySymbol(pos_profile.currency)"
+              <v-text-field :model-value="formatCurrency(subtotal)" :prefix="currencySymbol(pos_profile.currency)"
                 :label="frappe._('Total')" variant="outlined" density="compact" readonly hide-details
             color="success"></v-text-field>
           </v-col> 
@@ -578,7 +565,7 @@ export default {
     Total() {
       let sum = 0;
       this.items.forEach((item) => {
-        sum += flt(item.qty) * flt(item.rate);
+        sum += flt(item.qty) * flt(item.rate)+this.delivery_charges_rate;
       });
       return this.flt(sum, this.currency_precision);
     },
@@ -590,10 +577,7 @@ export default {
       });
       sum -= this.flt(this.discount_amount);
       sum += this.flt(this.delivery_charges_rate);
-      const result = Math.round(sum * 100) / 100;
-      const final = Math.round(result * 100) / 100;
-
-      return final;
+      return this.flt(sum, this.currency_precision);
     },
     total_items_discount_amount() {
       let sum = 0;
@@ -620,6 +604,16 @@ export default {
     item.amount = parsedTotal;
     //this.set(this.items, this.items.indexOf(item), item);
     },
+    format_discount_input() {
+    if (!isNaN(this.additional_discount_percentage)) {
+      this.additional_discount_percentage = this.formatFloat(this.additional_discount_percentage, 2);
+    }
+  },
+
+  formatFloat(value, precision) {
+    const format = get_number_format(this.pos_profile.currency);
+    return format_number(value, format, precision || this.float_precision || 2);
+  },
 
     parseFormattedCurrency(value) {
       return parseFloat(value.toString().replace(/[^\d.-]/g, ""));
@@ -1716,14 +1710,16 @@ export default {
       this.eventBus.emit("update_customer_price_list", price_list);
     },
     update_discount_umount() {
-      const value = flt(this.additional_discount_percentage);
+      let value = flt(this.additional_discount_percentage);
+      value = parseFloat(value.toFixed(11));
+      this.additional_discount_percentage = value;
       if (value >= -100 && value <= 100) {
-        this.discount_amount = (this.Total * value) / 100;
+        this.discount_amount = parseFloat((((this.Total) * value) / 100).toFixed(12));
       } else {
         this.additional_discount_percentage = 0;
         this.discount_amount = 0;
-      }
-    },
+  }
+},
 
     resetDiscountOnQtyChange(item) {
       item.discount_amount = 0.00; // Reset discount amount

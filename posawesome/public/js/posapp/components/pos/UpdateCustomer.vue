@@ -37,16 +37,14 @@
                   hide-details v-model="referral_code"></v-text-field>
               </v-col>
               <v-col cols="6">
-                <v-menu ref="birthday_menu" v-model="birthday_menu" :close-on-content-click="false"
-                  transition="scale-transition" density="default">
+                <v-menu ref="birthday_menu" v-model="birthday_menu" :close-on-content-click="false" transition="scale-transition" density="default">
                   <template v-slot:activator="{ props }">
-                    <v-text-field v-model="birthday" :label="frappe._('Birthday')" readonly density="compact" clearable
-                      hide-details v-bind="props" color="primary"></v-text-field>
-                  </template>
-                  <v-date-picker v-model="birthday" color="primary" no-title scrollable
-                    :max="frappe.datetime.now_date()" @input="birthday_menu = false">
-                  </v-date-picker>
-                </v-menu>
+                    <v-text-field v-model="birthday_string" :label="frappe._('Birthday')" readonly density="compact" variant="underlined"
+                      clearable hide-details v-bind="props" color="primary"/>
+                </template> 
+                <v-date-picker v-model="birthday" color="primary" no-title scrollable :max="frappe.datetime.now_date()"
+                    @update:model-value="birthday_menu = false"/>
+                    </v-menu> 
               </v-col>
               <v-col cols="6">
                 <v-autocomplete clearable density="compact" auto-select-first color="primary"
@@ -110,6 +108,16 @@ export default {
     loyalty_program: null,
   }),
   watch: {},
+  computed: {
+    birthday_string: {
+      get() {
+        return this.birthday ? frappe.datetime.obj_to_str(this.birthday, 'dd-mm-yyyy') : '';
+      },
+      set(val) {
+        this.birthday = frappe.datetime.str_to_obj(val);
+      }
+    }
+  },
   methods: {
     close_dialog() {
       this.customerDialog = false;
@@ -214,7 +222,7 @@ export default {
           mobile_no: this.mobile_no,
           email_id: this.email_id,
           referral_code: this.referral_code,
-          birthday: frappe.format(this.birthday, { fieldtype: 'Date' }),
+          birthday: frappe.datetime.obj_to_str(this.birthday, 'yyyy-mm-dd'),
           customer_group: this.group,
           territory: this.territory,
           customer_type: this.customer_type,
@@ -232,7 +240,7 @@ export default {
                 text = __('Customer updated successfully.');
               }
               vm.eventBus.emit('show_message', {
-                text: text,
+                title: text,
                 color: 'success',
               });
               args.name = r.message.name;

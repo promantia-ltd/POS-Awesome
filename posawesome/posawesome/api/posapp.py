@@ -1080,7 +1080,7 @@ def create_customer(
             else:
                 customer.territory = "All Territories"
             customer.save()
-            return customer
+            return {"name": customer.name}
         else:
             frappe.throw(_("Customer already exists"))
 
@@ -1100,7 +1100,9 @@ def create_customer(
             set_customer_info(customer_doc.name, "mobile_no", mobile_no)
         if email_id != customer_doc.email_id:
             set_customer_info(customer_doc.name, "email_id", email_id)
-        return customer_doc
+        return {"name": customer_doc.name}
+
+    
 
 
 @frappe.whitelist()
