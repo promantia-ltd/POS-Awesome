@@ -37,14 +37,13 @@
                   hide-details v-model="referral_code"></v-text-field>
               </v-col>
               <v-col cols="6">
-                <v-menu ref="birthday_menu" v-model="birthday_menu" :close-on-content-click="false" transition="scale-transition" density="default">
-                  <template v-slot:activator="{ props }">
-                    <v-text-field v-model="birthday_string" :label="frappe._('Birthday')" readonly density="compact" variant="underlined"
-                      clearable hide-details v-bind="props" color="primary"/>
-                </template> 
+                <v-menu ref="birthday_menu" v-model="birthday_menu"> <template v-slot:activator="{ props }">
+                  <v-text-field v-model="birthday_string" :label="frappe._('Birthday')" readonly density="compact"
+                    variant="underlined" clearable hide-details v-bind="props" color="primary" @click:clear="resetBirthday"/>
+                </template>
                 <v-date-picker v-model="birthday" color="primary" no-title scrollable :max="frappe.datetime.now_date()"
-                    @update:model-value="birthday_menu = false"/>
-                    </v-menu> 
+                  @update:model-value="birthday_menu = false"/>
+                </v-menu>
               </v-col>
               <v-col cols="6">
                 <v-autocomplete clearable density="compact" auto-select-first color="primary"
@@ -111,10 +110,11 @@ export default {
   computed: {
     birthday_string: {
       get() {
-        return this.birthday ? frappe.datetime.obj_to_str(this.birthday, 'dd-mm-yyyy') : '';
+        return this.birthday ? 
+          frappe.datetime.obj_to_str(this.birthday, 'dd-mm-yyyy') : '';
       },
       set(val) {
-        this.birthday = frappe.datetime.str_to_obj(val);
+        this.birthday = val ? frappe.datetime.str_to_obj(val) : null;
       }
     }
   },
@@ -129,7 +129,13 @@ export default {
       this.mobile_no = '';
       this.email_id = '';
       this.referral_code = '';
-      this.birthday = '';
+      this.birthday = null; // Explicit null instead of empty string
+      this.birthday_menu = false; // Reset menu state
+      this.$nextTick(() => {
+    if (this.$refs.birthday_menu) {
+      this.$refs.birthday_menu.isActive = false; // Force close menu
+    }
+  });
       this.group = frappe.defaults.get_user_default('Customer Group');
       this.territory = frappe.defaults.get_user_default('Territory');
       this.customer_id = '';
@@ -272,13 +278,15 @@ export default {
         this.mobile_no = data.mobile_no;
         this.email_id = data.email_id;
         this.referral_code = data.referral_code;
-        this.birthday = data.birthday;
+        this.birthday = data.birthday ? new Date(data.birthday) : null;
         this.group = data.customer_group;
         this.territory = data.territory;
         this.loyalty_points = data.loyalty_points;
         this.loyalty_program = data.loyalty_program;
         this.gender = data.gender;
-      }
+      }else {
+      this.birthday = null; // Explicit null for new customers
+    }
     });
     this.eventBus.on('register_pos_profile', (data) => {
       this.pos_profile = data.pos_profile;

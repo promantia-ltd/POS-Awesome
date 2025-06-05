@@ -189,10 +189,10 @@
               <v-row v-if="payment_methods.length" v-for="method in payment_methods" :key="method.row_id">
                 <v-col md="7"><span class="mt-1">{{ __(method.mode_of_payment) }}:</span>
                 </v-col>
-                <v-col md="5"><v-text-field class="p-0 m-0" density="compact" color="primary" bg-color="white"
-                    hide-details :model-value="formatCurrency(method.amount)" @change="
-                      setFormatedCurrency(method, 'amount', null, true, $event)
-                      " payments_methods flat :prefix="currencySymbol(pos_profile.currency)"></v-text-field></v-col>
+                <v-col md="5">
+                  <v-text-field  class="p-0 m-0" density="compact" color="primary" bg-color="white" hide-details
+                    v-model.number="method.amount" @input="calculateDifference" flat :prefix="currencySymbol(pos_profile.currency)"
+                  ></v-text-field></v-col>
               </v-row>
             </div>
 
@@ -428,6 +428,10 @@ export default {
         },
       });
       //const found = books.value.find(book => book.id === id)
+    },
+
+    calculateDifference() {
+      console.log("New difference calculated:", this.total_of_diff);
     },
     get_available_pos_profiles() {
       if (!this.pos_profile.posa_allow_mpesa_reconcile_payments) return;

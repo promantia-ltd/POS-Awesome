@@ -234,27 +234,11 @@
                     ></v-text-field>
                   </v-col>
                 <v-col cols="4">
-                  <v-text-field density="compact" variant="outlined" color="primary"
-                    :label="frappe._('Discount Percentage')" bg-color="white" hide-details
-                    :model-value="formatFloat(item.discount_percentage)" @change="
-                      [
-                        setFormatedCurrency(
-                          item,
-                          'discount_percentage',
-                          null,
-                          true,
-                          $event
-                        ),
-                        calc_prices(item, $event),
-                      ]
-                      " :rules="[isNumber]" id="discount_percentage" :disabled="!!item.posa_is_offer ||
-                        !!item.posa_is_replace ||
-                        item.posa_offer_applied ||
-                        !pos_profile.posa_allow_user_to_edit_item_discount ||
-                        !!invoice_doc.is_return
-                        ? true
-                        : false
-                        " suffix="%"></v-text-field>
+                  <v-text-field :model-value="formatFloat(item.discount_percentage)" @change="(event) => handleDiscountPercentageChange(item, event)"
+                    density="compact" variant="outlined" color="primary" label="Discount Percentage" bg-color="white"
+                      hide-details :rules="[isNumber]" suffix="%" :disabled="!!item.posa_is_offer ||  !!item.posa_is_replace || item.posa_offer_applied ||
+                        !pos_profile.posa_allow_user_to_edit_item_discount || !!invoice_doc.is_return" id="discount_percentage"
+                  ></v-text-field>
                 </v-col>
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary"
@@ -609,6 +593,24 @@ export default {
       this.additional_discount_percentage = this.formatFloat(this.additional_discount_percentage, 2);
     }
   },
+
+  handleDiscountPercentageChange(item, event) {
+    const newValue = this.flt(this.parseFormattedCurrency(event.target.value), this.currency_precision);
+    item.discount_percentage = newValue;
+    
+    const syntheticEvent = {
+      target: {
+        id: "discount_percentage",
+        _value: newValue.toString()
+      },
+      srcElement: {
+        _value: newValue.toString()
+      }
+    };
+    
+    this.calc_prices(item, syntheticEvent, syntheticEvent);
+  },
+
 
   formatFloat(value, precision) {
     const format = get_number_format(this.pos_profile.currency);

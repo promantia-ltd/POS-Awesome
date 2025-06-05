@@ -319,7 +319,7 @@ def process_pos_payment(payload):
                     amount=flt(payment_method.get("amount")),
                     mode_of_payment=payment_method.get("mode_of_payment"),
                     posting_date=today,
-                    reference_no=pos_opening_shift_name,
+                    # reference_no=pos_opening_shift_name,
                     reference_date=today,
                     cost_center=data.pos_profile.get("cost_center"),
                     submit=1,
