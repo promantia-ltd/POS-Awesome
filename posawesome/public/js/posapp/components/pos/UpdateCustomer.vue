@@ -37,12 +37,12 @@
                   hide-details v-model="referral_code"></v-text-field>
               </v-col>
               <v-col cols="6">
-                <v-menu ref="birthday_menu" v-model="birthday_menu"> <template v-slot:activator="{ props }">
-                  <v-text-field v-model="birthday_string" :label="frappe._('Birthday')" readonly density="compact"
-                    variant="underlined" clearable hide-details v-bind="props" color="primary" @click:clear="resetBirthday"/>
-                </template>
-                <v-date-picker v-model="birthday" color="primary" no-title scrollable :max="frappe.datetime.now_date()"
-                  @update:model-value="birthday_menu = false"/>
+                <v-menu v-model="birthday_menu" :close-on-content-click="false" transition="scale-transition" offset-y min-width="290px">
+                  <template v-slot:activator="{ props }"> <v-text-field v-model="birthday_string" :label="frappe._('Birthday')"
+                    readonly density="compact" clearable v-bind="props" color="primary" hide-details @click:clear="resetBirthday"/>
+                  </template>
+                  <v-date-picker v-model="birthday" color="primary" :max="frappe.datetime.now_date()" show-adjacent-months
+                  view="date" @update:model-value="birthday_menu = false"/>
                 </v-menu>
               </v-col>
               <v-col cols="6">
@@ -228,7 +228,9 @@ export default {
           mobile_no: this.mobile_no,
           email_id: this.email_id,
           referral_code: this.referral_code,
-          birthday: frappe.datetime.obj_to_str(this.birthday, 'yyyy-mm-dd'),
+          birthday: this.birthday
+            ? frappe.datetime.obj_to_str(this.birthday, 'yyyy-mm-dd')
+            : null,
           customer_group: this.group,
           territory: this.territory,
           customer_type: this.customer_type,

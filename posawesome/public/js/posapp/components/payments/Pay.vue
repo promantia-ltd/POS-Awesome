@@ -92,15 +92,17 @@
               </v-col>
             </v-row>
             <v-data-table :headers="unallocated_payments_headers" :items="unallocated_payments" item-key="name"
-              class="elevation-1 mt-0" :single-select="singleSelect" show-select v-model="selected_payments"
-              :loading="unallocated_payments_loading" checkbox-color="primary">
+              class="elevation-1 mt-0" :single-select="singleSelect" show-select v-model="selected_payments" return-object
+              :loading="unallocated_payments_loading" checkbox-color="primary" >
               <template v-slot:item.paid_amount="{ item }">
                 {{ currencySymbol(item.currency) }}
                 {{ formatCurrency(item.paid_amount) }}
               </template>
               <template v-slot:item.unallocated_amount="{ item }">
-                <span class="text-primary">{{ currencySymbol(item.currency) }}
-                  {{ formatCurrency(item.unallocated_amount) }}</span>
+                <span class="text-primary">
+                  {{ currencySymbol(item.currency) }}
+                  {{ formatCurrency(item.unallocated_amount) }}
+                </span>
               </template>
             </v-data-table>
             <v-divider></v-divider>
