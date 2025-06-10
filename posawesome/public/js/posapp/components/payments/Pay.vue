@@ -287,7 +287,7 @@ export default {
           key: "grand_total",
         },
         {
-          title: __("Outstanding"),
+          title: __("Outstanding Amount"),
           align: "end",
           sortable: true,
           key: "outstanding_amount",
