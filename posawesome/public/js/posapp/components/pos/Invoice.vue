@@ -70,7 +70,7 @@
         <v-col cols="3" class="pb-0 mb-0 pt-0">
           <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Delivery Charges Rate')"
             bg-color="white" hide-details :model-value="formatCurrency(delivery_charges_rate)"
-            :prefix="currencySymbol(pos_profile.currency)" disabled></v-text-field>
+            :prefix="currencySymbol(pos_profile.currency)" readonly></v-text-field>
         </v-col>
       </v-row>
       <v-row align="center" class="items px-2 py-1 mt-0 pt-0" v-if="pos_profile.posa_allow_change_posting_date">
@@ -173,7 +173,7 @@
               <v-row class="ma-0 pa-0">
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Item Code')"
-                    bg-color="white" hide-details v-model="item.item_code" disabled></v-text-field>
+                    bg-color="white" hide-details v-model="item.item_code" readonly></v-text-field>
                 </v-col>
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('QTY')"
@@ -269,24 +269,24 @@
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary"
                     :label="frappe._('Price list Rate')" bg-color="white" hide-details
-                    :model-value="formatCurrency(item.price_list_rate)" disabled
+                    :model-value="formatCurrency(item.price_list_rate)" readonly
                     :prefix="currencySymbol(pos_profile.currency)"></v-text-field>
                 </v-col>
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Available QTY')"
-                    bg-color="white" hide-details :model-value="formatFloat(item.actual_qty)" disabled></v-text-field>
+                    bg-color="white" hide-details :model-value="formatFloat(item.actual_qty)" readonly></v-text-field>
                 </v-col>
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Group')"
-                    bg-color="white" hide-details v-model="item.item_group" disabled></v-text-field>
+                    bg-color="white" hide-details v-model="item.item_group" readonly></v-text-field>
                 </v-col>
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Stock QTY')"
-                    bg-color="white" hide-details :model-value="formatFloat(item.stock_qty)" disabled></v-text-field>
+                    bg-color="white" hide-details :model-value="formatFloat(item.stock_qty)" readonly></v-text-field>
                 </v-col>
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Stock UOM')"
-                    bg-color="white" hide-details v-model="item.stock_uom" disabled></v-text-field>
+                    bg-color="white" hide-details v-model="item.stock_uom" readonly></v-text-field>
                 </v-col>
                 <v-col align="center" cols="4" v-if="item.posa_offer_applied">
                   <v-checkbox density="default" :label="frappe._('Offer Applied')" v-model="item.posa_offer_applied"

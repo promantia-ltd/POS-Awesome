@@ -351,7 +351,7 @@ export default {
           key: "full_name",
         },
         {
-          title: __("Nobile Number"),
+          title: __("Mobile Number"),
           align: "start",
           sortable: true,
           key: "mobile_no",
