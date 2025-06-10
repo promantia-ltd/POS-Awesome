@@ -658,14 +658,6 @@ def submit_invoice(invoice, data):
     else:
         invoice_doc.submit()
 
-        if invoice_doc.is_return and invoice_doc.return_against and invoice_doc.update_outstanding_for_self:
-            return_grand_total = flt(invoice_doc.grand_total)
-            original_invoice = frappe.get_doc("Sales Invoice", invoice_doc.return_against)
-            original_grand_total = flt(original_invoice.grand_total)
-            new_outstanding = -(return_grand_total+original_grand_total)
-            original_invoice.db_set("outstanding_amount", new_outstanding)
-            original_invoice.set_status()
-
         redeeming_customer_credit(
             invoice_doc, data, is_payment_entry, total_cash, cash_account, invoice_doc.payments
         )
