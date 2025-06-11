@@ -572,38 +572,43 @@ def submit_invoice(invoice, data):
                 "Company", invoice_doc.company, "default_cash_account"
             )
         }
+    
+    if invoice_doc.is_return and invoice_doc.return_against:
+        invoice_doc.update_outstanding_for_self = True if data["is_cashback"] == 'true' else False 
 
-    is_cashback = data.get("is_cashback")
-    if isinstance(is_cashback, str):
-        is_cashback = is_cashback.lower() == "true"
+    # creating advance payment
+    if data.get("credit_change"):
+        advance_payment_entry = frappe.get_doc(
+            {
+                "doctype": "Payment Entry",
+                "mode_of_payment": "Cash",
+                "paid_to": cash_account["account"],
+                "payment_type": "Receive",
+                "party_type": "Customer",
+                "party": invoice_doc.get("customer"),
+                "paid_amount": invoice_doc.get("credit_change"),
+                "received_amount": invoice_doc.get("credit_change"),
+                "company": invoice_doc.get("company"),
+            }
+        )
 
-    if invoice_doc.is_return and invoice_doc.return_against :
-        invoice_doc.update_outstanding_for_self = 0 if is_cashback else 1
-
-    if data.get("credit_change") and is_cashback:
-        advance_payment_entry = frappe.get_doc({
-            "doctype": "Payment Entry",
-            "mode_of_payment": "Cash",
-            "paid_to": cash_account["account"],
-            "payment_type": "Receive",
-            "party_type": "Customer",
-            "party": invoice_doc.get("customer"),
-            "paid_amount": flt(data.get("credit_change")),
-            "received_amount": flt(data.get("credit_change")),
-            "company": invoice_doc.get("company"),
-        })
         advance_payment_entry.flags.ignore_permissions = True
         frappe.flags.ignore_account_permission = True
         advance_payment_entry.save()
         advance_payment_entry.submit()
 
+    # calculating cash
     total_cash = 0
-    is_payment_entry = 0
     if data.get("redeemed_customer_credit"):
         total_cash = invoice_doc.total - float(data.get("redeemed_customer_credit"))
+
+    is_payment_entry = 0
+    if data.get("redeemed_customer_credit"):
+
         for row in data.get("customer_credit_dict"):
             if row["type"] == "Advance" and row["credit_to_redeem"]:
                 advance = frappe.get_doc("Payment Entry", row["credit_origin"])
+
                 advance_payment = {
                     "reference_type": "Payment Entry",
                     "reference_name": advance.name,
@@ -615,6 +620,10 @@ def submit_invoice(invoice, data):
                 invoice_doc.is_pos = 0
                 is_payment_entry = 1
 
+    payments = invoice_doc.payments
+
+    # if frappe.get_value("POS Profile", invoice_doc.pos_profile, "posa_auto_set_batch"):
+    #     set_batch_nos(invoice_doc, "warehouse", throw=True)
     set_batch_nos_for_bundels(invoice_doc, "warehouse", throw=True)
 
     invoice_doc.flags.ignore_permissions = True
@@ -631,7 +640,11 @@ def submit_invoice(invoice, data):
             update_modified=False,
         )
 
-    if frappe.get_value("POS Profile", invoice_doc.pos_profile, "posa_allow_submissions_in_background_job"):
+    if frappe.get_value(
+        "POS Profile",
+        invoice_doc.pos_profile,
+        "posa_allow_submissions_in_background_job",
+    ):
         invoices_list = frappe.get_all(
             "Sales Invoice",
             filters={
@@ -652,22 +665,17 @@ def submit_invoice(invoice, data):
                     "is_payment_entry": is_payment_entry,
                     "total_cash": total_cash,
                     "cash_account": cash_account,
-                    "payments": invoice_doc.payments,
+                    "payments": payments,
                 },
             )
     else:
         invoice_doc.submit()
 
         redeeming_customer_credit(
-            invoice_doc, data, is_payment_entry, total_cash, cash_account, invoice_doc.payments
+            invoice_doc, data, is_payment_entry, total_cash, cash_account, payments
         )
 
-    return {
-        "name": invoice_doc.name,
-        "status": invoice_doc.docstatus,
-        "return_against": invoice_doc.return_against,
-        "update_outstanding_for_self": invoice_doc.update_outstanding_for_self
-    }
+    return {"name": invoice_doc.name, "status": invoice_doc.docstatus}
 
 def set_batch_nos_for_bundels(doc, warehouse_field, throw=False):
     """Automatically select `batch_no` for outgoing items in item table"""
