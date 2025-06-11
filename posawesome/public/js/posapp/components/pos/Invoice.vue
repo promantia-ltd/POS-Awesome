@@ -595,22 +595,24 @@ export default {
   },
 
   handleDiscountPercentageChange(item, event) {
-    const newValue = this.flt(this.parseFormattedCurrency(event.target.value), this.currency_precision);
-    item.discount_percentage = newValue;
-    
-    const syntheticEvent = {
-      target: {
-        id: "discount_percentage",
-        _value: newValue.toString()
-      },
-      srcElement: {
-        _value: newValue.toString()
-      }
-    };
-    
-    this.calc_prices(item, syntheticEvent, syntheticEvent);
-  },
+  let value = event.target.value;
+  if (!value || isNaN(value)) {
+    value = 0;
+  }
+  const newValue = this.flt(this.parseFormattedCurrency(value), this.currency_precision) || 0;
+  item.discount_percentage = newValue;
 
+  const syntheticEvent = {
+    target: {
+      id: "discount_percentage",
+      _value: newValue.toString()
+    },
+    srcElement: {
+      _value: newValue.toString()
+    }
+  };
+  this.calc_prices(item, syntheticEvent, syntheticEvent); 
+  },
 
   formatFloat(value, precision) {
     const format = get_number_format(this.pos_profile.currency);
