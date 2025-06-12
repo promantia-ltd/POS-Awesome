@@ -258,7 +258,8 @@ export default {
     add_item(item) {
       item = { ...item };
         if (item.has_variants) {
-          this.eventBus.emit("open_variants_model", item, this.items);
+          this.eventBus.emit("open_variants_model", [item, this.items]);
+
         } else {
           if (!item.qty || item.qty === 1) {
         item.qty = Math.abs(this.qty);

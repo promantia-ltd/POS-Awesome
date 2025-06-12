@@ -115,15 +115,16 @@ export default {
   },
 
   created: function () {
-    this.eventBus.on('open_variants_model', (item, items) => {
-      this.varaintsDialog = true;
-      this.parentItem = item || null;
-      this.items = items;
-      this.filters = {};
-      this.$nextTick(function () {
-        this.filterdItems = this.variantsItems;
-      });
+    this.eventBus.on('open_variants_model', ([item, items]) => {
+    this.varaintsDialog = true;
+    this.parentItem = item || null;
+    this.items = items;
+    this.filters = {};
+
+    this.$nextTick(() => {
+      this.filterdItems = this.variantsItems;
     });
-  },
+  });
+},
 };
 </script>
