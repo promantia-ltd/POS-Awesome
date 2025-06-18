@@ -295,7 +295,7 @@
                 <v-col cols="4" v-if="item.has_serial_no == 1 || item.serial_no">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Serial No QTY')"
                     bg-color="white" hide-details v-model="item.serial_no_selected_count" type="number"
-                    disabled></v-text-field>
+                    readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" v-if="item.has_serial_no == 1 || item.serial_no">
                   <v-autocomplete v-model="item.serial_no_selected" :items="item.serial_no_data" item-title="serial_no"
@@ -305,12 +305,12 @@
                 <v-col cols="4" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-text-field density="compact" variant="outlined" color="primary"
                     :label="frappe._('Batch No. Available QTY')" bg-color="white" hide-details
-                    :model-value="formatFloat(item.actual_batch_qty)" disabled></v-text-field>
+                    :model-value="formatFloat(item.actual_batch_qty)" readonly></v-text-field>
                 </v-col>
                 <v-col cols="4" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-text-field density="compact" variant="outlined" color="primary"
                     :label="frappe._('Batch No Expiry Date')" bg-color="white" hide-details
-                    v-model="item.batch_no_expiry_date" disabled></v-text-field>
+                    v-model="item.batch_no_expiry_date" readonly></v-text-field>
                 </v-col>
                 <v-col cols="8" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-autocomplete v-model="item.batch_no" :items="item.batch_no_data" item-title="batch_no"
@@ -1751,13 +1751,17 @@ export default {
     },
 
     calc_prices(item, value, $event) {
-      newValue = value.srcElement._value 
-      if ( typeof(newValue) == "undefined" || newValue == null || newValue == "") {
+      let newValue = value?.srcElement?._value || 0;
+
+      if (typeof newValue === "undefined" || newValue === null || newValue === "") {
         newValue = 0;
-       }
+      }
+
       newValue = this.flt(this.parseFormattedCurrency(newValue), this.currency_precision);
-      if (event.target.id === "rate" || event.target.id === "gridRate") {
+
+      if ($event?.target?.id === "rate" || $event?.target?.id === "gridRate") {
         item.discount_percentage = 0;
+
         if (newValue < item.price_list_rate) {
           item.rate = newValue;
           item.discount_amount = this.flt(
@@ -1771,15 +1775,17 @@ export default {
           item.rate = newValue;
           item.discount_amount = 0;
         }
-      } else if (event.target.id === "discount_amount") {
+
+      } else if ($event?.target?.id === "discount_amount") {
         if (newValue < 0) {
           item.discount_amount = 0;
           item.discount_percentage = 0;
         } else {
-          item.rate = flt(item.price_list_rate) - flt(newValue);
+          item.rate = this.flt(flt(item.price_list_rate) - flt(newValue), this.currency_precision);
           item.discount_percentage = 0;
         }
-      } else if (event.target.id === "discount_percentage") {
+
+      } else if ($event?.target?.id === "discount_percentage") {
         if (newValue < 0) {
           item.discount_amount = 0;
           item.discount_percentage = 0;
@@ -1790,12 +1796,15 @@ export default {
             this.currency_precision
           );
           item.discount_amount = this.flt(
-            flt(item.price_list_rate) - flt(+item.rate),
+            flt(item.price_list_rate) - flt(item.rate),
             this.currency_precision
           );
         }
       }
-    },
+
+  item.item_total = this.flt(flt(item.qty) * flt(item.rate), this.currency_precision);
+},
+
 
     calc_item_price(item) {
       if (!item.posa_offer_applied) {
