@@ -3,7 +3,6 @@ frappe.ui.form.on("Sales Order", {
     frm.add_custom_button("Print on HM (Direct)", function () {
       // Step 1: Build XML payload from Sales Order data
       let xmlPayload = `
-      <?xml version="1.0" encoding="UTF-8"?>
       <output>
           <ticket>
             <line>
@@ -34,7 +33,7 @@ frappe.ui.form.on("Sales Order", {
         </output>`;
 
       // Step 2: Send XML via Fetch API
-      fetch("http://localhost:8090/printer", {
+      fetch("https://localhost:8190/printer", {
         method: "POST",
         headers: {
           "Content-Type": "application/xml;charset-utf-8",
