@@ -2,26 +2,36 @@ frappe.ui.form.on("Sales Order", {
   refresh(frm) {
     frm.add_custom_button("Print on HM (Direct)", function () {
       // Step 1: Build XML payload from Sales Order data
-      let xmlPayload = `<output>
-            <ticket>
+      let xmlPayload = `
+      <?xml version="1.0" encoding="UTF-8"?>
+      <output>
+          <ticket>
             <line>
-                <OrderNo>${frm.doc.name}</OrderNo>
-                <Customer>${frm.doc.customer}</Customer>
-                <Items>`;
+              <OrderNo>${frm.doc.name}</OrderNo>
+            </line>
+            <line>
+              <Customer>${frm.doc.customer}</Customer>
+            </line>
+            <line>
+              <Items>`;
 
       frm.doc.items.forEach((item) => {
-        xmlPayload += `<Item>
+        xmlPayload += `<line>
+                <Item>
                     <Name>${item.item_name}</Name>
                     <Qty>${item.qty}</Qty>
                     <Price>${item.rate}</Price>
-                </Item>`;
+                </Item>
+              </line>`;
       });
 
       xmlPayload += `</Items>
-                <Total>${frm.doc.grand_total}</Total>
-                </line>
-                </ticket>
-            </output>`;
+            </line>
+            <line>
+              <Total>${frm.doc.grand_total}</Total>
+            </line>
+          </ticket>
+        </output>`;
 
       // Step 2: Send XML via Fetch API
       fetch("http://localhost:8090/printer", {
@@ -30,6 +40,7 @@ frappe.ui.form.on("Sales Order", {
           "Content-Type": "application/xml;charset-utf-8",
         },
         body: xmlPayload,
+        mode: "cors",
       })
         .then((response) => {
           console.log(response);
