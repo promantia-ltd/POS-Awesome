@@ -33,7 +33,7 @@ frappe.ui.form.on("Sales Order", {
         </output>`;
 
       // Step 2: Send XML via Fetch API
-      fetch("https://localhost:8190/printer", {
+      fetch("http://localhost:8090/printer", {
         method: "POST",
         headers: {
           "Content-Type": "application/xml;charset-utf-8",
