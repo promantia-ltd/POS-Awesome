@@ -1,0 +1,27 @@
+<output>
+    <ticket>
+        <line>
+            <text align="center" margin="4" bold="true" underline="false" size="2">{{ doc.name }}</text>
+        </line>
+        <line>
+            <text align="left" bold="false" underline="false" size="1">{{ doc.customer }}</text>
+        </line>
+
+        {% for item in doc.items %}
+         <line>
+            <text align="left" bold="false" underline="false" size="1">Item</text>
+            <text align="left" bold="false" underline="false" size="1">Qty</text>
+            <text align="left" bold="false" underline="false" size="1">Rate</text>
+        </line>
+        <line>
+            <text align="left" bold="false" underline="false" size="1">{{ item.item_name }}</text>
+            <text align="left" bold="false" underline="false" size="1">{{ item.qty }}</text>
+            <text align="left" bold="false" underline="false" size="1">{{ item.rate }}</text>
+        </line>
+        {% endfor %}
+
+        <line>
+            <text align="left" bold="false" underline="false" size="1">{{ doc.grand_total }}</text>
+        </line>
+    </ticket>
+</output>
