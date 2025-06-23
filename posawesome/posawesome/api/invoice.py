@@ -157,6 +157,10 @@ def set_patient(doc):
 def auto_set_delivery_charges(doc):
     if not doc.pos_profile:
         return
+    
+    if doc.is_return and doc.return_against:
+        return
+
     if not frappe.get_cached_value(
         "POS Profile", doc.pos_profile, "posa_auto_set_delivery_charges"
     ):

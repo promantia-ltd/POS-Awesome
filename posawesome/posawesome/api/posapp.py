@@ -662,8 +662,10 @@ def submit_invoice(invoice, data):
             and invoice_doc.return_against
             and not is_cashback
         ):
-            return_grand_total = flt(invoice_doc.grand_total)
+            
             original_invoice = frappe.get_doc("Sales Invoice", invoice_doc.return_against)
+            custom_delivery_charge = flt(original_invoice.get("custom_delivery_charge_rate") or 0)
+            return_grand_total = flt(invoice_doc.grand_total) - custom_delivery_charge
             original_grand_total = flt(original_invoice.grand_total)
             new_outstanding = -(return_grand_total + original_grand_total)
             original_invoice.db_set("outstanding_amount", new_outstanding)
