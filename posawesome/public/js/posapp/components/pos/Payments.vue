@@ -617,9 +617,10 @@
 
 <script>
 import format from "../../format";
+import hardwareUtils from "../../hardwareManager/hardwareUtils";
 
 export default {
-  mixins: [format],
+  mixins: [format, hardwareUtils],
   data: () => ({
     loading: false,
     pos_profile: "",
@@ -806,7 +807,7 @@ export default {
             return;
           }
           if (print) {
-            vm.load_print_page();
+            vm.handlePrint(vm.invoice_doc.name);
           }
           vm.customer_credit_dict = [];
           vm.redeem_customer_credit = false;
@@ -826,6 +827,21 @@ export default {
           return;
         },
       });
+      console.log(this.is_sucessful_invoice);
+    },
+    async handlePrint(invoice_name) {
+      try {
+        await this.hardwareConfiguration(this.pos_profile.name).then((res) => {
+          if (res === true) {
+            this.custom_print(invoice_name);
+          } else {
+            vm.load_print_page();
+          }
+        });
+      } catch (err) {
+        console.error("Hardware config check failed:", err);
+        this.load_print_page(invoice_name); // fallback
+      }
     },
     set_full_amount(idx) {
       this.invoice_doc.payments.forEach((payment) => {
