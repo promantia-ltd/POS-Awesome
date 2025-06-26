@@ -1,0 +1,118 @@
+<output>
+  <ticket>
+  <line></line>
+  <line></line>
+    <line>
+      <text align="center" length="42" bold="true">Sales Invoice</text>
+    </line>
+    <line></line>
+    <line>
+      <text align="center" length="42">{{ doc.company }}</text>
+    </line>
+   {% if doc.company_address %}
+<line>
+  <text align="center" length="42">{{ doc.company_address }}</text>
+</line>
+{% endif %}
+<line></line>
+    <line>
+      <text align="left" length="12">Invoice :</text>
+      <text>{{ doc.name }}</text>
+    </line>
+    <line>
+     <text align="left" length="12">Date/Time:</text>
+     <text>{{ doc.posting_date }}</text>
+     <text> </text>
+     <text>{{ doc.posting_time }}</text>
+    </line>
+    <line>
+      <text align="left" length="12">Cashier:</text>
+      <text>{{ doc.pos_profile }}</text>
+    </line>
+    {% if doc.tax_id %}
+    <line>
+      <text align="left" length="12">Tax ID:</text>
+      <text>{{ doc.tax_id }}</text>
+    </line>
+    {% endif %}
+
+    <line></line>
+    <line>
+      <text align ="left" length="11">Item</text>
+      <text align ="right" length="5">Qty</text>
+      <text align ="right" length="10">Rate</text>
+      <text align ="right" length="12">Amount</text>
+    </line>
+    <line>
+      <text>------------------------------------------</text>
+    </line>
+
+    {% for item in doc.items %}
+    <line>
+        <text align="left" length="42">{{ item.item_name }}</text>
+    </line>
+    <line>
+        <text align="right" length="16">{{ item.qty }}</text>
+        <text align="right" length="10">{{ item.rate }}</text>
+        <text align="right" length="12">{{ item.amount }}</text>
+    </line>
+    {% endfor %}
+
+    <line></line>
+    <line size="1">
+      <text align="left" length="20">TOTAL {{ doc.currency }}</text>
+      <text align="right" length="16">{{ doc.grand_total }}</text>
+    </line>
+
+    {% for payment in doc.payments %}
+    <line>
+      <text align="left" length="20">{{ payment.mode_of_payment }}</text>
+      <text align="right" length="16">{{ payment.amount }}</text>
+    </line>
+    {% endfor %}
+
+    <line>
+      <text align="left" length="16">Change:</text>
+      <text align="right" length="20">{{ doc.change_amount }}</text>
+    </line>
+    <line></line>
+
+    <line>
+      <text align="left" length="8">Tax %</text>
+      <text align="left" length="12">Base</text>
+      <text align="left" length="12">Tax Amt</text>
+    </line>
+    <line>
+      <text>------------------------------------------</text>
+    </line>
+    {% if doc.taxes %}
+  {% for tax in doc.taxes %}
+    <line>
+      <text align="left" length="8">{{ tax.rate | default(0, true) }}</text>
+      <text align="left" length="12">{{ tax.taxable_amount | default(0, true) }}</text>
+      <text align="left" length="12">{{ tax.tax_amount | default(0, true) }}</text>
+    </line>
+  {% endfor %}
+{% else %}
+  <line>
+    <text align="left" length="8">0</text>
+    <text align="left" length="12">0</text>
+    <text align="left" length="12">0</text>
+  </line>
+{% endif %}
+
+    <line>
+      <text>------------------------------------------</text>
+    </line>
+    <line></line>
+
+     <line size="1">
+      <text align="center" length="42">Thank you for shopping!</text>
+    </line>
+
+    <line>
+      <barcode type="CODE128" position="bottom">{{ doc.name }}</barcode>
+    </line>
+
+  </ticket>
+</output>
