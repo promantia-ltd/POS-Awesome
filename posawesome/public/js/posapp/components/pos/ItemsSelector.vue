@@ -171,7 +171,7 @@ export default {
           
           // Immediately update stock for cached items
           vm.$nextTick(() => {
-            if (vm.filtered_items.length > 0) {
+            if (!vm.pos_profile.pose_use_limit_search && vm.filtered_items.length > 0) {
               vm.update_items_details(vm.filtered_items);
             }
           });
