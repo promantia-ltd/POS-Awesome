@@ -24,18 +24,23 @@
     </v-dialog>
     <v-card style="max-height: 70vh; height: 70vh" class="cards my-0 py-0 mt-3 bg-grey-lighten-5">
       <v-row align="center" class="items px-2 py-1">
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="7" class="pb-2 pr-0">
-          <Customer></Customer>
-        </v-col>
-        <v-col v-if="!pos_profile.posa_allow_sales_order" cols="10" class="pb-2">
+        <v-col :cols="pos_profile.posa_allow_sales_order ? 7 : 10" class="pb-2 pr-0">
           <Customer></Customer>
         </v-col>
         <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
-          <v-select density="compact" hide-details variant="outlined" color="primary" bg-color="white"
-            :items="invoiceTypes" :label="frappe._('Type')" v-model="invoiceType"
-            :disabled="invoiceType == 'Return'"></v-select>
+          <v-select
+            density="compact"
+            hide-details
+            variant="outlined"
+            color="primary"
+            bg-color="white"
+            :items="invoiceTypes"
+            :label="frappe._('Type')"
+            v-model="invoiceType"
+            :disabled="invoiceType == 'Return'"
+          ></v-select>
         </v-col>
-         <!-- Inclusive Tax Switch -->
+        <!-- Inclusive Tax Switch -->
         <v-col cols="2" class="pb-0 mb-0 pt-0 d-flex align-center">
           <v-switch
             v-model="inclusive_tax"
