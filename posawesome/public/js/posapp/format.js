@@ -30,32 +30,32 @@ export default {
             return value;
         },
         setFormatedCurrency(el, field_name, precision, no_negative = false, $event) {
-            let value = 0;
+            let raw = 0;
             try {
-                // make sure it is a number and positive
-                let _value = parseFloat($event);
-                if (!isNaN(_value)) {
-                    value = _value;
-                }
-                if (no_negative && value < 0) {
-                    value = value * -1;
-                }
-                value = this.formatCurrency($event, precision);
+              // Support both native input and string
+              let inputValue = typeof $event === "object" ? $event.target.value : $event;
+              inputValue = inputValue.replace(/[^\d.-]/g, ""); // remove commas, currency symbols
+              let _value = parseFloat(inputValue);
+
+              if (!isNaN(_value)) raw = _value;
+              if (no_negative && raw < 0) raw = Math.abs(raw);
+
+              // Save the raw number
+              if (typeof el === "object") {
+                el[field_name] = raw;
+              } else {
+                this[field_name] = raw;
+              }
+
+              return raw;
             } catch (e) {
-                console.error(e);
-                value = 0;
+              console.error("Currency parse error:", e);
+              if (typeof el === "object") el[field_name] = 0;
+              else this[field_name] = 0;
+              return 0;
             }
-            // check if el is an object
-            if (typeof el === "object") {
-                el[field_name] = value;
-            }
-            else {
-                this[field_name] = value;
-            }
+          },
 
-
-            return value;
-        },
         setFormatedFloat(el, field_name, precision, no_negative = false, $event) {
             let value = 0;
             try {
@@ -86,7 +86,6 @@ export default {
         isNumber(value) {
             const pattern = /^-?(\d+|\d{1,3}(\.\d{3})*)(,\d+)?$/;
             return pattern.test(value) || "invalid number";
-
         }
     },
     mounted() {

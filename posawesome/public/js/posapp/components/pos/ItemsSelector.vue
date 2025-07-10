@@ -157,15 +157,31 @@ export default {
       if (vm.item_group != "ALL") {
         gr = vm.item_group.toLowerCase();
       }
+      
+      // Check for cached items in localStorage
       if (
         vm.pos_profile.posa_local_storage &&
         localStorage.items_storage &&
         !vm.pos_profile.pose_use_limit_search
       ) {
-        vm.items = JSON.parse(localStorage.getItem("items_storage"));
-        this.eventBus.emit("set_all_items", vm.items);
-        vm.loading = false;
+        try {
+          vm.items = JSON.parse(localStorage.getItem("items_storage"));
+          this.eventBus.emit("set_all_items", vm.items);
+          vm.loading = false;
+          
+          // Immediately update stock for cached items
+          vm.$nextTick(() => {
+            if (!vm.pos_profile.pose_use_limit_search && vm.filtered_items.length > 0) {
+              vm.update_items_details(vm.filtered_items);
+            }
+          });
+        } catch (e) {
+          console.error("Error loading cached items:", e);
+          vm.loading = false;
+        }
       }
+      
+      // Always fetch fresh data from server
       frappe.call({
         method: "posawesome.posawesome.api.posapp.get_items",
         args: {
@@ -180,21 +196,29 @@ export default {
             vm.items = r.message;
             vm.eventBus.emit("set_all_items", vm.items);
             vm.loading = false;
-            console.info("Items Loaded");
+            
+            // Update localStorage if enabled
             if (
               vm.pos_profile.posa_local_storage &&
               !vm.pos_profile.pose_use_limit_search
             ) {
-              localStorage.setItem("items_storage", "");
               try {
                 localStorage.setItem(
                   "items_storage",
                   JSON.stringify(r.message)
                 );
               } catch (e) {
-                console.error(e);
+                console.error("LocalStorage error:", e);
               }
             }
+            
+            // Immediately update stock quantities
+            vm.$nextTick(() => {
+              if (!vm.pos_profile.pose_use_limit_search && vm.filtered_items.length > 0) {
+                vm.update_items_details(vm.filtered_items);
+              }
+            });
+            
             if (vm.pos_profile.pose_use_limit_search) {
               vm.enter_event();
             }
@@ -204,7 +228,6 @@ export default {
     },
     get_items_groups() {
       if (!this.pos_profile) {
-        console.log("No POS Profile");
         return;
       }
       if (this.pos_profile.item_groups.length > 0) {
@@ -258,7 +281,8 @@ export default {
     add_item(item) {
       item = { ...item };
         if (item.has_variants) {
-          this.eventBus.emit("open_variants_model", item, this.items);
+          this.eventBus.emit("open_variants_model", [item, this.items]);
+
         } else {
           if (!item.qty || item.qty === 1) {
         item.qty = Math.abs(this.qty);
