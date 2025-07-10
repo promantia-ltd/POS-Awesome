@@ -143,7 +143,6 @@ export default {
     },
     get_items() {
       if (!this.pos_profile) {
-        console.error("No POS Profile");
         return;
       }
       const vm = this;
@@ -176,7 +175,6 @@ export default {
             }
           });
         } catch (e) {
-          console.error("Error loading cached items:", e);
           vm.loading = false;
         }
       }
@@ -208,7 +206,6 @@ export default {
                   JSON.stringify(r.message)
                 );
               } catch (e) {
-                console.error("LocalStorage error:", e);
               }
             }
             
@@ -446,7 +443,7 @@ export default {
           },
         });
       } catch (error) {
-        console.log(error);
+        
       }
     },
     trigger_onscan(sCode) {

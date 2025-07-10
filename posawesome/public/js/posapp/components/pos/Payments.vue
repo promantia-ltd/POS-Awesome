@@ -680,7 +680,6 @@ export default {
             color: "error",
           });
           frappe.utils.play_sound("error");
-          console.error("phone payment not requested");
           return;
         }
       }

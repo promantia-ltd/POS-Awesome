@@ -49,7 +49,6 @@ export default {
 
               return raw;
             } catch (e) {
-              console.error("Currency parse error:", e);
               if (typeof el === "object") el[field_name] = 0;
               else this[field_name] = 0;
               return 0;
@@ -68,7 +67,6 @@ export default {
                 }
                 value = this.formatFloat($event, precision);
             } catch (e) {
-                console.error(e);
                 value = 0;
             }
             // check if el is an object
