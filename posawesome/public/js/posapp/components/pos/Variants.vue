@@ -44,9 +44,7 @@
     </v-dialog>
   </v-row>
 </template>
-
 <script>
-
 export default {
   data: () => ({
     varaintsDialog: false,
@@ -55,7 +53,6 @@ export default {
     filters: {},
     filterdItems: [],
   }),
-
   computed: {
     variantsItems() {
       if (!this.parentItem) {
@@ -67,7 +64,6 @@ export default {
       }
     },
   },
-
   methods: {
     close_dialog() {
       this.varaintsDialog = false;
@@ -84,7 +80,6 @@ export default {
             values.push(value);
           }
         });
-
         if (!values.length) {
           this.filterdItems = this.variantsItems;
         } else {
@@ -113,17 +108,16 @@ export default {
       this.close_dialog();
     },
   },
-
   created: function () {
-    this.eventBus.on('open_variants_model', (item, items) => {
-      this.varaintsDialog = true;
-      this.parentItem = item || null;
-      this.items = items;
-      this.filters = {};
-      this.$nextTick(function () {
-        this.filterdItems = this.variantsItems;
-      });
+    this.eventBus.on('open_variants_model', ([item, items]) => {
+    this.varaintsDialog = true;
+    this.parentItem = item || null;
+    this.items = items;
+    this.filters = {};
+    this.$nextTick(() => {
+      this.filterdItems = this.variantsItems;
     });
-  },
+  });
+},
 };
 </script>

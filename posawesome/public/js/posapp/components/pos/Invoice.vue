@@ -24,18 +24,23 @@
     </v-dialog>
     <v-card style="max-height: 70vh; height: 70vh" class="cards my-0 py-0 mt-3 bg-grey-lighten-5">
       <v-row align="center" class="items px-2 py-1">
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="7" class="pb-2 pr-0">
-          <Customer></Customer>
-        </v-col>
-        <v-col v-if="!pos_profile.posa_allow_sales_order" cols="10" class="pb-2">
+        <v-col :cols="pos_profile.posa_allow_sales_order ? 7 : 10" class="pb-2 pr-0">
           <Customer></Customer>
         </v-col>
         <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
-          <v-select density="compact" hide-details variant="outlined" color="primary" bg-color="white"
-            :items="invoiceTypes" :label="frappe._('Type')" v-model="invoiceType"
-            :disabled="invoiceType == 'Return'"></v-select>
+          <v-select
+            density="compact"
+            hide-details
+            variant="outlined"
+            color="primary"
+            bg-color="white"
+            :items="invoiceTypes"
+            :label="frappe._('Type')"
+            v-model="invoiceType"
+            :disabled="invoiceType == 'Return'"
+          ></v-select>
         </v-col>
-         <!-- Inclusive Tax Switch -->
+        <!-- Inclusive Tax Switch -->
         <v-col cols="2" class="pb-0 mb-0 pt-0 d-flex align-center">
           <v-switch
             v-model="inclusive_tax"
@@ -295,7 +300,7 @@
                 <v-col cols="4" v-if="item.has_serial_no == 1 || item.serial_no">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Serial No QTY')"
                     bg-color="white" hide-details v-model="item.serial_no_selected_count" type="number"
-                    disabled></v-text-field>
+                    readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" v-if="item.has_serial_no == 1 || item.serial_no">
                   <v-autocomplete v-model="item.serial_no_selected" :items="item.serial_no_data" item-title="serial_no"
@@ -305,12 +310,12 @@
                 <v-col cols="4" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-text-field density="compact" variant="outlined" color="primary"
                     :label="frappe._('Batch No. Available QTY')" bg-color="white" hide-details
-                    :model-value="formatFloat(item.actual_batch_qty)" disabled></v-text-field>
+                    :model-value="formatFloat(item.actual_batch_qty)" readonly></v-text-field>
                 </v-col>
                 <v-col cols="4" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-text-field density="compact" variant="outlined" color="primary"
                     :label="frappe._('Batch No Expiry Date')" bg-color="white" hide-details
-                    v-model="item.batch_no_expiry_date" disabled></v-text-field>
+                    v-model="item.batch_no_expiry_date" readonly></v-text-field>
                 </v-col>
                 <v-col cols="8" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-autocomplete v-model="item.batch_no" :items="item.batch_no_data" item-title="batch_no"
@@ -1678,7 +1683,6 @@ export default {
                 ...message,
               };
               if (vm.pos_profile.custom_allow_user_to_edit_item_total != 1) {
-                console.log("Updating price list...");
                 vm.update_price_list(); // Run only if checkbox is NOT checked
               }
             }
@@ -1751,13 +1755,17 @@ export default {
     },
 
     calc_prices(item, value, $event) {
-      newValue = value.srcElement._value 
-      if ( typeof(newValue) == "undefined" || newValue == null || newValue == "") {
+      let newValue = value?.srcElement?._value || 0;
+
+      if (typeof newValue === "undefined" || newValue === null || newValue === "") {
         newValue = 0;
-       }
+      }
+
       newValue = this.flt(this.parseFormattedCurrency(newValue), this.currency_precision);
-      if (event.target.id === "rate" || event.target.id === "gridRate") {
+
+      if ($event?.target?.id === "rate" || $event?.target?.id === "gridRate") {
         item.discount_percentage = 0;
+
         if (newValue < item.price_list_rate) {
           item.rate = newValue;
           item.discount_amount = this.flt(
@@ -1771,15 +1779,17 @@ export default {
           item.rate = newValue;
           item.discount_amount = 0;
         }
-      } else if (event.target.id === "discount_amount") {
+
+      } else if ($event?.target?.id === "discount_amount") {
         if (newValue < 0) {
           item.discount_amount = 0;
           item.discount_percentage = 0;
         } else {
-          item.rate = flt(item.price_list_rate) - flt(newValue);
+          item.rate = this.flt(flt(item.price_list_rate) - flt(newValue), this.currency_precision);
           item.discount_percentage = 0;
         }
-      } else if (event.target.id === "discount_percentage") {
+
+      } else if ($event?.target?.id === "discount_percentage") {
         if (newValue < 0) {
           item.discount_amount = 0;
           item.discount_percentage = 0;
@@ -1790,12 +1800,15 @@ export default {
             this.currency_precision
           );
           item.discount_amount = this.flt(
-            flt(item.price_list_rate) - flt(+item.rate),
+            flt(item.price_list_rate) - flt(item.rate),
             this.currency_precision
           );
         }
       }
-    },
+
+  item.item_total = this.flt(flt(item.qty) * flt(item.rate), this.currency_precision);
+},
+
 
     calc_item_price(item) {
       if (!item.posa_offer_applied) {
@@ -1833,12 +1846,10 @@ export default {
     },
 
     calc_stock_qty(item, value) {
-      console.log(value);
       item.stock_qty = item.conversion_factor * value;
     },
 
     set_serial_no(item) {
-      console.log(item)
       if (!item.has_serial_no) return;
       item.serial_no = "";
       item.serial_no_selected.forEach((element) => {
@@ -1853,7 +1864,6 @@ export default {
     },
 
     set_batch_qty(item, value, update = true) {
-      console.log(item, value)
       const existing_items = this.items.filter(
         (element) =>
           element.item_code == item.item_code &&
@@ -2741,7 +2751,6 @@ export default {
         callback: function (r) {
           if (r.message) {
             if (r.message?.length) {
-              console.log(r.message)
               vm.delivery_charges = r.message;
             }
           }
@@ -2750,13 +2759,11 @@ export default {
     },
     deliveryChargesFilter(itemText, queryText, itemRow) {
       const item = itemRow.raw;
-      console.log("dl charges", item)
       const textOne = item.name.toLowerCase();
       const searchText = queryText.toLowerCase();
       return textOne.indexOf(searchText) > -1;
     },
     update_delivery_charges() {
- 
       if (this.selected_delivery_charge) {
         this.delivery_charges_rate = this.selected_delivery_charge.rate;
       } else {
