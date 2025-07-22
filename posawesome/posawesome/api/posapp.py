@@ -533,11 +533,26 @@ def update_invoice(data):
         add_taxes_from_tax_template(item, invoice_doc)
 
     if invoice_doc.get("inclusive_tax"):
+        invoice_doc.ignore_pricing_rule = 1
+        invoice_doc.apply_discount_on = "Grand Total"
 
         if invoice_doc.get("taxes"):
             for tax in invoice_doc.taxes:
                 tax.included_in_rate = 1
                 tax.included_in_print_rate = 1
+
+        if data.get("grand_total"):
+            invoice_doc.grand_total = data["grand_total"]
+            invoice_doc.rounded_total = data["grand_total"]
+            invoice_doc.base_grand_total = data["grand_total"]
+            invoice_doc.base_rounded_total = data["grand_total"]
+            invoice_doc.run_method("calculate_taxes_and_totals")
+
+        if data.get("paid_amount"):
+            invoice_doc.paid_amount = data["paid_amount"]
+            invoice_doc.change_amount = 0
+            invoice_doc.base_change_amount = 0
+    else:
         invoice_doc.run_method("calculate_taxes_and_totals")
 
     today_date = getdate()
@@ -549,7 +564,6 @@ def update_invoice(data):
 
     invoice_doc.save()
     return invoice_doc
-
 
 @frappe.whitelist()
 def submit_invoice(invoice, data):
