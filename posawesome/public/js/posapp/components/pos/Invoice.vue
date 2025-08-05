@@ -83,13 +83,29 @@
           <v-menu ref="invoice_posting_date" v-model="invoice_posting_date" :close-on-content-click="false"
             transition="scale-transition" density="default">
             <template v-slot:activator="{ props }">
-              <v-text-field v-model="posting_date" :label="frappe._('Posting Date')" readonly variant="outlined"
-                density="compact" bg-color="white" clearable color="primary" hide-details v-bind="props"></v-text-field>
+                          <v-text-field
+              v-model="posting_date"
+              :label="frappe._('Posting Date')"
+              readonly
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+              clearable
+              color="primary"
+              hide-details
+              v-bind="props"
+            />
             </template>
-            <v-date-picker v-model="posting_date" no-title scrollable color="primary" :min="frappe.datetime.add_days(frappe.datetime.now_date(true), -7)
-              " :max="frappe.datetime.add_days(frappe.datetime.now_date(true), 7)"
-              @input="invoice_posting_date = false">
-            </v-date-picker>
+            <v-date-picker
+              v-model="raw_posting_date"
+              no-title
+              scrollable
+              color="primary"
+              :min="frappe.datetime.add_days(frappe.datetime.now_date(true), -7)"
+              :max="frappe.datetime.add_days(frappe.datetime.now_date(true), 7)"
+              @update:model-value="onPostingDateChange"
+              @input="invoice_posting_date = false"
+            />
           </v-menu>
         </v-col>
       </v-row>
@@ -514,7 +530,8 @@ export default {
       delivery_charges_rate: 0,
       selected_delivery_charge: "",
       invoice_posting_date: false,
-      posting_date: frappe.datetime.nowdate(),
+      raw_posting_date: new Date(), 
+      posting_date: frappe.datetime.now_date(), 
       items_headers: [
         {
           title: __("Name"),
@@ -593,6 +610,21 @@ export default {
     item.amount = parsedTotal;
     //this.set(this.items, this.items.indexOf(item), item);
     },
+    formatPostingDate(date) {
+    const d = new Date(date);
+    if (isNaN(d)) return '';
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0'); 
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`; 
+  },
+  onPostingDateChange(date) {
+    this.posting_date = this.formatPostingDate(date); 
+    this.raw_posting_date = date;                     
+    this.invoice_posting_date = false; 
+  },
     format_discount_input() {
     if (!isNaN(this.additional_discount_percentage)) {
       this.additional_discount_percentage = this.formatFloat(this.additional_discount_percentage, 2);
