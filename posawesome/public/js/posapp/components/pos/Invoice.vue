@@ -904,6 +904,18 @@ export default {
       // Sales Person
       new_item.sales_person = "";
       //
+      // Apply customer discount immediately
+      if (this.pos_profile.posa_apply_customer_discount && this.customer_info && this.customer_info.posa_discount > 0 && this.customer_info.posa_discount <= 100) {
+        if (new_item.posa_is_offer == 0 && !new_item.posa_is_replace && new_item.posa_offer_applied == 0) {
+          if (new_item.max_discount > 0) {
+            new_item.discount_percentage = new_item.max_discount < this.customer_info.posa_discount ? new_item.max_discount : this.customer_info.posa_discount;
+          } else {
+            new_item.discount_percentage = this.customer_info.posa_discount;
+          }
+          this.calc_item_price(new_item);
+        }
+      }
+      //
       return new_item;
     },
 
@@ -1715,6 +1727,7 @@ export default {
             (item.has_serial_no = data.has_serial_no),
               (item.has_batch_no = data.has_batch_no),
               vm.calc_item_price(item);
+            vm.$forceUpdate();
           }
         },
       });
@@ -2858,6 +2871,7 @@ export default {
       this.invoiceType = this.pos_profile.posa_default_sales_order
         ? "Order"
         : "Invoice";
+      this.fetch_customer_details();
     });
      this.eventBus.on("auto_set_delivery_charge", () => {
       if (
@@ -2957,8 +2971,21 @@ export default {
       this.fetch_customer_details();
       this.set_delivery_charges();
     },
-    customer_info() {
-      this.eventBus.emit("set_customer_info_to_edit", this.customer_info);
+    customer_info(newVal) {
+      this.eventBus.emit("set_customer_info_to_edit", newVal);
+      if (this.pos_profile.posa_apply_customer_discount && newVal.posa_discount > 0 && newVal.posa_discount <= 100) {
+        this.items.forEach(item => {
+          if (item.posa_is_offer == 0 && !item.posa_is_replace && item.posa_offer_applied == 0) {
+            if (item.max_discount > 0) {
+              item.discount_percentage = item.max_discount < newVal.posa_discount ? item.max_discount : newVal.posa_discount;
+            } else {
+              item.discount_percentage = newVal.posa_discount;
+            }
+            this.calc_item_price(item);
+          }
+        });
+        this.$forceUpdate();
+      }
     },
     expanded(data_value) {
       // this.update_items_details(data_value);
