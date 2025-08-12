@@ -7,6 +7,11 @@ const frappeCall = (method, args = {}) =>
 export default {
   methods: {
     hardwareConfiguration(pos_name) {
+      // Check awesome_pos_hw app is installed else return false
+      if (!frappe.boot.awesome_pos_hw) {
+        return false;
+      }
+
       return frappeCall(
         "awesome_pos_hw.api.get_hardware_details.get_hardware_manager_setting",
         { pos_profile_name: pos_name }
