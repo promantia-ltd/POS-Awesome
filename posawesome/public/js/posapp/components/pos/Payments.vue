@@ -1,4 +1,3 @@
-```vue
 <template>
   <div>
     <v-card
@@ -48,7 +47,7 @@
               :prefix="currencySymbol(invoice_doc.currency)"
               :rules="paid_change_rules"
               density="compact"
-              readonly
+              :readonly="is_credit_sale || invoice_doc.is_return"
               type="number"></v-text-field>
           </v-col>
 
@@ -654,6 +653,14 @@ export default {
       this.eventBus.emit("set_customer_readonly", false);
     },
     submit(event, payment_received = false, print = false) {
+      console.log("is_credit_sale:", this.is_credit_sale);
+      console.log("is_cashback:", this.is_cashback);
+      console.log("diff_payment:", this.diff_payment);
+      console.log("paid_change:", this.paid_change);
+      console.log("credit_change:", this.credit_change);
+      console.log("total_change:", this.flt(this.flt(this.paid_change) + this.flt(-this.credit_change)));
+      console.log("expected change (-diff_payment):", -this.diff_payment);
+
       if (!this.invoice_doc.is_return && this.total_payments < 0) {
         this.eventBus.emit("show_message", {
           title: `Payments not correct`,
@@ -675,9 +682,7 @@ export default {
         });
         if (!phone_payment_is_valid) {
           this.eventBus.emit("show_message", {
-            title: __(
-              "Please request phone payment or use other payment method"
-            ),
+            title: __("Please request phone payment or use other payment method"),
             color: "error",
           });
           frappe.utils.play_sound("error");
@@ -714,9 +719,19 @@ export default {
         return;
       }
 
+      // Ensure paid_change is 0 for credit sales
+      if (this.is_credit_sale) {
+        this.paid_change = 0;
+      }
+
       if (!this.paid_change) this.paid_change = 0;
 
-      if (this.paid_change > -this.diff_payment && !this.invoice_doc.is_return) {
+      // Validate paid_change only for non-credit sales and non-returns
+      if (
+        !this.is_credit_sale &&
+        this.paid_change > -this.diff_payment &&
+        !this.invoice_doc.is_return
+      ) {
         this.eventBus.emit("show_message", {
           title: `Paid change cannot be greater than total change!`,
           color: "error",
@@ -729,7 +744,14 @@ export default {
         this.flt(this.paid_change) + this.flt(-this.credit_change)
       );
 
-      if (this.is_cashback && total_change != -this.diff_payment) {
+      // Validate total_change only for non-credit sales, non-returns, and when there’s an overpayment
+      if (
+        !this.is_credit_sale &&
+        this.is_cashback &&
+        this.diff_payment < 0 &&
+        !this.invoice_doc.is_return &&
+        this.flt(total_change, this.currency_precision) !== this.flt(-this.diff_payment, this.currency_precision)
+      ) {
         this.eventBus.emit("show_message", {
           title: `Error in change calculations!`,
           color: "error",
@@ -893,14 +915,14 @@ export default {
       }
     },
     set_paid_change() {
-      if (!this.paid_change) this.paid_change = 0;
-
+      if (!this.paid_change || this.paid_change < 0) this.paid_change = 0;
       this.paid_change_rules = [];
       let change = -this.diff_payment;
       if (this.paid_change > change && !this.invoice_doc.is_return) {
         this.paid_change_rules = [
           "Paid change cannot be greater than total change!",
         ];
+        this.paid_change = 0;
         this.credit_change = 0;
       }
     },
@@ -1174,9 +1196,8 @@ export default {
 
   computed: {
     total_payments() {
-      if (this.invoice_doc.is_return) {
-        // For returns, exclude payments, loyalty, and credit from total_payments
-        return 0;
+      if (this.is_credit_sale || this.invoice_doc.is_return) {
+        return 0; // No payments for credit sales or returns
       }
       let total = parseFloat(this.invoice_doc.loyalty_amount || 0);
       if (this.invoice_doc && this.invoice_doc.payments) {
@@ -1195,22 +1216,22 @@ export default {
       );
       let diff_payment;
       if (this.invoice_doc.is_return) {
-        // For returns, set diff_payment to the negative of the invoice total
         diff_payment = -invoice_total;
       } else {
-        // For non-returns, calculate as difference between total and payments
         diff_payment = this.flt(
           invoice_total - this.total_payments,
           this.currency_precision
         );
       }
-      // Update paid_change to reflect the return amount for returns
       if (this.invoice_doc.is_return) {
-        this.paid_change = -diff_payment; // Set paid_change to the positive return amount
+        this.paid_change = -diff_payment;
       }
       return diff_payment;
     },
     credit_change() {
+      if (this.is_credit_sale || this.invoice_doc.is_return) {
+        return 0; // No credit change for credit sales or returns
+      }
       let change = -this.diff_payment;
       if (this.paid_change > change && !this.invoice_doc.is_return) {
         return 0;
@@ -1285,6 +1306,8 @@ export default {
         );
         this.is_credit_sale = 0;
         this.is_write_off_change = 0;
+        this.paid_change = 0; // Initialize paid_change
+        this.credit_change = 0; // Initialize credit_change
         if (default_payment && !invoice_doc.is_return) {
           default_payment.amount = this.flt(
             this.invoice_doc.rounded_total || this.invoice_doc.grand_total,
@@ -1297,6 +1320,10 @@ export default {
             payment.amount = 0;
             payment.base_amount = 0;
           });
+          this.paid_change = this.flt(
+            Math.abs(this.invoice_doc.rounded_total || this.invoice_doc.grand_total),
+            this.currency_precision
+          ); // Set paid_change for returns
         }
         this.loyalty_amount = 0;
         this.get_addresses();
@@ -1378,6 +1405,9 @@ export default {
           payment.amount = 0;
           payment.base_amount = 0;
         });
+        this.paid_change = 0; // Reset paid_change for credit sales
+        this.credit_change = 0; // Reset credit_change for credit sales
+        this.is_cashback = false; // Disable cashback for credit sales
       }
     },
     credit_sales_due_date(value) {
@@ -1415,4 +1445,3 @@ export default {
   },
 };
 </script>
-```
