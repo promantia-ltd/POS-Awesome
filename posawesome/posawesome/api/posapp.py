@@ -685,7 +685,7 @@ def submit_invoice(invoice, data):
            new_outstanding = original_grand_total + return_grand_total  # Corrected formula to handle signs properly
            original_invoice.db_set("outstanding_amount", new_outstanding)
            original_invoice.set_status()
-          # Update the credit note (return invoice) outstanding to 0 irrespective of quantities
+           # Update the credit note (return invoice) outstanding to 0 irrespective of quantities
            invoice_doc.db_set("outstanding_amount", 0)
            invoice_doc.set_status()
 
