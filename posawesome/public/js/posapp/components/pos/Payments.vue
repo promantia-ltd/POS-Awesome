@@ -30,7 +30,7 @@
               :label="frappe._(diff_lable)"
               bg-color="white"
               hide-details
-              :model-value="formatCurrency(diff_payment)"
+              :model-value="invoice_doc.is_return ? formatCurrency(-Math.abs(diff_payment)) : formatCurrency(diff_payment)"
               readonly
               :prefix="currencySymbol(invoice_doc.currency)"
               density="compact"></v-text-field>
@@ -47,7 +47,7 @@
               :prefix="currencySymbol(invoice_doc.currency)"
               :rules="paid_change_rules"
               density="compact"
-              readonly
+              :readonly="is_credit_sale || invoice_doc.is_return"
               type="number"></v-text-field>
           </v-col>
 
@@ -355,7 +355,7 @@
                     <div v-html="item.raw.address_line1"></div>
                   </v-list-item-title>
                   <v-list-item-subtitle
-                    v-if="item.raw.custoaddress_line2mer_name">
+                    v-if="item.raw.address_line2">
                     <div v-html="item.raw.address_line2"></div>
                   </v-list-item-subtitle>
                   <v-list-item-subtitle v-if="item.raw.city">
@@ -539,26 +539,6 @@
           </v-row>
         </div>
         <v-divider></v-divider>
-        <!-- <v-row class="pb-0 mb-2" align="start">
-          <v-col cols="12">
-            <v-autocomplete density="compact" clearable variant="outlined" color="primary"
-              :label="frappe._('Sales Person')" v-model="sales_person" :items="sales_persons"
-              item-title="sales_person_name" item-value="name" bg-color="white"
-              :no-data-text="__('Sales Person not found')" hide-details :customFilter="salesPersonFilter"
-              :disabled="readonly">
-              <template v-slot:item="{ props, item }">
-                <v-list-item v-bind="props">
-                  <v-list-item-title class="text-primary text-subtitle-1">
-                    <div v-html="item.raw.sales_person_name"></div>
-                  </v-list-item-title>
-                  <v-list-item-subtitle v-if="item.raw.sales_person_name != item.raw.name">
-                    <div v-html="`ID: ${item.raw.name}`"></div>
-                  </v-list-item-subtitle>
-                </v-list-item>
-              </template>
-            </v-autocomplete>
-          </v-col>
-        </v-row> -->
       </div>
     </v-card>
 
@@ -571,7 +551,7 @@
             color="primary"
             theme="dark"
             @click="submit"
-            :disabled="vaildatPayment"
+            :disabled="validatePayment"
             >{{ __("Submit") }}</v-btn
           >
         </v-col>
@@ -582,7 +562,7 @@
             color="success"
             theme="dark"
             @click="submit(undefined, false, true)"
-            :disabled="vaildatPayment"
+            :disabled="validatePayment"
             >{{ __("Submit & Print") }}</v-btn
           >
         </v-col>
@@ -637,10 +617,9 @@
 
 <script>
 import format from "../../format";
-import hardwareUtils from "../../hardwareManager/hardwareUtils";
 
 export default {
-  mixins: [format, hardwareUtils],
+  mixins: [format],
   data: () => ({
     loading: false,
     pos_profile: "",
@@ -674,6 +653,14 @@ export default {
       this.eventBus.emit("set_customer_readonly", false);
     },
     submit(event, payment_received = false, print = false) {
+      console.log("is_credit_sale:", this.is_credit_sale);
+      console.log("is_cashback:", this.is_cashback);
+      console.log("diff_payment:", this.diff_payment);
+      console.log("paid_change:", this.paid_change);
+      console.log("credit_change:", this.credit_change);
+      console.log("total_change:", this.flt(this.flt(this.paid_change) + this.flt(-this.credit_change)));
+      console.log("expected change (-diff_payment):", -this.diff_payment);
+
       if (!this.invoice_doc.is_return && this.total_payments < 0) {
         this.eventBus.emit("show_message", {
           title: `Payments not correct`,
@@ -695,13 +682,10 @@ export default {
         });
         if (!phone_payment_is_valid) {
           this.eventBus.emit("show_message", {
-            title: __(
-              "Please request phone payment or use other payment method"
-            ),
+            title: __("Please request phone payment or use other payment method"),
             color: "error",
           });
           frappe.utils.play_sound("error");
-          console.error("phone payment not requested");
           return;
         }
       }
@@ -721,6 +705,7 @@ export default {
       }
 
       if (
+        !this.invoice_doc.is_return &&
         this.pos_profile.posa_allow_partial_payment &&
         !this.pos_profile.posa_allow_credit_sale &&
         this.total_payments == 0
@@ -733,11 +718,19 @@ export default {
         return;
       }
 
+      if (this.is_credit_sale) {
+        this.paid_change = 0;
+      }
+
       if (!this.paid_change) this.paid_change = 0;
 
-      if (this.paid_change > -this.diff_payment) {
+      if (
+        !this.is_credit_sale &&
+        this.paid_change > -this.diff_payment &&
+        !this.invoice_doc.is_return
+      ) {
         this.eventBus.emit("show_message", {
-          title: `Paid change can not be greater than total change!`,
+          title: `Paid change cannot be greater than total change!`,
           color: "error",
         });
         frappe.utils.play_sound("error");
@@ -748,7 +741,14 @@ export default {
         this.flt(this.paid_change) + this.flt(-this.credit_change)
       );
 
-      if (this.is_cashback && total_change != -this.diff_payment) {
+      // Validate total_change only for non-credit sales, non-returns, and when there’s an overpayment
+      if (
+        !this.is_credit_sale &&
+        this.is_cashback &&
+        this.diff_payment < 0 &&
+        !this.invoice_doc.is_return &&
+        this.flt(total_change, this.currency_precision) !== this.flt(-this.diff_payment, this.currency_precision)
+      ) {
         this.eventBus.emit("show_message", {
           title: `Error in change calculations!`,
           color: "error",
@@ -765,7 +765,7 @@ export default {
 
       if (credit_calc_check.length > 0) {
         this.eventBus.emit("show_message", {
-          title: `redeamed credit can not greater than its total.`,
+          title: `Redeemed credit cannot be greater than its total.`,
           color: "error",
         });
         frappe.utils.play_sound("error");
@@ -778,7 +778,7 @@ export default {
           (this.invoice_doc.rounded_total || this.invoice_doc.grand_total)
       ) {
         this.eventBus.emit("show_message", {
-          title: `can not redeam customer credit more than invoice total`,
+          title: `Cannot redeem customer credit more than invoice total`,
           color: "error",
         });
         frappe.utils.play_sound("error");
@@ -828,7 +828,7 @@ export default {
             return;
           }
           if (print) {
-            vm.handlePrint(vm.invoice_doc.name);
+            vm.load_print_page();
           }
           vm.customer_credit_dict = [];
           vm.redeem_customer_credit = false;
@@ -840,7 +840,6 @@ export default {
             title: `Invoice ${r.message.name} is Submited`,
             color: "success",
           });
-          //s
           frappe.utils.play_sound("submit");
           vm.addresses = [];
           vm.eventBus.emit("clear_invoice");
@@ -848,21 +847,6 @@ export default {
           return;
         },
       });
-      console.log(this.is_sucessful_invoice);
-    },
-    async handlePrint(invoice_name) {
-      try {
-        await this.hardwareConfiguration(this.pos_profile.name).then((res) => {
-          if (res === true) {
-            this.custom_print(invoice_name);
-          } else {
-            vm.load_print_page();
-          }
-        });
-      } catch (err) {
-        console.error("Hardware config check failed:", err);
-        this.load_print_page(invoice_name); // fallback
-      }
     },
     set_full_amount(idx) {
       this.invoice_doc.payments.forEach((payment) => {
@@ -907,8 +891,6 @@ export default {
         "load",
         function () {
           printWindow.print();
-          // printWindow.close();
-          // NOTE : uncomoent this to auto closing printing window
         },
         true
       );
@@ -930,14 +912,14 @@ export default {
       }
     },
     set_paid_change() {
-      if (!this.paid_change) this.paid_change = 0;
-
+      if (!this.paid_change || this.paid_change < 0) this.paid_change = 0;
       this.paid_change_rules = [];
       let change = -this.diff_payment;
-      if (this.paid_change > change) {
+      if (this.paid_change > change && !this.invoice_doc.is_return) {
         this.paid_change_rules = [
-          "Paid change can not be greater than total change!",
+          "Paid change cannot be greater than total change!",
         ];
+        this.paid_change = 0;
         this.credit_change = 0;
       }
     },
@@ -1064,7 +1046,7 @@ export default {
       const vm = this;
       if (!this.invoice_doc.contact_mobile) {
         this.eventBus.emit("show_message", {
-          title: __(`Pleas Set Customer Mobile Number`),
+          title: __(`Please Set Customer Mobile Number`),
           color: "error",
         });
         this.eventBus.emit("open_edit_customer");
@@ -1211,36 +1193,50 @@ export default {
 
   computed: {
     total_payments() {
-      let total = parseFloat(this.invoice_doc.loyalty_amount);
+      if (this.is_credit_sale || this.invoice_doc.is_return) {
+        return 0; 
+      }
+      let total = parseFloat(this.invoice_doc.loyalty_amount || 0);
       if (this.invoice_doc && this.invoice_doc.payments) {
         this.invoice_doc.payments.forEach((payment) => {
           total += this.flt(payment.amount);
         });
       }
-
       total += this.flt(this.redeemed_customer_credit);
-
       if (!this.is_cashback) total = 0;
-
       return this.flt(total, this.currency_precision);
     },
     diff_payment() {
-      let diff_payment = this.flt(
-        (this.invoice_doc.rounded_total || this.invoice_doc.grand_total) -
-          this.total_payments,
+      let invoice_total = this.flt(
+        Math.abs(this.invoice_doc.rounded_total || this.invoice_doc.grand_total),
         this.currency_precision
       );
-      this.paid_change = -diff_payment;
+      let diff_payment;
+      if (this.invoice_doc.is_return) {
+        diff_payment = -invoice_total;
+      } else {
+        diff_payment = this.flt(
+          invoice_total - this.total_payments,
+          this.currency_precision
+        );
+      }
+      if (this.invoice_doc.is_return) {
+        this.paid_change = -diff_payment;
+      }
       return diff_payment;
     },
     credit_change() {
+      if (this.is_credit_sale || this.invoice_doc.is_return) {
+        return 0; /
+      }
       let change = -this.diff_payment;
-      if (this.paid_change > change) return 0;
+      if (this.paid_change > change && !this.invoice_doc.is_return) {
+        return 0;
+      }
       return this.flt(this.paid_change - change, this.currency_precision);
     },
     diff_lable() {
-      let lable = this.diff_payment < 0 ? "Change" : "To Be Paid";
-      return lable;
+      return this.diff_payment < 0 ? "Change" : "To Be Paid";
     },
     available_pioints_amount() {
       let amount = 0;
@@ -1256,7 +1252,6 @@ export default {
       this.customer_credit_dict.map((row) => {
         total += row.total_credit;
       });
-
       return total;
     },
     redeemed_customer_credit() {
@@ -1265,10 +1260,9 @@ export default {
         if (flt(row.credit_to_redeem)) total += flt(row.credit_to_redeem);
         else row.credit_to_redeem = 0;
       });
-
       return total;
     },
-    vaildatPayment() {
+    validatePayment() {
       if (this.pos_profile.posa_allow_sales_order) {
         if (
           this.invoiceType == "Order" &&
@@ -1309,6 +1303,8 @@ export default {
         );
         this.is_credit_sale = 0;
         this.is_write_off_change = 0;
+        this.paid_change = 0; 
+        this.credit_change = 0; 
         if (default_payment && !invoice_doc.is_return) {
           default_payment.amount = this.flt(
             this.invoice_doc.rounded_total || this.invoice_doc.grand_total,
@@ -1321,6 +1317,10 @@ export default {
             payment.amount = 0;
             payment.base_amount = 0;
           });
+          this.paid_change = this.flt(
+            Math.abs(this.invoice_doc.rounded_total || this.invoice_doc.grand_total),
+            this.currency_precision
+          );
         }
         this.loyalty_amount = 0;
         this.get_addresses();
@@ -1386,7 +1386,7 @@ export default {
         this.invoice_doc.redeem_loyalty_points = 0;
         this.invoice_doc.loyalty_points = 0;
         this.eventBus.emit("show_message", {
-          title: `Loyalty Amount can not be more then ${this.available_pioints_amount}`,
+          title: `Loyalty Amount cannot be more than ${this.available_pioints_amount}`,
           color: "error",
         });
       } else {
@@ -1402,11 +1402,13 @@ export default {
           payment.amount = 0;
           payment.base_amount = 0;
         });
+        this.paid_change = 0; 
+        this.credit_change = 0;
+        this.is_cashback = false; 
       }
     },
     credit_sales_due_date(value) {
       this.invoice_doc.due_date = frappe.datetime.get_datetime_as_string(value);
-      console.log(this.invoice_doc);
     },
     is_write_off_change(value) {
       if (value == 1) {
@@ -1420,7 +1422,7 @@ export default {
     redeemed_customer_credit(value) {
       if (value > this.available_customer_credit) {
         this.eventBus.emit("show_message", {
-          title: `You can redeem customer credit upto ${this.available_customer_credit}`,
+          title: `You can redeem customer credit up to ${this.available_customer_credit}`,
           color: "error",
         });
       }
