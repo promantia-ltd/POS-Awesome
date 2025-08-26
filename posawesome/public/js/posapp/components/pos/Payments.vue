@@ -1227,7 +1227,7 @@ export default {
     },
     credit_change() {
       if (this.is_credit_sale || this.invoice_doc.is_return) {
-        return 0; /
+        return 0; 
       }
       let change = -this.diff_payment;
       if (this.paid_change > change && !this.invoice_doc.is_return) {
