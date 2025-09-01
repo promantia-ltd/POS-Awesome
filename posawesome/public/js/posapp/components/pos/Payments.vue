@@ -1,7 +1,9 @@
 <template>
   <div>
     <v-card
-      class="selection mx-auto bg-grey-lighten-5 pa-1"
+      elevation="2"
+      rounded="lg"
+      class="selection mx-auto bg-grey-lighten-5"
       style="max-height: 76vh; height: 76vh">
       <v-progress-linear
         :active="loading"
@@ -9,8 +11,16 @@
         absolute
         :location="top"
         color="info"></v-progress-linear>
-      <div class="overflow-y-auto px-2 pt-2" style="max-height: 75vh">
-        <v-row v-if="invoice_doc" class="px-1 py-0">
+      <div class="overflow-y-auto pa-4" style="max-height: 75vh">
+        <!-- Payment Status Section -->
+        <div class="mb-4" v-if="invoice_doc">
+          <v-card variant="flat" color="primary" class="mb-3 section-header">
+            <v-card-title class="text-subtitle-1 py-2 text-white">
+              <v-icon start size="20" color="white">mdi-cash-multiple</v-icon>
+              Payment Summary
+            </v-card-title>
+          </v-card>
+          <v-row class="mb-2">
           <v-col cols="7">
             <v-text-field
               variant="outlined"
@@ -35,8 +45,19 @@
               :prefix="currencySymbol(invoice_doc.currency)"
               density="compact"></v-text-field>
           </v-col>
+        </v-row>
+        </div>
 
-          <v-col cols="7" v-if="diff_payment < 0 && !invoice_doc.is_return">
+        <!-- Change Details Section -->
+        <div class="mb-4" v-if="diff_payment < 0 && !invoice_doc.is_return">
+          <v-card variant="flat" color="success" class="mb-3 section-header">
+            <v-card-title class="text-subtitle-1 py-2 text-white">
+              <v-icon start size="20" color="white">mdi-cash-refund</v-icon>
+              Change Details
+            </v-card-title>
+          </v-card>
+          <v-row>
+            <v-col cols="7">
             <v-text-field
               variant="outlined"
               color="primary"
@@ -62,13 +83,22 @@
               readonly
               :prefix="currencySymbol(invoice_doc.currency)"
               density="compact"></v-text-field>
-          </v-col>
-        </v-row>
-        <v-divider></v-divider>
+            </v-col>
+          </v-row>
+        </div>
+        
+        <v-divider class="my-4"></v-divider>
 
-        <div v-if="is_cashback">
+        <!-- Payment Methods Section -->
+        <div class="mb-4" v-if="is_cashback">
+          <v-card variant="flat" color="info" class="mb-3 section-header">
+            <v-card-title class="text-subtitle-1 py-2 text-white">
+              <v-icon start size="20" color="white">mdi-credit-card</v-icon>
+              Payment Methods
+            </v-card-title>
+          </v-card>
           <v-row
-            class="pyments px-1 py-0"
+            class="pyments mb-2"
             v-for="payment in invoice_doc.payments"
             :key="payment.name">
             <v-col cols="6" v-if="!is_mpesa_c2b_payment(payment)">
@@ -97,20 +127,28 @@
               ">
               <v-btn
                 block
-                class=""
+                variant="elevated"
                 color="primary"
-                theme="dark"
-                @click="set_full_amount(payment.idx)"
-                >{{ payment.mode_of_payment }}</v-btn
-              >
+                size="large"
+                rounded="lg"
+                elevation="3"
+                class="payment-method-btn"
+                @click="set_full_amount(payment.idx)">
+                <v-icon start size="20">mdi-cash</v-icon>
+                {{ payment.mode_of_payment }}
+              </v-btn>
             </v-col>
             <v-col v-if="is_mpesa_c2b_payment(payment)" :cols="12" class="pl-3">
               <v-btn
                 block
-                class=""
+                variant="elevated"
                 color="success"
-                theme="dark"
+                size="large"
+                rounded="lg"
+                elevation="3"
+                class="payment-method-btn"
                 @click="mpesa_c2b_dialg(payment)">
+                <v-icon start size="20">mdi-phone</v-icon>
                 {{ __(`Get Payments ${payment.mode_of_payment}`) }}
               </v-btn>
             </v-col>
@@ -124,14 +162,18 @@
               class="pl-1">
               <v-btn
                 block
-                class=""
+                variant="elevated"
                 color="success"
-                theme="dark"
+                size="large"
+                rounded="lg"
+                elevation="3"
+                class="payment-method-btn"
                 :disabled="payment.amount == 0"
                 @click="
                   (phone_dialog = true),
                     (payment.amount = flt(payment.amount, 0))
                 ">
+                <v-icon start size="20">mdi-send</v-icon>
                 {{ __("Request") }}
               </v-btn>
             </v-col>
@@ -542,42 +584,56 @@
       </div>
     </v-card>
 
-    <v-card flat class="cards mb-0 mt-3 py-0">
-      <v-row align="start" no-gutters>
+    <!-- Action Buttons -->
+    <v-card elevation="2" rounded="lg" class="mt-3">
+      <v-card-text class="pa-4">
+        <v-row align="start" no-gutters>
         <v-col cols="6">
           <v-btn
             block
+            variant="elevated"
             size="large"
             color="primary"
-            theme="dark"
+            rounded="lg"
+            elevation="4"
+            class="action-btn submit-btn"
             @click="submit"
-            :disabled="vaildatPayment"
-            >{{ __("Submit") }}</v-btn
-          >
+            :disabled="vaildatPayment">
+            <v-icon start size="20">mdi-check-circle</v-icon>
+            {{ __("Submit") }}
+          </v-btn>
         </v-col>
         <v-col cols="6" class="pl-1">
           <v-btn
             block
+            variant="elevated"
             size="large"
             color="success"
-            theme="dark"
+            rounded="lg"
+            elevation="4"
+            class="action-btn print-btn"
             @click="submit(undefined, false, true)"
-            :disabled="vaildatPayment"
-            >{{ __("Submit & Print") }}</v-btn
-          >
+            :disabled="vaildatPayment">
+            <v-icon start size="20">mdi-printer</v-icon>
+            {{ __("Submit & Print") }}
+          </v-btn>
         </v-col>
         <v-col cols="12">
           <v-btn
             block
-            class="mt-2 pa-1"
+            variant="elevated"
             size="large"
             color="error"
-            theme="dark"
-            @click="back_to_invoice"
-            >{{ __("Cancel Payment") }}</v-btn
-          >
+            rounded="lg"
+            elevation="4"
+            class="mt-3 action-btn cancel-btn"
+            @click="back_to_invoice">
+            <v-icon start size="20">mdi-cancel</v-icon>
+            {{ __("Cancel Payment") }}
+          </v-btn>
         </v-col>
-      </v-row>
+        </v-row>
+      </v-card-text>
     </v-card>
     <div>
       <v-dialog v-model="phone_dialog" max-width="400px">
@@ -1418,3 +1474,59 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.payment-method-btn {
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.payment-method-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+.action-btn {
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.submit-btn {
+  background: linear-gradient(45deg, #1976d2 0%, #2196f3 100%) !important;
+  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.3) !important;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.4) !important;
+}
+
+.print-btn {
+  background: linear-gradient(45deg, #4caf50 0%, #66bb6a 100%) !important;
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3) !important;
+}
+
+.print-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4) !important;
+}
+
+.cancel-btn {
+  background: linear-gradient(45deg, #f44336 0%, #ef5350 100%) !important;
+  box-shadow: 0 6px 16px rgba(244, 67, 54, 0.3) !important;
+}
+
+.cancel-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4) !important;
+}
+
+/* Section headers styling - scoped to payment page only */
+.section-header .v-card-title {
+  color: white !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+</style>

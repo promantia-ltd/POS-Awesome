@@ -2,31 +2,35 @@
   <div fluid>
     <v-row v-show="!dialog">
       <v-col md="8" cols="12" class="pb-2 pr-0">
-        <v-card class="main mx-auto bg-grey-lighten-5 mt-3 p-3 pb-16 overflow-y-auto"
+        <v-card class="modern-payments-card mx-auto mt-3 overflow-y-auto"
           style="max-height: 94vh; height: 94vh">
-          <Customer></Customer>
-          <PaidInvoice></PaidInvoice>
-          <v-divider></v-divider>
-          <div>
-            <v-row>
-              <v-col md="7" cols="12">
-                <p>
-                  <strong>{{ __("Invoices") }}</strong>
-                  <span v-if="total_outstanding_amount" class="text-primary">{{ __("- Total Outstanding") }} :
-                    {{ currencySymbol(pos_profile.currency) }}
-                    {{ formatCurrency(total_outstanding_amount) }}</span>
-                </p>
-              </v-col>
-              <v-col md="5" cols="12">
-                <p v-if="total_selected_invoices" class="golden--text text-end">
-                  <span>{{ __("Total Selected :") }}</span>
-                  <span>
-                    {{ currencySymbol(pos_profile.currency) }}
-                    {{ formatCurrency(total_selected_invoices) }}
-                  </span>
-                </p>
-              </v-col>
-            </v-row>
+          <div class="modern-payments-content">
+            <!-- Customer Section -->
+            <div class="mb-6">
+              <Customer></Customer>
+              <PaidInvoice></PaidInvoice>
+            </div>
+
+            <!-- Invoices Section -->
+            <div class="mb-6">
+              <div class="section-header mb-4">
+                <v-card class="modern-section-card" variant="flat">
+                  <v-card-title class="section-title">
+                    <v-icon class="section-icon" size="24">mdi-receipt-text</v-icon>
+                    <div class="section-text">
+                      <div class="section-main-title">{{ __("Invoices") }}</div>
+                      <div v-if="total_outstanding_amount" class="section-subtitle">
+                        {{ __("Total Outstanding") }}: {{ currencySymbol(pos_profile.currency) }} {{ formatCurrency(total_outstanding_amount) }}
+                      </div>
+                    </div>
+                    <div v-if="total_selected_invoices" class="section-badge">
+                      <v-chip color="primary" variant="flat" size="small">
+                        {{ __("Selected") }}: {{ currencySymbol(pos_profile.currency) }} {{ formatCurrency(total_selected_invoices) }}
+                      </v-chip>
+                    </div>
+                  </v-card-title>
+                </v-card>
+              </div>
             <v-row :align="center" no-gutters class="mb-1">
               <v-col md="4" cols="12">
                 <v-select density="compact" variant="outlined" hide-details clearable bg-color="white"
@@ -65,32 +69,30 @@
               </template>
             </v-data-table>
             <v-divider></v-divider>
+            </div>
           </div>
           <div v-if="
             pos_profile.posa_allow_reconcile_payments &&
             unallocated_payments.length
-          ">
-            <v-row>
-              <v-col md="7" cols="12">
-                <p>
-                  <strong>{{ __("Payments") }}</strong>
-                  <span v-if="total_unallocated_amount" class="text-primary">
-                    {{ __("- Total Unallocated") }} :
-                    {{ currencySymbol(pos_profile.currency) }}
-                    {{ formatCurrency(total_unallocated_amount) }}
-                  </span>
-                </p>
-              </v-col>
-              <v-col md="5" cols="12">
-                <p v-if="total_selected_payments" class="golden--text text-end">
-                  <span>{{ __("Total Selected :") }}</span>
-                  <span>
-                    {{ currencySymbol(pos_profile.currency) }}
-                    {{ formatCurrency(total_selected_payments) }}
-                  </span>
-                </p>
-              </v-col>
-            </v-row>
+          " class="mb-6">
+            <div class="section-header mb-4">
+              <v-card class="modern-section-card" variant="flat">
+                <v-card-title class="section-title">
+                  <v-icon class="section-icon" size="24">mdi-credit-card-outline</v-icon>
+                  <div class="section-text">
+                    <div class="section-main-title">{{ __("Payments") }}</div>
+                    <div v-if="total_unallocated_amount" class="section-subtitle">
+                      {{ __("Total Unallocated") }}: {{ currencySymbol(pos_profile.currency) }} {{ formatCurrency(total_unallocated_amount) }}
+                    </div>
+                  </div>
+                  <div v-if="total_selected_payments" class="section-badge">
+                    <v-chip color="primary" variant="flat" size="small">
+                      {{ __("Selected") }}: {{ currencySymbol(pos_profile.currency) }} {{ formatCurrency(total_selected_payments) }}
+                    </v-chip>
+                  </div>
+                </v-card-title>
+              </v-card>
+            </div>
             <v-data-table :headers="unallocated_payments_headers" :items="unallocated_payments" item-key="name"
               class="elevation-1 mt-0" :single-select="singleSelect" show-select v-model="selected_payments" return-object
               :loading="unallocated_payments_loading" checkbox-color="primary" >
@@ -107,23 +109,22 @@
             </v-data-table>
             <v-divider></v-divider>
           </div>
-          <div v-if="pos_profile.posa_allow_mpesa_reconcile_payments">
-            <v-row>
-              <v-col md="8" cols="12">
-                <p>
-                  <span><strong>{{ __("Search Mpesa Payments") }}</strong></span>
-                </p>
-              </v-col>
-              <v-col md="4" cols="12" v-if="total_selected_mpesa_payments">
-                <p class="golden--text text-end">
-                  <span>{{ __("Total Selected :") }}</span>
-                  <span>
-                    {{ currencySymbol(pos_profile.currency) }}
-                    {{ formatCurrency(total_selected_mpesa_payments) }}
-                  </span>
-                </p>
-              </v-col>
-            </v-row>
+          <div v-if="pos_profile.posa_allow_mpesa_reconcile_payments" class="mb-6">
+            <div class="section-header mb-4">
+              <v-card class="modern-section-card" variant="flat">
+                <v-card-title class="section-title">
+                  <v-icon class="section-icon" size="24">mdi-cellphone-nfc</v-icon>
+                  <div class="section-text">
+                    <div class="section-main-title">{{ __("Search Mpesa Payments") }}</div>
+                  </div>
+                  <div v-if="total_selected_mpesa_payments" class="section-badge">
+                    <v-chip color="primary" variant="flat" size="small">
+                      {{ __("Selected") }}: {{ currencySymbol(pos_profile.currency) }} {{ formatCurrency(total_selected_mpesa_payments) }}
+                    </v-chip>
+                  </div>
+                </v-card-title>
+              </v-card>
+            </div>
             <v-row :align="center" no-gutters class="mb-1">
               <v-col md="4" cols="12" class="mr-1">
                 <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Search by Name')"
@@ -153,9 +154,18 @@
         </v-card>
       </v-col>
       <v-col md="4" cols="12" class="pb-3">
-        <v-card class="invoices mx-auto bg-grey-lighten-5 mt-3 p-3" style="max-height: 94vh; height: 94vh">
-          <strong>
-            <h4 class="text-primary">Totals</h4>
+        <v-card class="modern-totals-card mx-auto mt-3" style="max-height: 94vh; height: 94vh">
+          <div class="totals-header mb-4">
+            <v-card class="modern-section-card" variant="flat">
+              <v-card-title class="section-title">
+                <v-icon class="section-icon" size="24">mdi-calculator</v-icon>
+                <div class="section-text">
+                  <div class="section-main-title">{{ __("Totals") }}</div>
+                </div>
+              </v-card-title>
+            </v-card>
+          </div>
+          <div class="totals-content">
             <v-row>
               <v-col md="7" class="mt-1">
                 <span>{{ __("Total Invoices:") }}</span>
@@ -186,8 +196,15 @@
             </v-row>
 
             <v-divider v-if="payment_methods.length"></v-divider>
-            <div v-if="pos_profile.posa_allow_make_new_payments">
-              <h4 class="text-primary">Make New Payment</h4>
+            <div v-if="pos_profile.posa_allow_make_new_payments" class="mt-6">
+              <div class="subsection-header mb-4">
+                <v-card class="modern-subsection-card" variant="flat">
+                  <v-card-title class="subsection-title">
+                    <v-icon class="subsection-icon" size="20">mdi-plus-circle</v-icon>
+                    <span class="subsection-text">{{ __("Make New Payment") }}</span>
+                  </v-card-title>
+                </v-card>
+              </div>
               <v-row v-if="payment_methods.length" v-for="method in payment_methods" :key="method.row_id">
                 <v-col md="7"><span class="mt-1">{{ __(method.mode_of_payment) }}:</span>
                 </v-col>
@@ -199,17 +216,23 @@
             </div>
 
             <v-divider></v-divider>
-            <v-row>
-              <v-col md="7">
-                <h4 class="text-primary mt-1">{{ __("Difference:") }}</h4>
-              </v-col>
-              <v-col md="5">
-                <v-text-field class="p-0 m-0" density="compact" color="primary" bg-color="white" hide-details
-                  :model-value="formatCurrency(total_of_diff)" total_of_diff flat readonly
-                  :prefix="currencySymbol(pos_profile.currency)"></v-text-field>
-              </v-col>
-            </v-row>
-          </strong>
+            <v-divider class="my-4"></v-divider>
+            <div class="difference-section">
+              <v-row>
+                <v-col md="7">
+                  <div class="difference-label">
+                    <v-icon class="mr-2" size="20" color="primary">mdi-delta</v-icon>
+                    <span class="text-h6 font-weight-medium text-primary">{{ __("Difference:") }}</span>
+                  </div>
+                </v-col>
+                <v-col md="5">
+                  <v-text-field class="p-0 m-0" density="compact" color="primary" bg-color="white" hide-details
+                    :model-value="formatCurrency(total_of_diff)" total_of_diff flat readonly
+                    :prefix="currencySymbol(pos_profile.currency)"></v-text-field>
+                </v-col>
+              </v-row>
+            </div>
+          </div>
           <div class="pb-6 pr-6" style="position: absolute; bottom: 0; width: 100%">
             <v-btn block color="primary" theme="dark" @click="submit">
               {{ __("Submit") }}
@@ -718,7 +741,141 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+/* Modern Payments Card Styles */
+.modern-payments-card {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  padding: 1.5rem;
+}
+
+.modern-payments-content {
+  padding: 0.5rem 0;
+}
+
+/* Modern Section Header Styles */
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.modern-section-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem !important;
+  font-size: 1rem !important;
+}
+
+.section-icon {
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.section-text {
+  flex: 1;
+}
+
+.section-main-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.section-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.section-badge {
+  margin-left: auto;
+}
+
+/* Modern Totals Card Styles */
+.modern-totals-card {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.totals-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.totals-content {
+  padding-top: 0.5rem;
+}
+
+/* Subsection Styles */
+.subsection-header {
+  margin: 1.5rem 0 1rem 0;
+}
+
+.modern-subsection-card {
+  background: linear-gradient(135deg, #fafbff 0%, #f0f4ff 100%) !important;
+  border-radius: 10px;
+  border: 1px solid #ddd6fe;
+}
+
+.subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.95rem !important;
+}
+
+.subsection-icon {
+  color: #6366f1 !important;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.subsection-text {
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Difference Section */
+.difference-section {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #bbf7d0;
+}
+
+.difference-label {
+  display: flex;
+  align-items: center;
+}
+
+/* Enhanced Data Tables */
+.v-data-table {
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.v-data-table .v-data-table__wrapper {
+  border-radius: 12px;
+}
+
+/* Input field styling */
 input[total_of_diff] {
   text-align: right;
 }
@@ -738,9 +895,29 @@ input[total_selected_invoices] {
 input[total_selected_mpesa_payments] {
   text-align: right;
 }
+
 .small-switch .v-label {
    margin-left: -6px; 
-   margin-top: 4px; /* Adjust this value as needed */
+   margin-top: 4px;
    display: block;
- }
+}
+
+/* Modern Button Styling */
+.v-btn {
+  border-radius: 10px !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.v-btn:hover {
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Enhanced Chips */
+.v-chip {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+}
 </style>

@@ -22,8 +22,10 @@
       </v-card>
     </v-dialog>
     <v-card
-      style="max-height: 70vh; height: 70vh"
-      class="cards my-0 py-0 mt-3 bg-grey-lighten-5">
+      style="max-height: 75vh; height: 75vh"
+      class="cards my-0 py-0"
+      elevation="2"
+      rounded="lg">
       <v-row align="center" class="items px-2 py-1">
         <v-col
           :cols="pos_profile.posa_allow_sales_order ? 7 : 10"
@@ -682,10 +684,10 @@
         </v-data-table>
       </div>
     </v-card>
-    <v-card class="cards mb-0 mt-3 py-0 bg-grey-lighten-5">
+    <v-card class="cards mb-0 mt-3 py-0" elevation="2" rounded="lg">
       <v-row no-gutters>
         <v-col cols="7">
-          <v-row no-gutters class="pa-1 pt-9 pr-1">
+          <v-row no-gutters class="pa-1 pt-2 pr-1">
             <v-col cols="6" class="pa-1">
               <v-text-field
                 :model-value="formatFloat(total_qty)"
@@ -834,12 +836,16 @@
             <v-col class="pa-1">
               <v-btn
                 block
-                class="pa-0"
+                variant="elevated"
+                size="large"
+                rounded="xl"
                 color="success"
-                @click="show_payment"
-                theme="dark"
-                >{{ __("PAY") }}</v-btn
-              >
+                elevation="4"
+                class="pay-button"
+                @click="show_payment">
+                <v-icon start size="20">mdi-credit-card</v-icon>
+                <span class="pay-text">{{ __("PAY") }}</span>
+              </v-btn>
             </v-col>
             <v-col
               v-if="pos_profile.posa_allow_print_draft_invoices"
@@ -3398,9 +3404,29 @@ export default {
 .disable-events {
   pointer-events: none;
 }
+
 .small-switch .v-label {
   margin-left: -6px;
   margin-top: 20px; /* Adjust this value as needed */
   display: block;
+}
+
+.pay-button {
+  background: linear-gradient(45deg, #4caf50 0%, #66bb6a 100%) !important;
+  box-shadow: 0 8px 16px rgba(76, 175, 80, 0.3) !important;
+  transition: all 0.3s ease !important;
+  border-radius: 16px !important;
+}
+
+.pay-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 20px rgba(76, 175, 80, 0.4) !important;
+}
+
+.pay-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 </style>

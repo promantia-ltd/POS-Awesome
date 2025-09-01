@@ -1,22 +1,27 @@
 <template>
   <nav>
-    <v-app-bar height="40" class="elevation-2">
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" class="text-grey"></v-app-bar-nav-icon>
-      <v-img src="/assets/posawesome/js/posapp/components/pos/pos.png" alt="POS Awesome" max-width="32" class="mr-2"
-        color="primary"></v-img>
-      <v-toolbar-title @click="go_desk" style="cursor: pointer" class="text-uppercase text-primary">
-        <span class="font-weight-light">POS</span>
-        <span>Awesome</span>
+    <v-app-bar height="72" class="modern-header" elevation="1">
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer" class="modern-nav-icon"></v-app-bar-nav-icon>
+      <v-toolbar-title @click="go_desk" class="stylish-brand">
+        <div class="brand-container">
+          <span class="brand-pos">POS</span>
+          <span class="brand-mati">मति</span>
+        </div>
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
-      <v-btn style="cursor: unset" variant="text" color="primary">
-        <span right>{{ pos_profile.name }}</span>
-      </v-btn>
+      <div class="user-info">
+        <v-chip class="user-chip" variant="tonal" color="primary">
+          <v-icon start size="small">mdi-account-circle</v-icon>
+          {{ pos_profile.name || 'User' }}
+        </v-chip>
+      </div>
       <div class="text-center">
         <v-menu>
           <template v-slot:activator="{ props }">
-            <v-btn color="primary" theme="dark" variant="text" v-bind="props">Menu</v-btn>
+            <v-btn class="menu-button" variant="text" v-bind="props">
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
           </template>
           <v-card class="mx-auto" max-width="300">
             <v-list v-model="menu_item" color="primary">
@@ -67,31 +72,37 @@
         </v-menu>
       </div>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" v-model:mini-variant="mini" class="bg-primary margen-top" width="170">
-      <v-list theme="dark">
-        <v-list-item class="px-2">
-          <template v-slot:prepend>
-            <v-avatar>
-              <v-img :src="company_img"></v-img>
-            </v-avatar>
-          </template>
-
-          <v-list-item-title>{{ company }}</v-list-item-title>
-
-        </v-list-item>
-        <!-- <MyPopup/> -->
-        <v-list v-model="item" color="white">
-          <v-list-item v-for="item in items" :key="item.text" @click="changePage(item.text)">
+    <v-navigation-drawer v-model="drawer" v-model:mini-variant="mini" class="modern-sidebar" width="280">
+      <!-- Company Header Section -->
+      <div class="sidebar-header">
+        <div class="company-info">
+          <v-avatar size="48" class="company-avatar">
+            <v-img :src="company_img"></v-img>
+          </v-avatar>
+          <div class="company-details">
+            <div class="company-name">{{ company }}</div>
+            <div class="company-type">Point of Sale</div>
+          </div>
+        </div>
+      </div>
+      
+      <v-divider class="sidebar-divider"></v-divider>
+      
+      <!-- Navigation Menu -->
+      <v-list class="navigation-list">
+        <div class="menu-section">
+          <v-list-item v-for="item in items" :key="item.text" @click="changePage(item.text)" class="nav-item">
             <template v-slot:prepend>
-              <v-icon :icon="item.icon"></v-icon>
+              <div class="nav-icon-container">
+                <v-icon :icon="item.icon" class="nav-icon"></v-icon>
+              </div>
             </template>
 
-            <v-list-item-title>
-              <div v-text="item.text"></div>
+            <v-list-item-title class="nav-text">
+              {{ item.text }}
             </v-list-item-title>
-
           </v-list-item>
-        </v-list>
+        </div>
       </v-list>
     </v-navigation-drawer>
     <v-snackbar v-model="snack" :timeout="5000" :color="snackColor" location="top right">
@@ -239,7 +250,241 @@ export default {
 </script>
 
 <style scoped>
-.margen-top {
-  margin-top: 0px;
+/* Modern Header Styles */
+.modern-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  backdrop-filter: blur(10px);
+  padding: 0 1rem;
+}
+
+.modern-nav-icon {
+  color: #64748b !important;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.modern-nav-icon:hover {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+/* Elegant Brand Title Styling */
+.stylish-brand {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  height: auto !important;
+  line-height: normal !important;
+}
+
+.stylish-brand:hover {
+  transform: none;
+}
+
+.brand-container {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  position: relative;
+  height: auto;
+  padding: 4px 0;
+}
+
+.brand-container::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #f59e0b 100%);
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
+.brand-pos {
+  font-size: 1.7rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #64748b 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 1.5px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  text-transform: uppercase;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  position: relative;
+  line-height: 1;
+  vertical-align: baseline;
+}
+
+.brand-mati {
+  font-size: 1.7rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #f59e0b 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Devanagari Sangam MN', 'Noto Sans Devanagari', 'Mangal', sans-serif;
+  letter-spacing: 0.5px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  line-height: 1;
+  vertical-align: baseline;
+}
+
+.user-info {
+  margin-right: 8px;
+}
+
+.user-chip {
+  height: 36px;
+  font-weight: 500;
+  border-radius: 18px;
+}
+
+.menu-button {
+  color: #64748b !important;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.menu-button:hover {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+/* Modern Sidebar Styles */
+.modern-sidebar {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-right: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.sidebar-header {
+  padding: 24px 20px 20px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.company-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.company-avatar {
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.company-details {
+  flex: 1;
+}
+
+.company-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.company-type {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.sidebar-divider {
+  border-color: #e2e8f0 !important;
+  margin: 0 !important;
+}
+
+.navigation-list {
+  padding: 16px 0 !important;
+}
+
+.menu-section {
+  margin-bottom: 8px;
+}
+
+.nav-item {
+  margin: 4px 12px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  min-height: 48px !important;
+  padding: 8px 16px !important;
+}
+
+.nav-item:hover {
+  background-color: #f1f5f9 !important;
+  transform: translateX(2px);
+}
+
+.nav-item.v-list-item--active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.nav-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover .nav-icon-container {
+  background-color: #e2e8f0;
+}
+
+.nav-item.v-list-item--active .nav-icon-container {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.nav-icon {
+  color: #64748b !important;
+  font-size: 18px !important;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover .nav-icon {
+  color: #334155 !important;
+}
+
+.nav-item.v-list-item--active .nav-icon {
+  color: white !important;
+}
+
+.nav-text {
+  font-weight: 500 !important;
+  color: #334155 !important;
+  font-size: 0.95rem !important;
+  margin-left: 12px;
+  transition: all 0.2s ease;
+}
+
+.nav-item.v-list-item--active .nav-text {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Remove old workaround styles - keep functionality but improve aesthetics */
+.v-navigation-drawer .v-list-item-title {
+  color: inherit !important;
+}
+
+.v-navigation-drawer .v-icon {
+  color: inherit !important;
 }
 </style>
+

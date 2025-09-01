@@ -1,14 +1,18 @@
 <template>
-  <div>
-    <v-card class="selection mx-auto bg-grey-lighten-5 mt-3" style="max-height: 75vh; height: 75vh">
+  <div class="enhanced-items-container">
+    <v-card class="selection mx-auto" style="max-height: 75vh; height: 75vh;" elevation="2" rounded="lg">
       <v-progress-linear :active="loading" :indeterminate="loading" absolute :location="top"
         color="info"></v-progress-linear>
-      <v-row class="items px-2 py-1">
+      <v-row class="items px-3 py-2">
         <v-col class="pb-0 mb-2">
-          <v-text-field density="compact" clearable autofocus variant="outlined" color="primary"
-            :label="frappe._('Search Items')" hint="Search by item code, serial number, batch no or barcode"
-            bg-color="white" hide-details v-model="debounce_search" @keydown.esc="esc_event"
-            @keydown.enter="search_onchange" ref="debounce_search"></v-text-field>
+          <div class="enhanced-search-wrapper">
+            <v-icon class="enhanced-search-icon" size="20" color="grey-darken-1">mdi-magnify</v-icon>
+            <v-text-field density="compact" clearable autofocus variant="outlined" color="primary"
+              placeholder="Search by name, code, barcode, serial or batch number..."
+              bg-color="white" hide-details v-model="debounce_search" @keydown.esc="esc_event"
+              @keydown.enter="search_onchange" ref="debounce_search"
+              class="enhanced-search-field"></v-text-field>
+          </div>
         </v-col>
         <v-col cols="3" class="pb-0 mb-2" v-if="pos_profile.posa_input_qty">
           <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('QTY')" bg-color="white"
@@ -20,42 +24,97 @@
             hide-details></v-checkbox>
         </v-col>
         <v-col cols="12" class="pt-0 mt-0">
-          <div fluid class="items" v-if="items_view == 'card'">
-            <v-row density="default" class="overflow-y-auto" style="max-height: 67vh">
-              <v-col v-for="(item, idx) in filtered_items" :key="idx" xl="2" lg="3" md="6" sm="6" cols="6"
-                min-height="50">
-                <v-card hover="hover" @click="add_item(item)">
-                  <v-img :src="item.image ||
-                    '/assets/posawesome/js/posapp/components/pos/placeholder-image.png'
-                    " class="text-white align-end" gradient="to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)" height="100px">
-                    <v-card-text v-text="item.item_name" class="text-caption px-1 pb-0"></v-card-text>
-                  </v-img>
-                  <v-card-text class="text--primary pa-1">
-                    <div class="text-caption text-primary">
+          <div fluid class="items enhanced-scrollbar" v-if="items_view == 'card'">
+            <!-- Empty State for Card View -->
+            <div v-if="!loading && filtered_items.length === 0" class="enhanced-empty-state enhanced-fade-in">
+              <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
+              <div class="enhanced-empty-state-title">
+                {{ first_search ? 'No items found for your search' : 'No items to display' }}
+              </div>
+              <div class="enhanced-empty-state-description">
+                {{ first_search 
+                  ? `Try adjusting your search "${first_search}" or select a different category.`
+                  : 'Items will appear here once they are configured in your POS profile and have stock available.'
+                }}
+              </div>
+              <button v-if="first_search" @click="clearSearch" class="enhanced-empty-state-action">
+                Clear Search
+              </button>
+            </div>
+            <!-- Items Grid -->
+            <v-row v-else density="compact" class="overflow-y-auto pa-2" style="max-height: 67vh">
+              <v-col v-for="(item, idx) in filtered_items" :key="idx" xl="3" lg="3" md="4" sm="6" cols="6"
+                class="pa-2">
+                <v-card 
+                  hover 
+                  @click="add_item(item)" 
+                  class="enhanced-item-card"
+                  :class="{ 'enhanced-out-of-stock': item.actual_qty <= 0 }">
+                  <div class="enhanced-item-image">
+                    <v-img :src="item.image ||
+                      '/assets/posawesome/js/posapp/components/pos/placeholder-image.png'
+                      " class="text-white align-end" gradient="to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)" height="120px" cover>
+                    </v-img>
+                    <div class="enhanced-item-badge" :class="{ 'out-of-stock': item.actual_qty <= 0, 'low-stock': item.actual_qty > 0 && item.actual_qty <= 5 }">
+                      {{ item.actual_qty <= 0 ? 'Out of Stock' : item.actual_qty <= 5 ? 'Low Stock' : 'In Stock' }}
+                    </div>
+                  </div>
+                  <div class="enhanced-item-info">
+                    <div class="enhanced-item-name" :title="item.item_name">{{ item.item_name }}</div>
+                    <div class="enhanced-item-price">
                       {{ currencySymbol(item.currency) || "" }}
                       {{ formatCurrency(item.rate) || 0 }}
                     </div>
-                    <div class="text-caption golden--text">
+                    <div class="enhanced-item-stock">
+                      <div class="enhanced-stock-indicator" :class="{ 'low-stock': item.actual_qty > 0 && item.actual_qty <= 5, 'out-of-stock': item.actual_qty <= 0 }"></div>
                       {{ formatFloat(item.actual_qty) || 0 }}
-                      {{ item.stock_uom || "" }}
+                      {{ item.stock_uom || "" }} available
                     </div>
-                  </v-card-text>
+                  </div>
                 </v-card>
               </v-col>
             </v-row>
           </div>
-          <div fluid class="items" v-if="items_view == 'list'">
-            <div class="my-0 py-0 overflow-y-auto" style="max-height: 65vh">
+          <div fluid class="items enhanced-scrollbar" v-if="items_view == 'list'">
+            <!-- Empty State for List View -->
+            <div v-if="!loading && filtered_items.length === 0" class="enhanced-empty-state enhanced-fade-in">
+              <v-icon size="64" color="grey-lighten-1">mdi-format-list-bulleted</v-icon>
+              <div class="enhanced-empty-state-title">
+                {{ first_search ? 'No items match your search' : 'No items available' }}
+              </div>
+              <div class="enhanced-empty-state-description">
+                {{ first_search 
+                  ? `No results found for "${first_search}". Try different keywords or check your spelling.`
+                  : 'Configure items in your POS profile to see them listed here.'
+                }}
+              </div>
+              <button v-if="first_search" @click="clearSearch" class="enhanced-empty-state-action">
+                Clear Search
+              </button>
+            </div>
+            <!-- Data Table -->
+            <div v-else class="my-0 py-0 overflow-y-auto enhanced-data-table" style="max-height: 65vh">
               <v-data-table :headers="getItemsHeaders()" :items="filtered_items" item-key="item_code" item-value="item-"
                 class="elevation-1" :items-per-page="itemsPerPage" hide-default-footer @click:row="click_item_row">
                 <template v-slot:item.rate="{ item }">
-                  <span class="text-primary">{{ currencySymbol(item.currency) }}
+                  <span class="text-primary font-weight-medium">{{ currencySymbol(item.currency) }}
                     {{ formatCurrency(item.rate) }}</span>
                 </template>
                 <template v-slot:item.actual_qty="{ item }">
-                  <span class="golden--text">{{
-                    formatFloat(item.actual_qty)
-                    }}</span>
+                  <span class="font-weight-medium" :class="getStockColorClass(item.actual_qty)">
+                    {{ formatFloat(item.actual_qty) }}
+                  </span>
+                </template>
+                <template v-slot:item.item_name="{ item }">
+                  <div class="d-flex align-center">
+                    <v-avatar size="32" class="mr-2">
+                      <v-img :src="item.image || '/assets/posawesome/js/posapp/components/pos/placeholder-image.png'"></v-img>
+                    </v-avatar>
+                    <div>
+                      <div class="font-weight-medium">{{ item.item_name }}</div>
+                      <div class="text-caption text-grey-darken-1">{{ item.item_code }}</div>
+                    </div>
+                  </div>
                 </template>
               </v-data-table>
             </div>
@@ -63,28 +122,87 @@
         </v-col>
       </v-row>
     </v-card>
-    <v-card class="cards mb-0 mt-3 pa-2 bg-grey-lighten-5">
-      <v-row no-gutters align="center" justify="center">
+    <v-card class="enhanced-controls mb-0 mt-3" elevation="2">
+      <v-row no-gutters align="center" justify="center" class="pa-1">
+        <v-col cols="12" class="mb-2">
+          <v-select 
+            :items="items_group" 
+            :label="frappe._('Items Group')" 
+            density="compact" 
+            variant="outlined"
+            hide-details 
+            v-model="item_group" 
+            v-on:update:model-value="search_onchange"
+            prepend-inner-icon="mdi-tag-outline"
+            color="primary">
+            <template v-slot:selection="{ item }">
+              <v-chip size="small" color="primary" variant="tonal">
+                {{ item.title }}
+              </v-chip>
+            </template>
+          </v-select>
+        </v-col>
+        
+        <!-- Enhanced Controls Row -->
         <v-col cols="12">
-          <v-select :items="items_group" :label="frappe._('Items Group')" density="compact" variant="outlined"
-            hide-details v-model="item_group" v-on:update:model-value="search_onchange"></v-select>
-        </v-col>
-        <v-col cols="3" class="mt-1">
-          <v-btn-toggle v-model="items_view" color="primary" group density="compact" rounded>
-            <v-btn size="small" value="list">{{ __("List") }}</v-btn>
-            <v-btn size="small" value="card">{{ __("Card") }}</v-btn>
-          </v-btn-toggle>
-        </v-col>
-        <v-col cols="4" class="mt-2">
-          <v-btn size="small" block color="primary" variant="text" @click="show_coupons">{{ couponsCount }} {{
-            __("Coupons")
-            }}</v-btn>
-        </v-col>
-        <v-col cols="5" class="mt-2">
-          <v-btn size="small" block color="primary" variant="text" @click="show_offers">{{ offersCount }} {{
-            __("Offers") }}
-            : {{ appliedOffersCount }}
-            {{ __("Applied") }}</v-btn>
+          <v-row no-gutters align="center" class="enhanced-bottom-controls">
+            <v-col cols="4">
+              <div class="enhanced-view-toggle">
+                <button 
+                  class="enhanced-view-btn" 
+                  :class="{ active: items_view === 'list' }"
+                  @click="items_view = 'list'">
+                  <v-icon size="16" class="mr-1">mdi-format-list-bulleted</v-icon>
+                  {{ __("List") }}
+                </button>
+                <button 
+                  class="enhanced-view-btn" 
+                  :class="{ active: items_view === 'card' }"
+                  @click="items_view = 'card'">
+                  <v-icon size="16" class="mr-1">mdi-view-grid-outline</v-icon>
+                  {{ __("Card") }}
+                </button>
+              </div>
+            </v-col>
+            
+            <v-col cols="4">
+              <v-btn 
+                size="small" 
+                block 
+                color="primary" 
+                variant="tonal" 
+                @click="show_coupons"
+                class="enhanced-action-btn"
+                prepend-icon="mdi-ticket-percent-outline">
+                <v-badge 
+                  :content="couponsCount" 
+                  color="success" 
+                  :model-value="couponsCount > 0"
+                  inline>
+                  {{ __("Coupons") }}
+                </v-badge>
+              </v-btn>
+            </v-col>
+            
+            <v-col cols="4">
+              <v-btn 
+                size="small" 
+                block 
+                color="primary" 
+                variant="tonal" 
+                @click="show_offers"
+                class="enhanced-action-btn"
+                prepend-icon="mdi-sale">
+                <v-badge 
+                  :content="`${offersCount}/${appliedOffersCount}`" 
+                  color="success" 
+                  :model-value="offersCount > 0"
+                  inline>
+                  {{ __("Offers") }}
+                </v-badge>
+              </v-btn>
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </v-card>
@@ -481,6 +599,20 @@ export default {
 
       return combinations;
     },
+    
+    // Enhanced UI helper methods
+    clearSearch() {
+      this.search = null;
+      this.first_search = null;
+      this.debounce_search = null;
+      this.$refs.debounce_search.focus();
+    },
+    
+    getStockColorClass(qty) {
+      if (qty <= 0) return 'text-red-darken-2';
+      if (qty <= 5) return 'text-orange-darken-2';
+      return 'text-green-darken-2';
+    },
   },
 
   computed: {
@@ -638,4 +770,257 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.enhanced-items-container {
+  position: relative;
+}
+
+.enhanced-items-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+}
+
+.enhanced-search-wrapper {
+  position: relative;
+}
+
+.enhanced-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.enhanced-search-field :deep(.v-field__input) {
+  padding-left: 2.5rem !important;
+}
+
+.enhanced-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #64748b;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  margin: 2rem 0;
+  min-height: 300px;
+}
+
+.enhanced-empty-state-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.enhanced-empty-state-description {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.enhanced-empty-state-action {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.enhanced-empty-state-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
+}
+
+.enhanced-item-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.enhanced-item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  border-color: #e2e8f0;
+}
+
+.enhanced-item-card.enhanced-out-of-stock {
+  opacity: 0.6;
+  filter: grayscale(30%);
+}
+
+.enhanced-item-image {
+  position: relative;
+  overflow: hidden;
+  height: 120px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.enhanced-item-image img {
+  transition: transform 0.3s ease;
+}
+
+.enhanced-item-card:hover .enhanced-item-image img {
+  transform: scale(1.05);
+}
+
+.enhanced-item-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.enhanced-item-badge.out-of-stock {
+  background: rgba(239, 68, 68, 0.9);
+}
+
+.enhanced-item-badge.low-stock {
+  background: rgba(245, 158, 11, 0.9);
+}
+
+.enhanced-item-info {
+  padding: 1rem;
+}
+
+.enhanced-item-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.enhanced-item-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 0.25rem;
+}
+
+.enhanced-item-stock {
+  font-size: 0.8rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.enhanced-stock-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.enhanced-stock-indicator.low-stock {
+  background: #f59e0b;
+}
+
+.enhanced-stock-indicator.out-of-stock {
+  background: #ef4444;
+}
+
+.enhanced-controls {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.enhanced-view-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px;
+  width: 100%;
+}
+
+.enhanced-view-btn {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+.enhanced-view-btn.active {
+  background: white;
+  color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  font-weight: 600;
+}
+
+.enhanced-action-btn {
+  font-weight: 500 !important;
+  text-transform: none !important;
+}
+
+.enhanced-data-table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.enhanced-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.enhanced-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.enhanced-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.enhanced-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.enhanced-fade-in {
+  animation: enhanced-fadeIn 0.3s ease-in-out;
+}
+
+@keyframes enhanced-fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.enhanced-bottom-controls {
+  gap: 0.5rem;
+}
+</style>

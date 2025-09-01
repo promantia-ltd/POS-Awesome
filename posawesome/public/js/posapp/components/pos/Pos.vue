@@ -8,15 +8,14 @@
     <MpesaPayments></MpesaPayments>
     <Variants></Variants>
     <OpeningDialog v-if="dialog" :dialog="dialog"></OpeningDialog>
+    
+    <!-- Modal Components -->
+    <CouponsModal v-model="showCouponsModal"></CouponsModal>
+    <OffersModal v-model="showOffersModal"></OffersModal>
+    
     <v-row v-show="!dialog">
-      <v-col v-show="!payment && !offers && !coupons" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0">
+      <v-col v-show="!payment" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0">
         <ItemsSelector></ItemsSelector>
-      </v-col>
-      <v-col v-show="offers" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0">
-        <PosOffers></PosOffers>
-      </v-col>
-      <v-col v-show="coupons" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0">
-        <PosCoupons></PosCoupons>
       </v-col>
       <v-col v-show="payment" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0">
         <Payments></Payments>
@@ -35,8 +34,8 @@ import ItemsSelector from './ItemsSelector.vue';
 import Invoice from './Invoice.vue';
 import OpeningDialog from './OpeningDialog.vue';
 import Payments from './Payments.vue';
-import PosOffers from './PosOffers.vue';
-import PosCoupons from './PosCoupons.vue';
+import CouponsModal from './CouponsModal.vue';
+import OffersModal from './OffersModal.vue';
 import Drafts from './Drafts.vue';
 import SalesOrders from "./SalesOrders.vue";
 import ClosingDialog from './ClosingDialog.vue';
@@ -52,8 +51,8 @@ export default {
       pos_profile: '',
       pos_opening_shift: '',
       payment: false,
-      offers: false,
-      coupons: false,
+      showCouponsModal: false,
+      showOffersModal: false,
     };
   },
 
@@ -64,10 +63,9 @@ export default {
     Payments,
     Drafts,
     ClosingDialog,
-
+    CouponsModal,
+    OffersModal,
     Returns,
-    PosOffers,
-    PosCoupons,
     NewAddress,
     Variants,
     MpesaPayments,
@@ -166,19 +164,13 @@ export default {
         console.info('LoadPosProfile');
       });
       this.eventBus.on('show_payment', (data) => {
-        this.payment = true ? data === 'true' : false;
-        this.offers = false ? data === 'true' : false;
-        this.coupons = false ? data === 'true' : false;
+        this.payment = data === 'true';
       });
       this.eventBus.on('show_offers', (data) => {
-        this.offers = true ? data === 'true' : false;
-        this.payment = false ? data === 'true' : false;
-        this.coupons = false ? data === 'true' : false;
+        this.showOffersModal = data === 'true';
       });
       this.eventBus.on('show_coupons', (data) => {
-        this.coupons = true ? data === 'true' : false;
-        this.offers = false ? data === 'true' : false;
-        this.payment = false ? data === 'true' : false;
+        this.showCouponsModal = data === 'true';
       });
       this.eventBus.on('open_closing_dialog', () => {
         this.get_closing_data();
@@ -194,6 +186,7 @@ export default {
     this.eventBus.off('LoadPosProfile');
     this.eventBus.off('show_offers');
     this.eventBus.off('show_coupons');
+    this.eventBus.off('show_payment');
     this.eventBus.off('open_closing_dialog');
     this.eventBus.off('submit_closing_pos');
   },
