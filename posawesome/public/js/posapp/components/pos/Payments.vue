@@ -669,7 +669,7 @@ export default {
         frappe.utils.play_sound("error");
         return;
       }
-      // validate phone payment
+      // Validate phone payment
       let phone_payment_is_valid = true;
       if (!payment_received) {
         this.invoice_doc.payments.forEach((payment) => {
@@ -726,8 +726,10 @@ export default {
 
       if (
         !this.is_credit_sale &&
-        this.paid_change > -this.diff_payment &&
-        !this.invoice_doc.is_return
+        !this.invoice_doc.is_return &&
+        !this.pos_profile.posa_allow_partial_payment &&
+        !this.is_write_off_change &&
+        this.paid_change > -this.diff_payment
       ) {
         this.eventBus.emit("show_message", {
           title: `Paid change cannot be greater than total change!`,
@@ -741,7 +743,6 @@ export default {
         this.flt(this.paid_change) + this.flt(-this.credit_change)
       );
 
-      // Validate total_change only for non-credit sales, non-returns, and when there’s an overpayment
       if (
         !this.is_credit_sale &&
         this.is_cashback &&
@@ -914,8 +915,16 @@ export default {
     set_paid_change() {
       if (!this.paid_change || this.paid_change < 0) this.paid_change = 0;
       this.paid_change_rules = [];
-      let change = -this.diff_payment;
-      if (this.paid_change > change && !this.invoice_doc.is_return) {
+      let change = -this.diff_payment; // Total change expected (negative diff_payment indicates overpayment)
+
+      // Allow paid_change to be set in partial payment or write-off scenarios
+      if (
+        !this.is_credit_sale &&
+        !this.invoice_doc.is_return &&
+        this.paid_change > change &&
+        !this.pos_profile.posa_allow_partial_payment &&
+        !this.is_write_off_change
+      ) {
         this.paid_change_rules = [
           "Paid change cannot be greater than total change!",
         ];
