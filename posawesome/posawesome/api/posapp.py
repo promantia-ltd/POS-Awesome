@@ -679,8 +679,7 @@ def submit_invoice(invoice, data):
         ):
             
            original_invoice = frappe.get_doc("Sales Invoice", invoice_doc.return_against)
-           custom_delivery_charge = flt(original_invoice.get("custom_delivery_charge_rate") or 0)
-           return_grand_total = flt(invoice_doc.grand_total) - custom_delivery_charge
+           return_grand_total = flt(invoice_doc.grand_total)
            original_grand_total = flt(original_invoice.outstanding_amount)  # Use outstanding_amount instead of grand_total for accuracy
            new_outstanding = original_grand_total + return_grand_total  # Corrected formula to handle signs properly
            original_invoice.db_set("outstanding_amount", new_outstanding)
