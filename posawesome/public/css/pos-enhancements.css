@@ -1,5 +1,17 @@
 /* POS Awesome Enhanced UI Styles */
 
+/* =================== CUSTOM FONT: SAMARKAN =================== */
+@font-face {
+  font-family: 'Samarkan';
+  src: url('/assets/posawesome/fonts/SAMAN___.TTF') format('truetype');
+}
+
+.indian-style {
+  font-family: 'Samarkan', sans-serif !important;
+  font-size: 32px;
+  color: #000;
+}
+
 /* =================== GLOBAL IMPROVEMENTS =================== */
 .pos-enhanced {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -692,4 +704,14 @@ nav[role="navigation"] .v-list-item:hover {
 
 .enhanced-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* =================== COMPACT PAGINATION STYLING =================== */
+.compact-pagination {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.compact-pagination .v-pagination__list {
+  margin-bottom: 0 !important;
 }

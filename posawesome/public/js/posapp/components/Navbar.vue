@@ -4,8 +4,8 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" class="modern-nav-icon"></v-app-bar-nav-icon>
       <v-toolbar-title @click="go_desk" class="stylish-brand">
         <div class="brand-container">
-          <span class="brand-pos">POS</span>
-          <span class="brand-mati">मति</span>
+          <span class="brand-pos indian-style">POS</span>
+          <span class="brand-mati indian-style">MATI</span>
         </div>
       </v-toolbar-title>
 
@@ -157,7 +157,7 @@ export default {
     },
     go_about() {
       const win = window.open(
-        'https://github.com/yrestom/POS-Awesome',
+        'https://github.com/promantia-ltd/POS-Awesome',
         '_blank'
       );
       win.focus();

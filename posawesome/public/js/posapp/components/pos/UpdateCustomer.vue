@@ -1,88 +1,202 @@
 <template>
   <v-row justify="center">
-    <v-dialog v-model="customerDialog" max-width="600px" @click:outside="clear_customer">
-      <v-card>
-        <v-card-title>
-          <span v-if="customer_id" class="text-h5 text-primary">{{
-            __('Update Customer')
-          }}</span>
-          <span v-else class="text-h5 text-primary">{{
-            __('Create Customer')
-          }}</span>
+    <v-dialog
+      v-model="customerDialog"
+      max-width="600px"
+      @click:outside="clear_customer"
+    >
+      <v-card elevation="8" rounded="xl">
+        <v-card-title class="d-flex justify-center align-center py-4 enhanced-modal-header">
+          <v-icon
+            size="24"
+            color="primary"
+            class="me-2"
+          >
+            {{ customer_id ? "mdi-account-edit" : "mdi-account-plus" }}
+          </v-icon>
+          <span class="text-h6 font-weight-bold text-primary">
+            {{ customer_id ? __('Update Customer') : __('Create Customer') }}
+          </span>
         </v-card-title>
-        <v-card-text class="pa-0">
+
+        <v-card-text>
           <v-container>
-            <v-row>
+            <v-row dense>
               <v-col cols="12">
-                <v-text-field density="compact" color="primary" :label="frappe._('Customer Name') + ' *'"
-                  bg-color="white" hide-details v-model="customer_name"></v-text-field>
+                <v-text-field
+                  variant="outlined"
+                  density="comfortable"
+                  color="primary"
+                  :label="frappe._('Customer Name') + ' *'"
+                  v-model="customer_name"
+                  class="mb-3"
+                />
+              </v-col>
+
+              <v-col cols="6">
+                <v-text-field
+                  variant="outlined"
+                  density="comfortable"
+                  color="primary"
+                  :label="frappe._('Tax ID')"
+                  v-model="tax_id"
+                  class="mb-3"
+                />
               </v-col>
               <v-col cols="6">
-                <v-text-field density="compact" color="primary" :label="frappe._('Tax ID')" bg-color="white"
-                  hide-details v-model="tax_id"></v-text-field>
+                <v-text-field
+                  variant="outlined"
+                  density="comfortable"
+                  color="primary"
+                  :label="frappe._('Mobile No')"
+                  v-model="mobile_no"
+                  class="mb-3"
+                />
+              </v-col>
+
+              <v-col cols="6">
+                <v-text-field
+                  variant="outlined"
+                  density="comfortable"
+                  color="primary"
+                  :label="frappe._('Email Id')"
+                  v-model="email_id"
+                  class="mb-3"
+                />
               </v-col>
               <v-col cols="6">
-                <v-text-field density="compact" color="primary" :label="frappe._('Mobile No')" bg-color="white"
-                  hide-details v-model="mobile_no"></v-text-field>
+                <v-select
+                  variant="outlined"
+                  density="comfortable"
+                  color="primary"
+                  :items="genders"
+                  :label="frappe._('Gender')"
+                  v-model="gender"
+                  class="mb-3"
+                />
+              </v-col>
+
+              <v-col cols="6">
+                <v-text-field
+                  variant="outlined"
+                  density="comfortable"
+                  color="primary"
+                  :label="frappe._('Referral Code')"
+                  v-model="referral_code"
+                  class="mb-3"
+                />
               </v-col>
               <v-col cols="6">
-                <v-text-field density="compact" color="primary" :label="frappe._('Email Id')" bg-color="white"
-                  hide-details v-model="email_id"></v-text-field>
-              </v-col>
-              <v-col cols="6">
-                <v-select density="compact" label="Gender" :items="genders" v-model="gender"></v-select>
-              </v-col>
-              <v-col cols="6">
-                <v-text-field density="compact" color="primary" :label="frappe._('Referral Code')" bg-color="white"
-                  hide-details v-model="referral_code"></v-text-field>
-              </v-col>
-              <v-col cols="6">
-                <v-menu v-model="birthday_menu" :close-on-content-click="false" transition="scale-transition" offset-y min-width="290px">
-                  <template v-slot:activator="{ props }"> <v-text-field v-model="birthday_string" :label="frappe._('Birthday')"
-                    readonly density="compact" clearable v-bind="props" color="primary" hide-details @click:clear="resetBirthday"/>
+                <v-menu
+                  v-model="birthday_menu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="290px"
+                >
+                  <template v-slot:activator="{ props }">
+                    <v-text-field
+                      variant="outlined"
+                      density="comfortable"
+                      color="primary"
+                      v-model="birthday_string"
+                      :label="frappe._('Birthday')"
+                      readonly
+                      clearable
+                      v-bind="props"
+                      @click:clear="resetBirthday"
+                      class="mb-3"
+                    />
                   </template>
-                  <v-date-picker v-model="birthday" color="primary" :max="frappe.datetime.now_date()" show-adjacent-months
-                  view="date" @update:model-value="birthday_menu = false"/>
+                  <v-date-picker
+                    v-model="birthday"
+                    color="primary"
+                    :max="frappe.datetime.now_date()"
+                    show-adjacent-months
+                    view="date"
+                    @update:model-value="birthday_menu = false"
+                  />
                 </v-menu>
               </v-col>
+
               <v-col cols="6">
-                <v-autocomplete clearable density="compact" auto-select-first color="primary"
-                  :label="frappe._('Customer Group') + ' *'" v-model="group" :items="groups" bg-color="white"
-                  :no-data-text="__('Group not found')" hide-details required>
-                </v-autocomplete>
+                <v-autocomplete
+                  clearable
+                  density="comfortable"
+                  variant="outlined"
+                  color="primary"
+                  :label="frappe._('Customer Group') + ' *'"
+                  v-model="group"
+                  :items="groups"
+                  :no-data-text="__('Group not found')"
+                  required
+                  class="mb-3"
+                />
               </v-col>
               <v-col cols="6">
-                <v-autocomplete clearable density="compact" auto-select-first color="primary"
-                  :label="frappe._('Territory') + ' *'" v-model="territory" :items="territorys" bg-color="white"
-                  :no-data-text="__('Territory not found')" hide-details required>
-                </v-autocomplete>
+                <v-autocomplete
+                  clearable
+                  density="comfortable"
+                  variant="outlined"
+                  color="primary"
+                  :label="frappe._('Territory') + ' *'"
+                  v-model="territory"
+                  :items="territorys"
+                  :no-data-text="__('Territory not found')"
+                  required
+                  class="mb-3"
+                />
               </v-col>
+
               <v-col cols="6" v-if="loyalty_program">
-                <v-text-field v-model="loyalty_program" :label="frappe._('Loyalty Program')" density="compact" readonly
-                  hide-details></v-text-field>
+                <v-text-field
+                  v-model="loyalty_program"
+                  :label="frappe._('Loyalty Program')"
+                  density="comfortable"
+                  variant="outlined"
+                  readonly
+                  class="mb-3"
+                />
               </v-col>
               <v-col cols="6" v-if="loyalty_points">
-                <v-text-field v-model="loyalty_points" :label="frappe._('Loyalty Points')" density="compact" readonly
-                  hide-details></v-text-field>
+                <v-text-field
+                  v-model="loyalty_points"
+                  :label="frappe._('Loyalty Points')"
+                  density="comfortable"
+                  variant="outlined"
+                  readonly
+                  class="mb-3"
+                />
               </v-col>
             </v-row>
           </v-container>
         </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="error" theme="dark" @click="close_dialog">{{
-            __('Close')
-          }}</v-btn>
-          <v-btn color="success" theme="dark" @click="submit_dialog">{{
-            __('Submit')
-          }}</v-btn>
+
+        <v-card-actions class="d-flex justify-end py-4 enhanced-modal-header">
+          <v-btn
+            variant="text"
+            color="grey-darken-1"
+            class="me-2"
+            @click="close_dialog"
+          >
+            {{ __('Close') }}
+          </v-btn>
+          <v-btn
+            variant="elevated"
+            color="primary"
+            @click="submit_dialog"
+          >
+            {{ __('Submit') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </v-row>
 </template>
 
+
 <script>
+ import { toast } from "vue3-toastify";
 
 export default {
   data: () => ({
@@ -198,24 +312,15 @@ export default {
     submit_dialog() {
       // validate if all required fields are filled
       if (!this.customer_name) {
-        this.eventBus.emit('show_message', {
-          title: __('Customer name is required.'),
-          color: 'error',
-        });
+        toast.error(__('Customer name is required.'));
         return;
       }
       if (!this.group) {
-        this.eventBus.emit('show_message', {
-          title: __('Customer group is required.'),
-          color: 'error',
-        });
+        toast.error(__('Customer group is required.'));
         return;
       }
       if (!this.territory) {
-        this.eventBus.emit('show_message', {
-          title: __('Customer territory is required.'),
-          color: 'error',
-        });
+        toast.error(__('Customer territory is required.'));
         return;
       }
       if (this.customer_name) {
@@ -305,3 +410,11 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.enhanced-modal-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1.5rem;
+}
+</style>

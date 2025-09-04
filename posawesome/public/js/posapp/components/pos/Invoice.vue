@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-dialog v-model="cancel_dialog" max-width="330">
-      <v-card>
+      <v-card elevation="8" rounded="xl">
         <v-card-title class="text-h5">
           <span class="text-h5 text-primary">{{ __("Cancel Sale ?") }}</span>
         </v-card-title>
@@ -61,6 +61,7 @@
           </v-switch>
         </v-col>
       </v-row>
+      
 
       <v-row
         align="center"
@@ -248,36 +249,63 @@
 
           <template v-slot:expanded-row="{ columns: headers, item }">
             <td :colspan="headers.length" class="ma-0 pa-0">
-              <v-row class="ma-0 pa-0">
-                <v-col cols="1">
-                  <v-btn
-                    :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
-                    icon
-                    color="error"
-                    @click.stop="remove_item(item)">
-                    <v-icon icon="mdi-delete">mdi-delete</v-icon>
-                  </v-btn>
+              <v-row class="ma-0 pa-0 align-center">
+                <!-- Delete Button -->
+                 
+                <v-col cols="auto">
+                  <v-tooltip text="Delete Item" location="top">
+                    <template v-slot:activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="text"
+                        color="black"
+                        size="small"
+                        icon
+                        :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
+                        @click.stop="remove_item(item)"
+                      >
+                        <v-icon>mdi-delete</v-icon>
+                      </v-btn>
+                    </template>
+                  </v-tooltip>
+
                 </v-col>
+
                 <v-spacer></v-spacer>
-                <v-col cols="1">
+
+                <!-- Quantity Stepper -->
+                <v-col cols="auto" class="d-flex align-center">
                   <v-btn
-                    :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
+                    variant="tonal"
+                    size="small"
                     icon
                     color="secondary"
-                    @click.stop="subtract_one(item)">
-                    <v-icon icon="mdi-minus-circle-outline"></v-icon>
+                    :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
+                    @click.stop="subtract_one(item)"
+                  >
+                    <v-icon>mdi-minus</v-icon>
                   </v-btn>
-                </v-col>
-                <v-col cols="1">
+
+                  <span
+                    class="mx-2 px-3 py-1 rounded text-body-2"
+                    style="border: 1px solid #ddd; min-width: 32px; text-align: center;"
+                  >
+                    {{ item.qty }}
+                  </span>
+
                   <v-btn
-                    :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
+                    variant="tonal"
+                    size="small"
                     icon
-                    color="secondary"
-                    @click.stop="add_one(item)">
-                    <v-icon icon="mdi-plus-circle-outline"></v-icon>
+                    color="primary"
+                    :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
+                    @click.stop="add_one(item)"
+                  >
+                    <v-icon>mdi-plus</v-icon>
                   </v-btn>
                 </v-col>
               </v-row>
+
               <v-row class="ma-0 pa-0">
                 <v-col cols="4">
                   <v-text-field
@@ -777,9 +805,9 @@
           <v-row no-gutters class="pa-1 pt-2 pl-0">
             <v-col cols="6" class="pa-1">
               <v-btn
+                variant="tonal"
                 block
                 class="pa-0"
-                color="accent"
                 theme="dark"
                 @click="save_and_clear_invoice">
                 {{ __("Save and Clear") }}</v-btn
@@ -787,9 +815,9 @@
             </v-col>
             <v-col cols="6" class="pa-1">
               <v-btn
+                variant="tonal"
                 block
                 class="pa-0"
-                color="warning"
                 theme="dark"
                 @click="get_draft_invoices"
                 >{{ __("Load Draft sales") }}</v-btn
@@ -800,9 +828,9 @@
               cols="6"
               class="pa-1">
               <v-btn
+                variant="tonal"
                 block
                 class="pa-0"
-                color="info"
                 theme="dark"
                 @click="get_draft_orders"
                 >{{ __("Select S.O") }}</v-btn
@@ -811,8 +839,8 @@
             <v-col cols="6" class="pa-1">
               <v-btn
                 block
+                variant="tonal"
                 class="pa-0"
-                color="error"
                 theme="dark"
                 @click="cancel_dialog = true"
                 >{{ __("Cancel Sale") }}</v-btn
@@ -824,9 +852,9 @@
               class="pa-1">
               <v-btn
                 block
+                variant="tonal"
                 class="pa-0"
                 :class="{ 'disable-events': !pos_profile.posa_allow_return }"
-                color="secondary"
                 theme="dark"
                 @click="open_returns"
                 >{{ __("Sales Return") }}</v-btn
@@ -852,6 +880,7 @@
               cols="6"
               class="pa-1">
               <v-btn
+                variant="tonal"
                 block
                 class="pa-0"
                 color="primary"
@@ -871,6 +900,7 @@
 import format from "../../format";
 import hardwareUtils from "../../hardwareManager/hardwareUtils";
 import Customer from "./Customer.vue";
+import { toast } from "vue3-toastify";
 
 export default {
   mixins: [format, hardwareUtils],
@@ -1383,10 +1413,7 @@ export default {
         if (doc.items.length) {
           old_invoice = this.update_invoice(doc);
         } else {
-          this.eventBus.emit("show_message", {
-            title: `Nothing to save`,
-            color: "error",
-          });
+            toast.error("Nothing to save");
         }
       }
       if (!old_invoice) {
@@ -1692,19 +1719,15 @@ export default {
 
     async show_payment() {
       if (!this.customer) {
-        this.eventBus.emit("show_message", {
-          title: __(`Select a customer`),
-          color: "error",
-        });
+        toast.error(__("Select a customer"));
         return;
       }
+
       if (!this.items.length) {
-        this.eventBus.emit("show_message", {
-          title: __(`Select items to sell`),
-          color: "error",
-        });
+        toast.error(__("Select items to sell"));
         return;
       }
+
       if (!this.validate()) {
         return;
       }

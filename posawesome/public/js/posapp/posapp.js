@@ -4,6 +4,8 @@ import eventBus from './bus';
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import Home from './Home.vue';
+import Vue3Toastify, { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 frappe.provide('frappe.PosApp');
 
@@ -47,6 +49,10 @@ frappe.PosApp.posapp = class {
         const app = createApp(Home)
         app.use(eventBus);
         app.use(vuetify)
+        app.use(Vue3Toastify, {
+        autoClose: 3000,   
+        position: "top-right",
+        })
         app.mount(this.$el[0]);
     }
     setup_header() {

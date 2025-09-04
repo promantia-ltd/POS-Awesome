@@ -50,9 +50,19 @@
                 <v-btn block color="warning" theme="dark" @click="get_outstanding_invoices">{{ __("Search") }}</v-btn>
               </v-col>
             </v-row>
-            <v-data-table :headers="invoices_headers" :items="outstanding_invoices" item-key="name"
-              class="elevation-1 mt-0" show-select v-model="selected_invoices" :loading="invoices_loading" return-object
-              checkbox-color="primary" @item-selected="onInvoiceSelected">
+            <v-data-table
+              :headers="invoices_headers"
+              :items="paginatedInvoices"
+              item-key="name"
+              class="elevation-1 mt-0"
+              show-select
+              v-model="selected_invoices"
+              :loading="invoices_loading"
+              return-object
+              checkbox-color="primary"
+              @item-selected="onInvoiceSelected"
+              hide-default-footer
+            >
               <template v-slot:item.grand_total="{ item }">
                 {{ currencySymbol(item.currency) }}
                 {{ formatCurrency(item.grand_total) }}
@@ -64,9 +74,19 @@
               <template v-slot:item.actions="{ item }">
                 <div class="d-flex ga-2 justify-end">
                   <v-icon color="medium-emphasis" icon="mdi-eye-arrow-right" size="small" @click="view(item.name)"></v-icon>
-
                 </div>
               </template>
+              <template v-slot:bottom>
+                <div class="text-center compact-pagination">
+                  <v-pagination
+                    v-model="page"
+                    :length="pageCount"
+                    density="compact"
+                    size="small"
+                  ></v-pagination>
+                </div>
+              </template>
+
             </v-data-table>
             <v-divider></v-divider>
             </div>
@@ -93,9 +113,9 @@
                 </v-card-title>
               </v-card>
             </div>
-            <v-data-table :headers="unallocated_payments_headers" :items="unallocated_payments" item-key="name"
+            <v-data-table :headers="unallocated_payments_headers" :items="paginatedUnallocatedPayments" item-key="name"
               class="elevation-1 mt-0" :single-select="singleSelect" show-select v-model="selected_payments" return-object
-              :loading="unallocated_payments_loading" checkbox-color="primary" >
+              :loading="unallocated_payments_loading" checkbox-color="primary"   hide-default-footer >
               <template v-slot:item.paid_amount="{ item }">
                 {{ currencySymbol(item.currency) }}
                 {{ formatCurrency(item.paid_amount) }}
@@ -106,6 +126,17 @@
                   {{ formatCurrency(item.unallocated_amount) }}
                 </span>
               </template>
+                <template v-slot:bottom>
+    <div class="text-center compact-pagination">
+      <v-pagination
+        v-model="paymentsPage"
+        :length="paymentsPageCount"
+        density="compact"
+        size="small"
+      ></v-pagination>
+    </div>
+  </template>
+
             </v-data-table>
             <v-divider></v-divider>
           </div>
@@ -140,14 +171,25 @@
                   }}</v-btn>
               </v-col>
             </v-row>
-            <v-data-table :headers="mpesa_payment_headers" :items="mpesa_payments" item-key="name"
-              class="elevation-1 mt-0" :single-select="singleSelect" show-select v-model="selected_mpesa_payments"
-              :loading="mpesa_payments_loading" checkbox-color="primary">
+            <v-data-table :headers="mpesa_payment_headers"   :items="paginatedMpesaPayments" item-key="name"
+              class="elevation-1 mt-0" :single-select="singleSelect" show-select v-model="selected_mpesa_payments" 
+              :loading="mpesa_payments_loading" checkbox-color="primary"   hide-default-footer>
               <template v-slot:item.amount="{ item }">
                 <span class="text-primary">
                   {{ currencySymbol(item.currency) }}
                   {{ formatCurrency(item.amount) }}
                 </span>
+              </template>
+
+              <template v-slot:bottom>
+                <div class="text-center compact-pagination">
+                  <v-pagination
+                  v-model="mpesaPage"
+                  :length="mpesaPageCount"
+                  density="compact"
+                  size="small"
+                  ></v-pagination>
+                </div>
               </template>
             </v-data-table>
           </div>
@@ -255,6 +297,12 @@ export default {
   mixins: [format],
   data: function () {
     return {
+      page: 1,
+      itemsPerPage: 5,
+      paymentsPage: 1,
+      paymentsItemsPerPage: 5,
+      mpesaPage: 1,
+      mpesaItemsPerPage: 5,
       dialog: false,
       include_paid: false,
       pos_profile: "",
@@ -672,6 +720,31 @@ export default {
   },
 
   computed: {
+    pageCount() {
+      return Math.ceil(this.outstanding_invoices.length / this.itemsPerPage);
+    },
+    paginatedInvoices() {
+        const start = (this.page - 1) * this.itemsPerPage;
+        const end = start + this.itemsPerPage;
+        return this.outstanding_invoices.slice(start, end);
+      },
+    paymentsPageCount() {
+      return Math.ceil(this.unallocated_payments.length / this.paymentsItemsPerPage);
+    },
+    paginatedUnallocatedPayments() {
+      const start = (this.paymentsPage - 1) * this.paymentsItemsPerPage;
+      const end = start + this.paymentsItemsPerPage;
+      return this.unallocated_payments.slice(start, end);
+    },
+
+    mpesaPageCount() {
+      return Math.ceil(this.mpesa_payments.length / this.mpesaItemsPerPage);
+    },
+    paginatedMpesaPayments() {
+      const start = (this.mpesaPage - 1) * this.mpesaItemsPerPage;
+      const end = start + this.mpesaItemsPerPage;
+      return this.mpesa_payments.slice(start, end);
+    },
     total_outstanding_amount() {
       return this.outstanding_invoices.reduce(
         (acc, cur) => acc + flt(cur.outstanding_amount),
