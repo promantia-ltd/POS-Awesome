@@ -4,11 +4,12 @@
       <!-- <template v-slot:activator="{ on, attrs }">
               <v-btn color="primary" theme="dark" v-bind="attrs" v-on="on">Open Dialog</v-btn>
             </template>-->
-      <v-card>
-        <v-card-title>
-          <span class="text-h5 text-primary">{{
+      <v-card class="rounded-xl shadow-lg">
+        <v-card-title class="d-flex align-center justify-space-between">
+          <span class="text-h6 font-weight-bold text-primary">{{
             __("Select Sales Orders")
           }}</span>
+        <v-btn icon="mdi-close" variant="text" @click="close_dialog"></v-btn>
         </v-card-title>
         <v-card-text class="pa-0">
           <v-container>
@@ -20,7 +21,7 @@
             </v-row>
             <v-row no-gutters>
               <v-col cols="12" class="pa-1">
-                <v-data-table :headers="headers" :items="dialog_data" item-key="name" class="elevation-1" show-select
+                <v-data-table :headers="headers" :items="paginatedDialogData" item-key="name" class="elevation-1" show-select hide-default-footer
                   v-model="selected" return-object select-strategy="single">
                   <!-- <template v-slot:item.posting_time="{ item }">
                           {{ item.posting_time.split(".")[0] }}
@@ -28,6 +29,23 @@
                   <template v-slot:item.grand_total="{ item }">
                     {{ currencySymbol(item.currency) }}
                     {{ formatCurrency(item.grand_total) }}
+                  </template>
+
+                  <template v-slot:bottom>
+                    <div class="text-center compact-pagination">
+                      <span class="text-caption page-info">
+                        {{ paginatedDialogData.length ? ((page - 1) * itemsPerPage + 1) : 0 }} -
+                        {{ Math.min(page * itemsPerPage, dialog_data.length) }}
+                        of {{ dialog_data.length }}
+                      </span>
+                      <v-pagination
+                        :total-visible="5"
+                        v-model="page"
+                        :length="pageCount"
+                        density="compact"
+                        size="small"
+                      ></v-pagination>
+                    </div>
                   </template>
                 </v-data-table>
               </v-col>
@@ -51,6 +69,8 @@ export default {
   // props: ["draftsDialog"],
   mixins: [format],
   data: () => ({
+    page: 1,
+    itemsPerPage: 5,
     draftsDialog: false,
     singleSelect: true,
     pos_profile: {},
@@ -91,6 +111,16 @@ export default {
     ],
   }),
   watch: {},
+  computed: {
+    pageCount() {
+      return Math.ceil(this.dialog_data.length / this.itemsPerPage);
+    },
+    paginatedDialogData() {
+      const start = (this.page - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.dialog_data.slice(start, end);
+    },
+  },
   methods: {
     close_dialog() {
       this.draftsDialog = false;

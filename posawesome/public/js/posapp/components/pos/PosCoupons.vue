@@ -38,6 +38,7 @@
 </template>
 
 <script>
+import { toast } from "vue3-toastify";
 
 export default {
   data: () => ({
@@ -99,10 +100,7 @@ export default {
           if (r.message) {
             const res = r.message;
             if (res.msg != 'Apply' || !res.coupon) {
-              vm.eventBus.emit('show_message', {
-                text: res.msg,
-                color: 'error',
-              });
+              toast.error(res.msg);
             } else {
               vm.new_coupon = null;
               const coupon = res.coupon;

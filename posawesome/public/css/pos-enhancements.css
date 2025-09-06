@@ -709,9 +709,29 @@ nav[role="navigation"] .v-list-item:hover {
 /* =================== COMPACT PAGINATION STYLING =================== */
 .compact-pagination {
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 0 1rem !important;
+    display: flex !important;
+  align-items: center !important;         /* vertical centering */
+  justify-content: space-between !important;
+  width: 100%;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
 }
 
 .compact-pagination .v-pagination__list {
   margin-bottom: 0 !important;
+}
+
+.compact-pagination .page-info {
+  flex: 0 0 20%;              
+}
+
+.compact-pagination .v-pagination {
+  flex: 0 0 30%; 
+  display: flex;
+  justify-content: flex-end; 
+} 
+
+.compact-pagination nav[role="navigation"]{
+  border-bottom: 0 !important;
+  background: transparent !important;
 }

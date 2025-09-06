@@ -78,7 +78,13 @@
               </template>
               <template v-slot:bottom>
                 <div class="text-center compact-pagination">
+                      <span class="text-caption page-info">
+                        {{ paginatedInvoices.length ? ((page - 1) * itemsPerPage + 1) : 0 }} -
+                        {{ Math.min(page * itemsPerPage, outstanding_invoices.length) }}
+                        of {{ outstanding_invoices.length }}
+                      </span>
                   <v-pagination
+                    :total-visible="5"
                     v-model="page"
                     :length="pageCount"
                     density="compact"
@@ -127,15 +133,22 @@
                 </span>
               </template>
                 <template v-slot:bottom>
-    <div class="text-center compact-pagination">
-      <v-pagination
-        v-model="paymentsPage"
-        :length="paymentsPageCount"
-        density="compact"
-        size="small"
-      ></v-pagination>
-    </div>
-  </template>
+                  <div class="text-center compact-pagination">
+                    <span class="text-caption page-info">
+                      {{ paginatedUnallocatedPayments.length ? ((paymentsPage - 1) * paymentsItemsPerPage + 1) : 0 }} -
+                      {{ Math.min(paymentsPage * paymentsItemsPerPage, unallocated_payments.length) }}
+                      of {{ unallocated_payments.length }}
+                    </span>
+                    
+                    <v-pagination
+                      :total-visible="5"
+                      v-model="paymentsPage"
+                      :length="paymentsPageCount"
+                      density="compact"
+                      size="small"
+                    ></v-pagination>
+                  </div>
+                </template>
 
             </v-data-table>
             <v-divider></v-divider>
@@ -183,7 +196,13 @@
 
               <template v-slot:bottom>
                 <div class="text-center compact-pagination">
+                  <span class="text-caption page-info">
+                    {{ paginatedMpesaPayments.length ? ((mpesaPage - 1) * mpesaItemsPerPage + 1) : 0 }} -
+                    {{ Math.min(mpesaPage * mpesaItemsPerPage, mpesa_payments.length) }}
+                    of {{ mpesa_payments.length }}
+                  </span>
                   <v-pagination
+                  :total-visible="5"
                   v-model="mpesaPage"
                   :length="mpesaPageCount"
                   density="compact"
@@ -287,6 +306,7 @@
 </template>
 
 <script>
+import { toast } from "vue3-toastify";
 
 import format from "../../format";
 import Customer from "../pos/Customer.vue";
@@ -491,12 +511,7 @@ export default {
           if (r.message && r.message.length > 0 && r.message[0].items) {
             vm.eventBus.emit("open_paid", r.message[0].items);
           } else {
-            vm.eventBus.emit("show_message", {
-              title: __(`Invoice has no items`, [
-                id,
-              ]),
-              color: "warning",
-            });
+            toast.warn(__(`Invoice has no items`, [id]));
           }
         },
       });

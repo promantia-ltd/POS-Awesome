@@ -211,6 +211,7 @@
 
 <script>
 
+import { toast } from "vue3-toastify";
 import format from "../../format";
 import _ from "lodash";
 export default {
@@ -566,10 +567,7 @@ export default {
     },
     trigger_onscan(sCode) {
       if (this.filtered_items.length == 0) {
-        this.eventBus.emit("show_message", {
-          title: `No Item has this barcode "${sCode}"`,
-          color: "error",
-        });
+        toast.error(`No Item has this barcode "${sCode}"`);
         frappe.utils.play_sound("error");
       } else {
         this.enter_event();

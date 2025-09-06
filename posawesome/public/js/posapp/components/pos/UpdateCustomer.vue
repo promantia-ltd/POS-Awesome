@@ -352,10 +352,7 @@ export default {
               if (vm.customer_id) {
                 text = __('Customer updated successfully.');
               }
-              vm.eventBus.emit('show_message', {
-                title: text,
-                color: 'success',
-              });
+              toast.success(text);
               args.name = r.message.name;
               frappe.utils.play_sound('submit');
               vm.eventBus.emit('add_customer_to_list', args);
@@ -364,10 +361,7 @@ export default {
               vm.close_dialog();
             } else {
               frappe.utils.play_sound('error');
-              vm.eventBus.emit('show_message', {
-                title: __('Customer creation failed.'),
-                color: 'error',
-              });
+              toast.error(__('Customer creation failed.'));
             }
           },
         });

@@ -14,10 +14,10 @@
       <div class="overflow-y-auto pa-4" style="max-height: 75vh">
         <!-- Payment Status Section -->
         <div class="mb-4" v-if="invoice_doc">
-          <v-card variant="flat" color="primary" class="mb-3 section-header">
-            <v-card-title class="text-subtitle-1 py-2 text-white">
-              <v-icon start size="20" color="white">mdi-cash-multiple</v-icon>
-              Payment Summary
+          <v-card variant="flat" class="mb-3 section-header">
+            <v-card-title class="section-header-title font-weight-bold text-primary" >
+              <v-icon start size="20">mdi-cash-multiple</v-icon>
+              <span>Payment Summary</span>
             </v-card-title>
           </v-card>
           <v-row class="mb-2">
@@ -91,10 +91,10 @@
 
         <!-- Payment Methods Section -->
         <div class="mb-4" v-if="is_cashback">
-          <v-card variant="flat" color="info" class="mb-3 section-header">
-            <v-card-title class="text-subtitle-1 py-2 text-white">
-              <v-icon start size="20" color="white">mdi-credit-card</v-icon>
-              Payment Methods
+          <v-card variant="flat" class="mb-3 section-header">
+            <v-card-title class="section-header-title font-weight-bold text-primary">
+              <v-icon start size="20">mdi-credit-card</v-icon>
+              <span>Payment Methods</span>
             </v-card-title>
           </v-card>
           <v-row
@@ -127,11 +127,10 @@
               ">
               <v-btn
                 block
-                variant="elevated"
+                variant="text"
                 color="primary"
                 size="large"
-                rounded="lg"
-                elevation="3"
+                rounded="md"
                 class="payment-method-btn"
                 @click="set_full_amount(payment.idx)">
                 <v-icon start size="20">mdi-cash</v-icon>
@@ -591,12 +590,10 @@
         <v-col cols="6">
           <v-btn
             block
-            variant="elevated"
+            variant="tonal"
             size="large"
-            color="primary"
             rounded="lg"
             elevation="4"
-            class="action-btn submit-btn"
             @click="submit"
             :disabled="vaildatPayment">
             <v-icon start size="20">mdi-check-circle</v-icon>
@@ -606,12 +603,10 @@
         <v-col cols="6" class="pl-1">
           <v-btn
             block
-            variant="elevated"
+            variant="tonal"
             size="large"
-            color="success"
             rounded="lg"
             elevation="4"
-            class="action-btn print-btn"
             @click="submit(undefined, false, true)"
             :disabled="vaildatPayment">
             <v-icon start size="20">mdi-printer</v-icon>
@@ -621,9 +616,8 @@
         <v-col cols="12">
           <v-btn
             block
-            variant="elevated"
+            variant="tonal"
             size="large"
-            color="error"
             rounded="lg"
             elevation="4"
             class="mt-3 action-btn cancel-btn"
@@ -674,6 +668,7 @@
 <script>
 import format from "../../format";
 import hardwareUtils from "../../hardwareManager/hardwareUtils";
+import { toast } from "vue3-toastify"; // <-- make sure this is imported
 
 export default {
   mixins: [format, hardwareUtils],
@@ -711,10 +706,7 @@ export default {
     },
     submit(event, payment_received = false, print = false) {
       if (!this.invoice_doc.is_return && this.total_payments < 0) {
-        this.eventBus.emit("show_message", {
-          title: `Payments not correct`,
-          color: "error",
-        });
+        toast.error(`Payments not correct`);
         frappe.utils.play_sound("error");
         return;
       }
@@ -730,12 +722,9 @@ export default {
           }
         });
         if (!phone_payment_is_valid) {
-          this.eventBus.emit("show_message", {
-            title: __(
-              "Please request phone payment or use other payment method"
-            ),
-            color: "error",
-          });
+          toast.error(
+            __("Please request phone payment or use other payment method")
+          );
           frappe.utils.play_sound("error");
           return;
         }
@@ -747,10 +736,7 @@ export default {
         this.total_payments <
           (this.invoice_doc.rounded_total || this.invoice_doc.grand_total)
       ) {
-        this.eventBus.emit("show_message", {
-          title: `The amount paid is not complete`,
-          color: "error",
-        });
+        toast.error(`The amount paid is not complete`);
         frappe.utils.play_sound("error");
         return;
       }
@@ -760,10 +746,7 @@ export default {
         !this.pos_profile.posa_allow_credit_sale &&
         this.total_payments == 0
       ) {
-        this.eventBus.emit("show_message", {
-          title: `Please enter the amount paid`,
-          color: "error",
-        });
+        toast.error(`Please enter the amount paid`);
         frappe.utils.play_sound("error");
         return;
       }
@@ -771,10 +754,7 @@ export default {
       if (!this.paid_change) this.paid_change = 0;
 
       if (this.paid_change > -this.diff_payment) {
-        this.eventBus.emit("show_message", {
-          title: `Paid change can not be greater than total change!`,
-          color: "error",
-        });
+        toast.error(`Paid change can not be greater than total change!`);
         frappe.utils.play_sound("error");
         return;
       }
@@ -784,10 +764,7 @@ export default {
       );
 
       if (this.is_cashback && total_change != -this.diff_payment) {
-        this.eventBus.emit("show_message", {
-          title: `Error in change calculations!`,
-          color: "error",
-        });
+        toast.error(`Error in change calculations!`);
         frappe.utils.play_sound("error");
         return;
       }
@@ -799,10 +776,7 @@ export default {
       });
 
       if (credit_calc_check.length > 0) {
-        this.eventBus.emit("show_message", {
-          title: `redeamed credit can not greater than its total.`,
-          color: "error",
-        });
+        toast.error(`redeamed credit can not greater than its total.`);
         frappe.utils.play_sound("error");
         return;
       }
@@ -812,10 +786,7 @@ export default {
         this.redeemed_customer_credit >
           (this.invoice_doc.rounded_total || this.invoice_doc.grand_total)
       ) {
-        this.eventBus.emit("show_message", {
-          title: `can not redeam customer credit more than invoice total`,
-          color: "error",
-        });
+        toast.error(`can not redeam customer credit more than invoice total`);
         frappe.utils.play_sound("error");
         return;
       }
@@ -856,10 +827,7 @@ export default {
         async: false,
         callback: function (r) {
           if (!r?.message) {
-            vm.eventBus.emit("show_message", {
-              title: `Error submitting invoice`,
-              color: "error",
-            });
+            toast.error("Error submitting invoice");
             return;
           }
           if (print) {
@@ -871,10 +839,7 @@ export default {
           vm.sales_person = "";
 
           vm.eventBus.emit("set_last_invoice", vm.invoice_doc.name);
-          vm.eventBus.emit("show_message", {
-            title: `Invoice ${r.message.name} is Submited`,
-            color: "success",
-          });
+          toast.success(`Invoice ${r.message.name} is Submited`);
           //s
           frappe.utils.play_sound("submit");
           vm.addresses = [];
@@ -1098,10 +1063,7 @@ export default {
       this.phone_dialog = false;
       const vm = this;
       if (!this.invoice_doc.contact_mobile) {
-        this.eventBus.emit("show_message", {
-          title: __(`Pleas Set Customer Mobile Number`),
-          color: "error",
-        });
+        toast.error(__(`Pleas Set Customer Mobile Number`));
         this.eventBus.emit("open_edit_customer");
         this.back_to_invoice();
         return;
@@ -1143,10 +1105,7 @@ export default {
             })
             .fail(() => {
               this.eventBus.emit("unfreeze");
-              this.eventBus.emit("show_message", {
-                title: __(`Payment request failed`),
-                color: "error",
-              });
+              toast.error(__(`Payment request failed`));
             })
             .then(({ message }) => {
               const payment_request_name = message.name;
@@ -1159,24 +1118,22 @@ export default {
                   .then(({ message }) => {
                     if (message.status != "Paid") {
                       this.eventBus.emit("unfreeze");
-                      this.eventBus.emit("show_message", {
-                        title: __(
+                      toast.error(
+                        __(
                           `Payment Request took too long to respond. Please try requesting for payment again`
-                        ),
-                        color: "error",
-                      });
+                        )
+                      );
                     } else {
                       this.eventBus.emit("unfreeze");
-                      this.eventBus.emit("show_message", {
-                        title: __("Payment of {0} received successfully.", [
+                      toast.success(
+                        __("Payment of {0} received successfully.", [
                           vm.formatCurrency(
                             message.grand_total,
                             vm.invoice_doc.currency,
                             0
                           ),
-                        ]),
-                        color: "success",
-                      });
+                        ])
+                      );
                       frappe.db
                         .get_doc("Sales Invoice", vm.invoice_doc.name)
                         .then((doc) => {
@@ -1420,10 +1377,9 @@ export default {
         this.invoice_doc.loyalty_amount = 0;
         this.invoice_doc.redeem_loyalty_points = 0;
         this.invoice_doc.loyalty_points = 0;
-        this.eventBus.emit("show_message", {
-          title: `Loyalty Amount can not be more then ${this.available_pioints_amount}`,
-          color: "error",
-        });
+        toast.error(
+          `Loyalty Amount can not be more then ${this.available_pioints_amount}`
+        );
       } else {
         this.invoice_doc.loyalty_amount = this.flt(this.loyalty_amount);
         this.invoice_doc.redeem_loyalty_points = 1;
@@ -1453,10 +1409,10 @@ export default {
     },
     redeemed_customer_credit(value) {
       if (value > this.available_customer_credit) {
-        this.eventBus.emit("show_message", {
-          title: `You can redeem customer credit upto ${this.available_customer_credit}`,
-          color: "error",
-        });
+
+        toast.error(
+          `You can redeem customer credit upto ${this.available_customer_credit}`
+        );
       }
     },
     sales_person() {
@@ -1513,20 +1469,31 @@ export default {
   box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4) !important;
 }
 
-.cancel-btn {
+/* .cancel-btn {
   background: linear-gradient(45deg, #f44336 0%, #ef5350 100%) !important;
   box-shadow: 0 6px 16px rgba(244, 67, 54, 0.3) !important;
-}
+} */
 
-.cancel-btn:hover {
+/* .cancel-btn:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4) !important;
-}
+} */
 
 /* Section headers styling - scoped to payment page only */
 .section-header .v-card-title {
-  color: white !important;
   font-weight: 600 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+
+.section-header-title {
+  display: flex;
+  align-items: center;
+  padding-left: 0;
+  font-size: 1rem; 
+  font-weight: 500;
+}
+
+.section-header-title v-icon {
+  margin-right: 6px;
 }
 </style>

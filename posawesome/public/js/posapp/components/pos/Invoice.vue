@@ -26,13 +26,13 @@
       class="cards my-0 py-0"
       elevation="2"
       rounded="lg">
-      <v-row align="center" class="items px-2 py-1">
-        <v-col
-          :cols="pos_profile.posa_allow_sales_order ? 7 : 10"
-          class="pb-2 pr-0">
-          <Customer></Customer>
+      <v-row align="center" class="items px-2 py-2 invoice-details-row" dense>
+        <!-- Customer -->
+        <v-col :cols="pos_profile.posa_allow_sales_order ? 4 : 6" class="pr-1">
+          <Customer />
         </v-col>
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
+        <!-- Sales Order Type -->
+        <v-col v-if="pos_profile.posa_allow_sales_order" cols="2" class="pr-1">
           <v-select
             density="compact"
             hide-details
@@ -45,7 +45,7 @@
             :disabled="invoiceType == 'Return'"></v-select>
         </v-col>
         <!-- Inclusive Tax Switch -->
-        <v-col cols="2" class="pb-0 mb-0 pt-0 d-flex align-center">
+        <v-col cols="2" class="pr-1 d-flex align-center">
           <v-switch
             v-model="inclusive_tax"
             color="primary"
@@ -60,14 +60,8 @@
             </template>
           </v-switch>
         </v-col>
-      </v-row>
-      
-
-      <v-row
-        align="center"
-        class="items px-2 py-1 mt-0 pt-0"
-        v-if="pos_profile.posa_use_delivery_charges">
-        <v-col cols="3" class="pb-0 mb-0 pr-0 pt-0">
+        <!-- Delivery Charges -->
+        <v-col v-if="pos_profile.posa_use_delivery_charges" cols="2" class="pr-1">
           <v-autocomplete
             density="compact"
             clearable
@@ -96,7 +90,8 @@
             </template>
           </v-autocomplete>
         </v-col>
-        <v-col cols="3" class="pb-0 mb-0 pt-0">
+        <!-- Delivery Charges Rate -->
+        <v-col v-if="pos_profile.posa_use_delivery_charges" cols="2" class="pr-1">
           <v-text-field
             density="compact"
             variant="outlined"
@@ -108,15 +103,8 @@
             :prefix="currencySymbol(pos_profile.currency)"
             readonly></v-text-field>
         </v-col>
-      </v-row>
-      <v-row
-        align="center"
-        class="items px-2 py-1 mt-0 pt-0"
-        v-if="pos_profile.posa_allow_change_posting_date">
-        <v-col
-          v-if="pos_profile.posa_allow_change_posting_date"
-          cols="4"
-          class="pb-2">
+        <!-- Posting Date -->
+        <v-col v-if="pos_profile.posa_allow_change_posting_date" cols="4" >
           <v-menu
             ref="invoice_posting_date"
             v-model="invoice_posting_date"
@@ -124,18 +112,18 @@
             transition="scale-transition"
             density="default">
             <template v-slot:activator="{ props }">
-                          <v-text-field
-              v-model="posting_date"
-              :label="frappe._('Posting Date')"
-              readonly
-              variant="outlined"
-              density="compact"
-              bg-color="white"
-              clearable
-              color="primary"
-              hide-details
-              v-bind="props"
-            />
+              <v-text-field
+                v-model="posting_date"
+                :label="frappe._('Posting Date')"
+                readonly
+                variant="outlined"
+                density="compact"
+                bg-color="white"
+                clearable
+                color="primary"
+                hide-details
+                v-bind="props"
+              />
             </template>
             <v-date-picker
               v-model="raw_posting_date"
@@ -807,7 +795,7 @@
               <v-btn
                 variant="tonal"
                 block
-                class="pa-0"
+                class="pa-0 enhanced-action-btn"
                 theme="dark"
                 @click="save_and_clear_invoice">
                 {{ __("Save and Clear") }}</v-btn
@@ -817,7 +805,7 @@
               <v-btn
                 variant="tonal"
                 block
-                class="pa-0"
+                class="pa-0 enhanced-action-btn"
                 theme="dark"
                 @click="get_draft_invoices"
                 >{{ __("Load Draft sales") }}</v-btn
@@ -830,7 +818,7 @@
               <v-btn
                 variant="tonal"
                 block
-                class="pa-0"
+                class="pa-0 enhanced-action-btn"
                 theme="dark"
                 @click="get_draft_orders"
                 >{{ __("Select S.O") }}</v-btn
@@ -840,7 +828,7 @@
               <v-btn
                 block
                 variant="tonal"
-                class="pa-0"
+                class="pa-0 enhanced-action-btn"
                 theme="dark"
                 @click="cancel_dialog = true"
                 >{{ __("Cancel Sale") }}</v-btn
@@ -853,7 +841,7 @@
               <v-btn
                 block
                 variant="tonal"
-                class="pa-0"
+                class="pa-0 enhanced-action-btn"
                 :class="{ 'disable-events': !pos_profile.posa_allow_return }"
                 theme="dark"
                 @click="open_returns"
@@ -864,12 +852,9 @@
             <v-col class="pa-1">
               <v-btn
                 block
-                variant="elevated"
-                size="large"
-                rounded="xl"
-                color="success"
+                variant="tonal"
                 elevation="4"
-                class="pay-button"
+                class="pay-button enhanced-action-btn"
                 @click="show_payment">
                 <v-icon start size="20">mdi-credit-card</v-icon>
                 <span class="pay-text">{{ __("PAY") }}</span>
@@ -882,8 +867,7 @@
               <v-btn
                 variant="tonal"
                 block
-                class="pa-0"
-                color="primary"
+                class="pa-0 enhanced-action-btn"
                 @click="print_draft_invoice"
                 theme="dark"
                 >{{ __("Print Draft") }}</v-btn
@@ -1231,12 +1215,11 @@ export default {
         this.update_items_details([cur_item]);
         if (item.has_serial_no && item.to_set_serial_no) {
           if (cur_item.serial_no_selected.includes(item.to_set_serial_no)) {
-            this.eventBus.emit("show_message", {
-              title: __(`This Serial Number {0} has already been added!`, [
+            toast.warn(
+              __(`This Serial Number {0} has already been added!`, [
                 item.to_set_serial_no,
-              ]),
-              color: "warning",
-            });
+              ])
+            );
             item.to_set_serial_no = null;
             return;
           }
@@ -1349,10 +1332,7 @@ export default {
           async: true,
           callback: function (r) {
             if (r.message) {
-              vm.eventBus.emit("show_message", {
-                text: r.message,
-                color: "warning",
-              });
+              toast.warn(r.message);
             }
           },
         });
@@ -1417,10 +1397,7 @@ export default {
         }
       }
       if (!old_invoice) {
-        this.eventBus.emit("show_message", {
-          title: `Error saving the current invoice`,
-          color: "error",
-        });
+        toast.error("Error saving the current invoice");
       } else {
         this.clear_invoice();
         return old_invoice;
@@ -1796,13 +1773,12 @@ export default {
             if (
               discount_percentage > this.pos_profile.posa_max_discount_allowed
             ) {
-              vm.eventBus.emit("show_message", {
-                title: __(
+              toast.error(
+                __(
                   `Discount percentage for item '{0}' cannot be greater than {1}%`,
                   [item.item_name, this.pos_profile.posa_max_discount_allowed]
-                ),
-                color: "error",
-              });
+                )
+              );
               value = false;
             }
           }
@@ -1813,36 +1789,33 @@ export default {
             ((item.is_stock_item && item.stock_qty && !item.actual_qty) ||
               (item.is_stock_item && item.stock_qty > item.actual_qty))
           ) {
-            vm.eventBus.emit("show_message", {
-              title: __(
+            toast.error(
+              __(
                 `The existing quantity '{0}' for item '{1}' is not enough`,
                 [item.actual_qty, item.item_name]
-              ),
-              color: "error",
-            });
+              )
+            );
             value = false;
           }
         }
         if (item.qty == 0) {
-          vm.eventBus.emit("show_message", {
-            title: __(`Quantity for item '{0}' cannot be Zero (0)`, [
+          toast.error(
+            __(`Quantity for item '{0}' cannot be Zero (0)`, [
               item.item_name,
-            ]),
-            color: "error",
-          });
+            ])
+          );
           value = false;
         }
         if (
           item.max_discount > 0 &&
           item.discount_percentage > item.max_discount
         ) {
-          vm.eventBus.emit("show_message", {
-            title: __(`Maximum discount for Item {0} is {1}%`, [
+          toast.error(
+            __(`Maximum discount for Item {0} is {1}%`, [
               item.item_name,
               item.max_discount,
-            ]),
-            color: "error",
-          });
+            ])
+          );
           value = false;
         }
         if (item.has_serial_no) {
@@ -1851,55 +1824,48 @@ export default {
             (!item.serial_no_selected ||
               item.stock_qty != item.serial_no_selected.length)
           ) {
-            vm.eventBus.emit("show_message", {
-              title: __(`Selected serial numbers of item {0} is incorrect`, [
+            toast.error(
+              __(`Selected serial numbers of item {0} is incorrect`, [
                 item.item_name,
-              ]),
-              color: "error",
-            });
+              ])
+            );
             value = false;
           }
         }
         if (item.has_batch_no) {
           if (item.stock_qty > item.actual_batch_qty) {
-            vm.eventBus.emit("show_message", {
-              title: __(
+            toast.error(
+              __(
                 `The existing batch quantity of item {0} is not enough`,
                 [item.item_name]
-              ),
-              color: "error",
-            });
+              )
+            );
             value = false;
           }
         }
         if (this.pos_profile.posa_allow_user_to_edit_additional_discount) {
           const clac_percentage = (this.discount_amount / this.Total) * 100;
           if (clac_percentage > this.pos_profile.posa_max_discount_allowed) {
-            vm.eventBus.emit("show_message", {
-              title: __(`The discount should not be higher than {0}%`, [
+            toast.error(
+              __(`The discount should not be higher than {0}%`, [
                 this.pos_profile.posa_max_discount_allowed,
-              ]),
-              color: "error",
-            });
+              ])
+            );
             value = false;
           }
         }
         if (this.invoice_doc.is_return) {
           if (this.subtotal >= 0) {
-            vm.eventBus.emit("show_message", {
-              title: __(`Return Invoice Total Not Correct`),
-              color: "error",
-            });
+            toast.error(__(`Return Invoice Total Not Correct`));
             value = false;
             return value;
           }
           if (Math.abs(this.subtotal) > Math.abs(this.return_doc.total)) {
-            vm.eventBus.emit("show_message", {
-              title: __(`Return Invoice Total should not be higher than {0}`, [
+            toast.error(
+              __(`Return Invoice Total should not be higher than {0}`, [
                 this.return_doc.total,
-              ]),
-              color: "error",
-            });
+              ])
+            );
             value = false;
             return value;
           }
@@ -1909,26 +1875,24 @@ export default {
             );
 
             if (!return_item) {
-              vm.eventBus.emit("show_message", {
-                title: __(
+              toast.error(
+                __(
                   `The item {0} cannot be returned because it is not in the invoice {1}`,
                   [item.item_name, this.return_doc.name]
-                ),
-                color: "error",
-              });
+                )
+              );
               value = false;
               return value;
             } else if (
               Math.abs(item.qty) > Math.abs(return_item.qty) ||
               Math.abs(item.qty) == 0
             ) {
-              vm.eventBus.emit("show_message", {
-                title: __(
+              toast.error(
+                __(
                   `The QTY of the item {0} cannot be greater than {1}`,
                   [item.item_name, return_item.qty]
-                ),
-                color: "error",
-              });
+                )
+              );
               value = false;
               return value;
             }
@@ -2954,10 +2918,7 @@ export default {
         this.ApplyOnTotal(offer);
       }
       if (offer.offer === "Loyalty Point") {
-        this.eventBus.emit("show_message", {
-          title: __("Loyalty Point Offer Applied"),
-          color: "success",
-        });
+        toast.success(__("Loyalty Point Offer Applied"));
       }
 
       const newOffer = {
@@ -3175,10 +3136,7 @@ export default {
 
     print_draft_invoice() {
       if (!this.pos_profile.posa_allow_print_draft_invoices) {
-        this.eventBus.emit("show_message", {
-          title: __(`You are not allowed to print draft invoices`),
-          color: "error",
-        });
+        toast.error(__(`You are not allowed to print draft invoices`));
         return;
       }
       let invoice_name = this.invoice_doc.name;
@@ -3434,7 +3392,7 @@ export default {
   display: block;
 }
 
-.pay-button {
+/* .pay-button {
   background: linear-gradient(45deg, #4caf50 0%, #66bb6a 100%) !important;
   box-shadow: 0 8px 16px rgba(76, 175, 80, 0.3) !important;
   transition: all 0.3s ease !important;
@@ -3444,12 +3402,18 @@ export default {
 .pay-button:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 12px 20px rgba(76, 175, 80, 0.4) !important;
-}
+} */
 
-.pay-text {
+/* .pay-text {
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+} */
+
+ .enhanced-action-btn {
+  font-weight: 500 !important;
+  text-transform: none !important;
 }
+
 </style>

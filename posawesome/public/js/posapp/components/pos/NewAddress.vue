@@ -48,6 +48,7 @@
 </template>
 
 <script>
+import { toast } from "vue3-toastify";
 
 export default {
   data: () => ({
@@ -73,10 +74,7 @@ export default {
         callback: (r) => {
           if (!r.exc) {
             vm.eventBus.emit('add_the_new_address', r.message);
-            vm.eventBus.emit('show_message', {
-              text: 'Customer Address created successfully.',
-              color: 'success',
-            });
+            toast.success("Customer Address created successfully.");
             vm.addressDialog = false;
             vm.customer = '';
             vm.address = {};

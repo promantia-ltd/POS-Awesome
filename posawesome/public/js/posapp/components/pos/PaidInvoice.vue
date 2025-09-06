@@ -35,7 +35,13 @@
 
                   <template v-slot:bottom>
                     <div class="text-center compact-pagination">
+                      <span class="text-caption page-info">
+                        {{ paginatedItems.length ? ((page - 1) * itemsPerPage + 1) : 0 }} -
+                        {{ Math.min(page * itemsPerPage, dialog_data.length) }}
+                        of {{ dialog_data.length }}
+                      </span>
                       <v-pagination
+                        :total-visible="5"
                         v-model="page"
                         :length="pageCount"
                         density="compact"
