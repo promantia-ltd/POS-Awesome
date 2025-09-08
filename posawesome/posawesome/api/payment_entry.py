@@ -3,7 +3,7 @@
 
 import frappe, erpnext, json
 from frappe import _
-from frappe.utils import nowdate, getdate, flt
+from frappe.utils import nowdate, getdate, flt, get_datetime_str, now
 from erpnext.accounts.party import get_party_account
 from erpnext.accounts.utils import get_account_currency
 from erpnext.accounts.doctype.journal_entry.journal_entry import (
@@ -27,7 +27,6 @@ def create_payment_entry(
     cost_center=None,
     submit=0,
 ):
-    # TODO : need to have a better way to handle currency
     date = nowdate() if not posting_date else posting_date
     party_type = "Customer"
     party_account = get_party_account(party_type, customer, company)
@@ -159,15 +158,14 @@ def get_outstanding_invoices(company, currency, customer=None, pos_profile_name=
                             "posting_date": invoice.get("posting_date"),
                             "currency": invoice.get("currency"),
                             "pos_profile": pos_profile_name,
-
                         }
                         invoices_list.append(invoice_dict)
             return invoices_list
         else:
             filters = {
-            "company": company,
-            "outstanding_amount": ("=", 0),
-            "is_return": 0
+                "company": company,
+                "outstanding_amount": ("=", 0),
+                "is_return": 0
             }
             if customer:
                 filters.update({"customer": customer})
@@ -312,6 +310,15 @@ def process_pos_payment(payload):
             try:
                 if not payment_method.get("amount"):
                     continue
+                bank = get_bank_cash_account(company, payment_method.get("mode_of_payment"))
+                is_bank_transaction = (
+                    bank.account_type == "Bank" or
+                    "bank" in payment_method.get("mode_of_payment").lower() or
+                    "cheque" in payment_method.get("mode_of_payment").lower() or
+                    "wire" in payment_method.get("mode_of_payment").lower()
+                )
+                reference_no = payment_method.get("reference_no") or (data.selected_invoices[0].get("name") if data.selected_invoices else f"{pos_opening_shift_name}-{get_datetime_str(now())}")
+                reference_date = payment_method.get("reference_date") or today
                 new_payment_entry = create_payment_entry(
                     company=company,
                     customer=customer,
@@ -319,24 +326,22 @@ def process_pos_payment(payload):
                     amount=flt(payment_method.get("amount")),
                     mode_of_payment=payment_method.get("mode_of_payment"),
                     posting_date=today,
-                    # reference_no=pos_opening_shift_name,
-                    reference_date=today,
+                    reference_no=reference_no if is_bank_transaction else None,
+                    reference_date=reference_date if is_bank_transaction else None,
                     cost_center=data.pos_profile.get("cost_center"),
                     submit=1,
                 )
                 new_payments_entry.append(new_payment_entry)
                 all_payments_entry.append(new_payment_entry)
             except Exception as e:
-                errors.append(e)
+                errors.append(str(e))
 
-    # then then reconcile the new payments and the unallocated payments with the outstanding invoices
     if len(data.selected_invoices) > 0 and data.total_selected_invoices > 0:
         if (
             allow_reconcile_payments
             and len(data.selected_payments) > 0
             and data.total_selected_payments > 0
         ):
-            # add the unallocated payments to the all payments entry
             for selected_payment in data.selected_payments:
                 all_payments_entry.append(selected_payment)
 
