@@ -653,14 +653,6 @@ export default {
       this.eventBus.emit("set_customer_readonly", false);
     },
     submit(event, payment_received = false, print = false) {
-      console.log("is_credit_sale:", this.is_credit_sale);
-      console.log("is_cashback:", this.is_cashback);
-      console.log("diff_payment:", this.diff_payment);
-      console.log("paid_change:", this.paid_change);
-      console.log("credit_change:", this.credit_change);
-      console.log("total_change:", this.flt(this.flt(this.paid_change) + this.flt(-this.credit_change)));
-      console.log("expected change (-diff_payment):", -this.diff_payment);
-
       if (!this.invoice_doc.is_return && this.total_payments < 0) {
         this.eventBus.emit("show_message", {
           title: `Payments not correct`,
@@ -860,7 +852,6 @@ export default {
           }
         });
       } catch (err) {
-        console.error("Hardware config check failed:", err);
         this.load_print_page(invoice_name); // fallback
       }
     },
