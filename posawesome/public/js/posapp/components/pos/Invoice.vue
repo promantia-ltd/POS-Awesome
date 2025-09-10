@@ -22,17 +22,15 @@
       </v-card>
     </v-dialog>
     <v-card
-      style="max-height: 75vh; height: 75vh"
-      class="cards my-0 py-0"
-      elevation="2"
-      rounded="lg">
-      <v-row align="center" class="items px-2 py-2 invoice-details-row" dense>
-        <!-- Customer -->
-        <v-col :cols="pos_profile.posa_allow_sales_order ? 4 : 6" class="pr-1">
-          <Customer />
+      style="max-height: 70vh; height: 70vh"
+      class="cards my-0 py-0 mt-3 bg-grey-lighten-5">
+      <v-row align="center" class="items px-2 py-1">
+        <v-col
+          :cols="pos_profile.posa_allow_sales_order ? 6 : 10"
+          class="pb-2 pr-0">
+          <Customer></Customer>
         </v-col>
-        <!-- Sales Order Type -->
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="2" class="pr-1">
+        <v-col v-if="pos_profile.posa_allow_sales_order" cols="4" :style="{ paddingTop: '10px' }">
           <v-select
             density="compact"
             hide-details
@@ -45,10 +43,10 @@
             :disabled="invoiceType == 'Return'"></v-select>
         </v-col>
         <!-- Inclusive Tax Switch -->
-        <v-col cols="2" class="pr-1 d-flex align-center">
+        <v-col cols="2" class="pb-0 mb-0 pt-0 d-flex align-center">
           <v-switch
             v-model="inclusive_tax"
-            color="primary"
+            color="blue-accent-4"
             inset
             dense
             hide-details
@@ -60,8 +58,13 @@
             </template>
           </v-switch>
         </v-col>
-        <!-- Delivery Charges -->
-        <v-col v-if="pos_profile.posa_use_delivery_charges" cols="2" class="pr-1">
+      </v-row>
+
+      <v-row
+        align="center"
+        class="items px-2 py-1 mt-4 pt-0"
+        v-if="pos_profile.posa_use_delivery_charges">
+        <v-col cols="3" class="pb-0 mb-0  pt-0">
           <v-autocomplete
             density="compact"
             clearable
@@ -90,8 +93,7 @@
             </template>
           </v-autocomplete>
         </v-col>
-        <!-- Delivery Charges Rate -->
-        <v-col v-if="pos_profile.posa_use_delivery_charges" cols="2" class="pr-1">
+        <v-col cols="3" class="pb-0 mb-0 pt-0">
           <v-text-field
             density="compact"
             variant="outlined"
@@ -103,8 +105,11 @@
             :prefix="currencySymbol(pos_profile.currency)"
             readonly></v-text-field>
         </v-col>
-        <!-- Posting Date -->
-        <v-col v-if="pos_profile.posa_allow_change_posting_date" cols="4" >
+
+        <v-col
+          v-if="pos_profile.posa_allow_change_posting_date"
+          cols="4"
+          class="pb-0 mb-0 pr-0 pt-0">
           <v-menu
             ref="invoice_posting_date"
             v-model="invoice_posting_date"
@@ -112,18 +117,18 @@
             transition="scale-transition"
             density="default">
             <template v-slot:activator="{ props }">
-              <v-text-field
-                v-model="posting_date"
-                :label="frappe._('Posting Date')"
-                readonly
-                variant="outlined"
-                density="compact"
-                bg-color="white"
-                clearable
-                color="primary"
-                hide-details
-                v-bind="props"
-              />
+                          <v-text-field
+              v-model="posting_date"
+              :label="frappe._('Posting Date')"
+              readonly
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+              clearable
+              color="primary"
+              hide-details
+              v-bind="props"
+            />
             </template>
             <v-date-picker
               v-model="raw_posting_date"
@@ -243,17 +248,17 @@
                 <v-col cols="auto">
                   <v-tooltip text="Delete Item" location="top">
                     <template v-slot:activator="{ props }">
-                      <v-btn
+                  <v-btn
                         v-bind="props"
                         variant="text"
                         color="black"
                         size="small"
                         icon
-                        :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
+                    :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
                         @click.stop="remove_item(item)"
                       >
                         <v-icon>mdi-delete</v-icon>
-                      </v-btn>
+                  </v-btn>
                     </template>
                   </v-tooltip>
 
@@ -3385,7 +3390,6 @@ export default {
 .disable-events {
   pointer-events: none;
 }
-
 .small-switch .v-label {
   margin-left: -6px;
   margin-top: 20px; /* Adjust this value as needed */

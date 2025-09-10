@@ -3,7 +3,7 @@
     <v-autocomplete density="compact" clearable auto-select-first variant="outlined" color="primary"
       :label="frappe._('Customer')" v-model="customer" :items="customers" item-title="customer_name" item-value="name"
       bg-color="white" :no-data-text="__('Customers not found')" hide-details :customFilter="customFilter"
-      :disabled="readonly" append-icon="mdi-plus" @click:append="new_customer" prepend-inner-icon="mdi-account-edit"
+      :disabled="readonly"  prepend-inner-icon="mdi-account-edit"
       @click:prepend-inner="edit_customer">
       <template v-slot:item="{ props, item }">
         <v-list-item v-bind="props">
@@ -24,7 +24,17 @@
           </v-list-item-subtitle>
         </v-list-item>
       </template>
+
+      <template v-slot:append-item>
+        <v-list-item @click="new_customer" class="cursor-pointer">
+          <v-list-item-title class="text-primary">
+            + Create New Customer
+          </v-list-item-title>
+        </v-list-item>
+      </template>
+
     </v-autocomplete>
+
     <div class="mb-8">
       <UpdateCustomer></UpdateCustomer>
     </div>
