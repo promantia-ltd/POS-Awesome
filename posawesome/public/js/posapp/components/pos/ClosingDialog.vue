@@ -1,59 +1,90 @@
 <template>
-  <v-row justify="center">
-    <v-dialog v-model="closingDialog" max-width="900px">
-      <v-card>
-        <v-card-title>
-          <span class="text-h5 text-primary">{{
-            __('Closing POS Shift')
-          }}</span>
-        </v-card-title>
-        <v-card-text class="pa-0">
-          <v-container>
-            <v-row>
-              <v-col cols="12" class="pa-1">
-                <v-data-table :headers="headers" :items="dialog_data.payment_reconciliation" item-key="mode_of_payment"
-                  class="elevation-1" :items-per-page="itemsPerPage" hide-default-footer>
-                  <template v-slot:item.closing_amount="props">
-                    <v-confirm-edit v-model:return-value="props.item.closing_amount">
-                      {{ currencySymbol(pos_profile.currency) }}
-                      {{ formatCurrency(props.item.closing_amount) }}
-                      <template v-slot:input>
-                        <v-text-field v-model="props.item.closing_amount" :rules="[max25chars]"
-                          :label="frappe._('Edit')" single-line counter type="number"></v-text-field>
-                      </template>
-                    </v-confirm-edit>
-                  </template>
-                  <template v-slot:item.difference="{ item }">
-                    {{ currencySymbol(pos_profile.currency) }}
-                    {{
-                      (item.difference = formatCurrency(
-                        item.expected_amount - item.closing_amount
-                      ))
-                    }}</template>
-                  <template v-slot:item.opening_amount="{ item }">
-                    {{ currencySymbol(pos_profile.currency) }}
-                    {{ formatCurrency(item.opening_amount) }}</template>
-                  <template v-slot:item.expected_amount="{ item }">
-                    {{ currencySymbol(pos_profile.currency) }}
-                    {{ formatCurrency(item.expected_amount) }}</template>
-                </v-data-table>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="error" theme="dark" @click="close_dialog">{{
-            __('Close')
-          }}</v-btn>
-          <v-btn color="success" theme="dark" @click="submit_dialog">{{
-            __('Submit')
-          }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-row>
+  <v-dialog v-model="closingDialog" max-width="800px" persistent>
+    <v-card rounded="xl" elevation="8">
+      <v-card-title class="d-flex align-center justify-space-between px-6 py-4">
+        <span class="text-h6 font-weight-bold text-primary">
+          {{ __('Closing POS Shift') }}
+        </span>
+        <v-btn icon="mdi-close" variant="text" @click="close_dialog"></v-btn>
+      </v-card-title>
+
+      <v-divider></v-divider>
+      <v-card-text class="px-6 py-4">
+        <v-data-table
+          :headers="headers"
+          :items="dialog_data.payment_reconciliation"
+          item-key="mode_of_payment"
+          class="rounded-lg elevation-1"
+          :items-per-page="itemsPerPage"
+          density="comfortable"
+          hide-default-footer
+        >
+          <template v-slot:item.opening_amount="{ item }">
+            <span class="font-mono">
+              {{ currencySymbol(pos_profile.currency) }}
+              {{ formatCurrency(item.opening_amount) }}
+            </span>
+          </template>
+
+          <template v-slot:item.expected_amount="{ item }">
+            <span class="font-mono">
+              {{ currencySymbol(pos_profile.currency) }}
+              {{ formatCurrency(item.expected_amount) }}
+            </span>
+          </template>
+
+          <template v-slot:item.closing_amount="props">
+            <v-confirm-edit v-model:return-value="props.item.closing_amount">
+              <span class="font-mono">
+                {{ currencySymbol(pos_profile.currency) }}
+                {{ formatCurrency(props.item.closing_amount) }}
+              </span>
+              <template v-slot:input>
+                <v-text-field
+                  v-model="props.item.closing_amount"
+                  type="number"
+                  density="compact"
+                  variant="outlined"
+                  :rules="[max25chars]"
+                  hide-details
+                />
+              </template>
+            </v-confirm-edit>
+          </template>
+
+          <template v-slot:item.difference="{ item }">
+            <span
+              :class="{
+                'text-success': item.expected_amount - item.closing_amount === 0,
+                'text-error': item.expected_amount - item.closing_amount !== 0
+              }"
+              class="font-mono"
+            >
+              {{ currencySymbol(pos_profile.currency) }}
+              {{
+                (item.difference = formatCurrency(
+                  item.expected_amount - item.closing_amount
+                ))
+              }}
+            </span>
+          </template>
+        </v-data-table>
+      </v-card-text>
+
+      <v-divider></v-divider>
+      <v-card-actions class="px-6 py-4">
+        <v-spacer />
+        <v-btn variant="text" color="error" @click="close_dialog">
+          {{ __('Close') }}
+        </v-btn>
+        <v-btn variant="text" color="success" @click="submit_dialog">
+          {{ __('Submit') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
+
 
 <script>
 

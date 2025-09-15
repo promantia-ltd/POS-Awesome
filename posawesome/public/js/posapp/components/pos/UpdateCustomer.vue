@@ -348,9 +348,9 @@ export default {
           args: args,
           callback: (r) => {
             if (!r.exc && r.message.name) {
-              let text = __('Customer created successfully.');
+              let text = __('Customer Created Successfully.');
               if (vm.customer_id) {
-                text = __('Customer updated successfully.');
+                text = __('Customer Updated Successfully.');
               }
               toast.success(text);
               args.name = r.message.name;

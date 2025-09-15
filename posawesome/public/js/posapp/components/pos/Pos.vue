@@ -43,6 +43,7 @@ import NewAddress from './NewAddress.vue';
 import Variants from './Variants.vue';
 import Returns from './Returns.vue';
 import MpesaPayments from './Mpesa-Payments.vue';
+import { toast } from 'vue3-toastify';
 
 export default {
   data: function () {
@@ -120,10 +121,8 @@ export default {
         )
         .then((r) => {
           if (r.message) {
-            this.eventBus.emit('show_message', {
-              title: `POS Shift Closed`,
-              color: 'success',
-            });
+
+            toast.success(__('POS Shift Closed'));
             this.check_opening_entry();
           } else {
             console.log(r);

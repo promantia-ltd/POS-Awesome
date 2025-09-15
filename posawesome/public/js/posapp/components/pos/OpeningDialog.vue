@@ -1,51 +1,94 @@
 <template>
-  <v-row justify="center">
-    <v-dialog v-model="isOpen" persistent max-width="600px">
-      <!-- <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary" theme="dark" v-bind="attrs" v-on="on">Open Dialog</v-btn>
-      </template>-->
-      <v-card>
-        <v-card-title>
-          <span class="text-h5 text-primary">{{
-            __('Create POS Opening Shift')
-          }}</span>
-        </v-card-title>
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-autocomplete :items="companies" :label="frappe._('Company')" v-model="company"
-                  required></v-autocomplete>
-              </v-col>
-              <v-col cols="12">
-                <v-autocomplete :items="pos_profiles" :label="frappe._('POS Profile')" v-model="pos_profile"
-                  required></v-autocomplete>
-              </v-col>
-              <v-col cols="12">
-                <v-data-table :headers="payments_methods_headers" :items="payments_methods" item-key="mode_of_payment"
-                  class="elevation-1" :items-per-page="itemsPerPage" hide-default-footer>
-                  <template v-slot:item.amount="props">
-                    <v-confirm-edit v-model:return-value="props.item.amount">
+  <v-dialog v-model="isOpen" persistent max-width="600px">
+    <v-card rounded="xl" elevation="8">
+      <v-card-title class="d-flex align-center justify-space-between px-6 py-4">
+        <span class="text-h6 font-weight-bold text-primary">
+          {{ __('Create POS Opening Shift') }}
+        </span>
+        <v-btn icon="mdi-close" variant="text" @click="go_desk"></v-btn>
+      </v-card-title>
+
+
+      <v-card-text class="px-6 py-4">
+        <v-container fluid>
+          <v-row dense>
+            <v-col cols="12">
+              <v-autocomplete
+                v-model="company"
+                :items="companies"
+                :label="frappe._('Company')"
+                density="comfortable"
+                variant="outlined"
+                required
+              />
+            </v-col>
+
+            <v-col cols="12">
+              <v-autocomplete
+                v-model="pos_profile"
+                :items="pos_profiles"
+                :label="frappe._('POS Profile')"
+                density="comfortable"
+                variant="outlined"
+                required
+              />
+            </v-col>
+
+            <v-divider />
+            
+            <v-col cols="12">
+              <v-data-table
+                :headers="payments_methods_headers"
+                :items="payments_methods"
+                item-key="mode_of_payment"
+                class="rounded-lg elevation-1"
+                :items-per-page="itemsPerPage"
+                density="comfortable"
+                hide-default-footer
+              >
+                <template v-slot:item.amount="props">
+                  <v-confirm-edit v-model:return-value="props.item.amount">
+                    <span class="font-mono">
                       {{ currencySymbol(props.item.currency) }}
                       {{ formatCurrency(props.item.amount) }}
-                      <v-text-field v-model="props.item.amount" :rules="[max25chars]" :label="frappe._('Edit')"
-                        single-line counter type="number"></v-text-field>
-                    </v-confirm-edit>
-                  </template>
-                </v-data-table>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="error" theme="dark" @click="go_desk">Cancel</v-btn>
-          <v-btn color="success" :disabled="is_loading" theme="dark" @click="submit_dialog">Submit</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-row>
+                    </span>
+                    <template v-slot:input>
+                      <v-text-field
+                        v-model="props.item.amount"
+                        type="number"
+                        density="compact"
+                        variant="outlined"
+                        :rules="[max25chars]"
+                        hide-details
+                      />
+                    </template>
+                  </v-confirm-edit>
+                </template>
+              </v-data-table>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+
+      <v-divider />
+      <v-card-actions class="px-6 py-4">
+        <v-spacer />
+        <v-btn variant="text" color="error" @click="go_desk">
+          {{ __('Cancel') }}
+        </v-btn>
+        <v-btn
+          variant="text"
+          color="primary"
+          :disabled="is_loading"
+          @click="submit_dialog"
+        >
+          {{ __('Submit') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
+
 
 <script>
 

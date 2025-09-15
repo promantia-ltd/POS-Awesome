@@ -673,7 +673,7 @@ export default {
       const customer = this.customer_name;
       const vm = this;
       if (!customer) {
-        frappe.throw(__("Please select a customer"));
+        toast.error(__("Please select a customer"));
         return;
       }
       if (
@@ -681,14 +681,14 @@ export default {
         this.total_selected_mpesa_payments == 0 &&
         this.total_payment_methods == 0
       ) {
-        frappe.throw(__("Please make a payment or select an payment"));
+        toast.error(__("Please make a payment or select a payment"));
         return;
       }
       if (
         this.total_selected_payments > 0 &&
         this.selected_invoices.length == 0
       ) {
-        frappe.throw(__("Please select an invoice"));
+        toast.error(__("Please select an invoice"));
         return;
       }
 
