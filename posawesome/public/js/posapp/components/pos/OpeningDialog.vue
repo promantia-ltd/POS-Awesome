@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isOpen" persistent max-width="600px">
     <v-card rounded="xl" elevation="8">
-      <v-card-title class="d-flex align-center justify-space-between px-6 py-4">
+      <v-card-title class="d-flex align-center justify-space-between px-6 py-4 enhanced-modal-header">
         <span class="text-h6 font-weight-bold text-primary">
           {{ __('Create POS Opening Shift') }}
         </span>
@@ -71,13 +71,13 @@
       </v-card-text>
 
       <v-divider />
-      <v-card-actions class="px-6 py-4">
+      <v-card-actions class="px-6 py-4 enhanced-modal-header">
         <v-spacer />
-        <v-btn variant="text" color="error" @click="go_desk">
+        <v-btn variant="text" color="grey-darken-1" @click="go_desk">
           {{ __('Cancel') }}
         </v-btn>
         <v-btn
-          variant="text"
+          variant="elevated"
           color="primary"
           :disabled="is_loading"
           @click="submit_dialog"
@@ -211,3 +211,11 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.enhanced-modal-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1.5rem;
+}
+</style>

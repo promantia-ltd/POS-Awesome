@@ -62,8 +62,8 @@
 
 
         <v-card-actions class="justify-end">
-          <v-btn color="error" theme="dark" @click="close_dialog">Close</v-btn>
-          <v-btn color="success" theme="dark" @click="submit_dialog">Load Sale</v-btn>
+          <v-btn variant="text" color="grey-darken-1"  @click="close_dialog">Close</v-btn>
+          <v-btn variant="elevated" color="primary" @click="submit_dialog">Load Sale</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

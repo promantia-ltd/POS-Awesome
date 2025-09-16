@@ -261,7 +261,7 @@
               <div class="subsection-header mb-4">
                 <v-card class="modern-subsection-card" variant="flat">
                   <v-card-title class="subsection-title">
-                    <v-icon class="subsection-icon" size="20">mdi-plus-circle</v-icon>
+                    <v-icon class="subsection-icon" size="20">mdi-cash-multiple</v-icon>
                     <span class="subsection-text">{{ __("Make New Payment") }}</span>
                   </v-card-title>
                 </v-card>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-dialog v-model="cancel_dialog" max-width="330">
+    <v-dialog v-model="cancel_dialog" max-width="600px">
       <v-card elevation="8" rounded="xl">
         <v-card-title class="text-h5">
           <span class="text-h5 text-primary">{{ __("Cancel Sale ?") }}</span>
@@ -12,10 +12,10 @@
         <!-- <v-card- -->
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="error" @click="cancel_invoice">
+          <v-btn color="grey-darken-1" @click="cancel_invoice">
             {{ __("Yes, Cancel sale") }}
           </v-btn>
-          <v-btn color="warning" @click="cancel_dialog = false">
+          <v-btn color="primary" variant="elevated" @click="cancel_dialog = false">
             {{ __("Back") }}
           </v-btn>
         </v-card-actions>
@@ -23,7 +23,7 @@
     </v-dialog>
     <v-card
       style="max-height: 70vh; height: 70vh"
-      class="cards my-0 py-0 mt-3 bg-grey-lighten-5">
+      class="cards my-0 py-0 mt-1 bg-grey-lighten-5">
       <v-row align="center" class="items px-2 py-1">
         <v-col
           :cols="pos_profile.posa_allow_sales_order ? 6 : 10"

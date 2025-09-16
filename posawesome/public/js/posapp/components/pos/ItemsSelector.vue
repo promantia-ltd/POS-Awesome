@@ -167,7 +167,6 @@
             
             <v-col cols="4">
               <v-btn 
-                size="small" 
                 block 
                 color="primary" 
                 variant="tonal" 
@@ -186,7 +185,6 @@
             
             <v-col cols="4">
               <v-btn 
-                size="small" 
                 block 
                 color="primary" 
                 variant="tonal" 

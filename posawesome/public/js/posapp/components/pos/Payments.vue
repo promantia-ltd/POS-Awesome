@@ -3,7 +3,7 @@
     <v-card
       elevation="2"
       rounded="lg"
-      class="selection mx-auto bg-grey-lighten-5"
+      class="selection mx-auto"
       style="max-height: 76vh; height: 76vh">
       <v-progress-linear
         :active="loading"
@@ -13,9 +13,9 @@
         color="info"></v-progress-linear>
       <div class="overflow-y-auto pa-4" style="max-height: 75vh">
         <!-- Payment Status Section -->
-        <div class="mb-4" v-if="invoice_doc">
+        <div class="mb-4 blue-grey-lighten-5" v-if="invoice_doc">
           <v-card variant="flat" class="mb-3 section-header">
-            <v-card-title class="section-header-title font-weight-bold text-primary" >
+            <v-card-title class="section-header-title font-weight-bold text-primary " >
               <v-icon start size="20">mdi-cash-multiple</v-icon>
               <span>Payment Summary</span>
             </v-card-title>
@@ -1491,6 +1491,7 @@ export default {
   padding-left: 0;
   font-size: 1rem; 
   font-weight: 500;
+  background-color: #ECEFF1;
 }
 
 .section-header-title v-icon {

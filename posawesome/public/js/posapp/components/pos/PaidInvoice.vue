@@ -57,7 +57,7 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn color="error" theme="dark" @click="close_dialog">
+          <v-btn color="grey-darken-1"  theme="dark" @click="close_dialog">
             Close
           </v-btn>
         </v-card-actions>

@@ -72,12 +72,13 @@
 
         <v-card-actions class="mt-4">
           <v-spacer></v-spacer>
-          <v-btn color="error mx-2" theme="dark" @click="close_dialog">
+          <v-btn color="grey-darken-1 mx-2" variant="text" theme="dark" @click="close_dialog">
             {{ __('Close') }}
           </v-btn>
           <v-btn
             v-if="selected.length"
-            color="success"
+            variant="elevated"
+            color="primary"
             theme="dark"
             @click="submit_dialog"
           >
