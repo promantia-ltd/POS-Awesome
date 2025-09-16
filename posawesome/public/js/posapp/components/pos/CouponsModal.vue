@@ -105,6 +105,8 @@
 </template>
 
 <script>
+import { toast } from "vue3-toastify";
+
 export default {
   props: {
     modelValue: {
@@ -112,7 +114,7 @@ export default {
       default: false
     }
   },
-  
+
   data: () => ({
     loading: false,
     pos_profile: '',
@@ -123,9 +125,9 @@ export default {
     singleExpand: true,
     expanded: [],
     items_headers: [
-      { title: 'Coupon', key: 'coupon', align: 'start' },
-      { title: 'Type', key: 'coupon_type', align: 'start' },
-      { title: 'Offer', key: 'offer', align: 'start' },
+      { title: 'Coupon', key: 'coupon_code', align: 'start' },
+      { title: 'Type', key: 'type', align: 'start' },
+      { title: 'Offer', key: 'pos_offer', align: 'start' },
       { title: 'Applied', key: 'applied', align: 'center' },
     ],
   }),
@@ -138,34 +140,151 @@ export default {
       set(value) {
         this.$emit('update:modelValue', value);
       }
-    }
+    },
+    couponsCount() {
+      return this.posa_coupons.length;
+    },
+    appliedCouponsCount() {
+      return this.posa_coupons.filter((el) => !!el.applied).length;
+    },
   },
 
   methods: {
     closeModal() {
       this.dialog = false;
     },
-    
     applyCoupons() {
-      // Apply coupons logic here
       this.closeModal();
     },
-    
-    add_coupon(coupon_code) {
-      if (!coupon_code) return;
-      
-      // Add coupon logic here
-      this.eventBus.emit('add_coupon', coupon_code);
-      this.new_coupon = null;
-    }
+    add_coupon(new_coupon) {
+      if (!this.customer || !new_coupon) {
+
+        toast.error(__('Select a customer to use coupon'));
+        return;
+      }
+      const exist = this.posa_coupons.find(
+        (el) => el.coupon_code == new_coupon
+      );
+      if (exist) {
+
+        toast.error(__('This coupon already used !'));
+        return;
+      }
+      const vm = this;
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_pos_coupon',
+        args: {
+          coupon: new_coupon,
+          customer: vm.customer,
+          company: vm.pos_profile.company,
+        },
+        callback: function (r) {
+          if (r.message) {
+            const res = r.message;
+            if (res.msg != 'Apply' || !res.coupon) {
+              toast.error(res.msg);
+            } else {
+              vm.new_coupon = null;
+              const coupon = res.coupon;
+              vm.posa_coupons.push({
+                coupon: coupon.name,
+                coupon_code: coupon.coupon_code,
+                type: coupon.coupon_type,
+                applied: 0,
+                pos_offer: coupon.pos_offer,
+                customer: coupon.customer || vm.customer,
+              });
+            }
+          }
+        },
+      });
+    },
+    setActiveGiftCoupons() {
+      if (!this.customer) return;
+      const vm = this;
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_active_gift_coupons',
+        args: {
+          customer: vm.customer,
+          company: vm.pos_profile.company,
+        },
+        callback: function (r) {
+          if (r.message) {
+            const coupons = r.message;
+            coupons.forEach((coupon_code) => {
+              vm.add_coupon(coupon_code);
+            });
+          }
+        },
+      });
+    },
+
+    updatePosCoupons(offers) {
+      this.posa_coupons.forEach((coupon) => {
+        const offer = offers.find(
+          (el) => el.offer_applied && el.coupon == coupon.coupon
+        );
+        if (offer) {
+          coupon.applied = 1;
+        } else {
+          coupon.applied = 0;
+        }
+      });
+    },
+
+    removeCoupon(reomove_list) {
+      this.posa_coupons = this.posa_coupons.filter(
+        (coupon) => !reomove_list.includes(coupon.coupon)
+      );
+    },
+    updateInvoice() {
+      this.eventBus.emit('update_invoice_coupons', this.posa_coupons);
+    },
+    updateCounters() {
+      this.eventBus.emit('update_coupons_counters', {
+        couponsCount: this.couponsCount,
+        appliedCouponsCount: this.appliedCouponsCount,
+      });
+    },
+  },
+
+  watch: {
+    posa_coupons: {
+      deep: true,
+      handler() {
+        this.updateInvoice();
+        this.updateCounters();
+      },
+    },
   },
 
   created: function () {
-    this.eventBus.on("register_pos_profile", (data) => {
-      this.pos_profile = data.pos_profile;
+    this.$nextTick(function () {
+      this.eventBus.on('register_pos_profile', (data) => {
+        this.pos_profile = data.pos_profile;
+      });
     });
-    
-    this.eventBus.on("set_coupons", (data) => {
+    this.eventBus.on('update_customer', (customer) => {
+      if (this.customer != customer) {
+        const to_remove = [];
+        this.posa_coupons.forEach((el) => {
+          if (el.type == 'Promotional') {
+            el.customer = customer;
+          } else {
+            to_remove.push(el.coupon);
+          }
+        });
+        this.customer = customer;
+        if (to_remove.length) {
+          this.removeCoupon(to_remove);
+        }
+      }
+      this.setActiveGiftCoupons();
+    });
+    this.eventBus.on('update_pos_coupons', (data) => {
+      this.updatePosCoupons(data);
+    });
+    this.eventBus.on('set_pos_coupons', (data) => {
       this.posa_coupons = data;
     });
   },

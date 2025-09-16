@@ -114,23 +114,25 @@
 </template>
 
 <script>
+import {toast} from 'vue3-toastify';
+import format from '../../format';
 export default {
+  mixins: [format],
   props: {
     modelValue: {
       type: Boolean,
       default: false
     }
   },
-  
   data: () => ({
     loading: false,
     pos_profile: '',
     pos_offers: [],
-    itemsPerPage: 1000,
-    singleExpand: true,
-    expanded: [],
+    allItems: [],
     discount_percentage_offer_name: null,
-    offer: {},
+    itemsPerPage: 1000,
+    expanded: [],
+    singleExpand: true,
     items_headers: [
       { title: 'Offer Name', key: 'name', align: 'start' },
       { title: 'Offer Type', key: 'offer_type', align: 'start' },
@@ -138,7 +140,6 @@ export default {
       { title: 'Apply', key: 'offer_applied', align: 'center' },
     ],
   }),
-
   computed: {
     dialog: {
       get() {
@@ -147,41 +148,192 @@ export default {
       set(value) {
         this.$emit('update:modelValue', value);
       }
-    }
+    },
+    offersCount() {
+      return this.pos_offers.length;
+    },
+    appliedOffersCount() {
+      return this.pos_offers.filter((el) => !!el.offer_applied).length;
+    },
   },
-
   methods: {
     closeModal() {
       this.dialog = false;
     },
-    
     applyOffers() {
-      // Apply offers logic here
       this.eventBus.emit('apply_offers', this.pos_offers);
       this.closeModal();
     },
-    
     forceUpdateItem() {
-      // Force update logic here
+      let list_offers = [];
+      list_offers = [...this.pos_offers];
+      this.pos_offers = list_offers;
     },
-    
-    get_give_items(item) {
-      // Return available gift items
-      return [];
+    makeid(length) {
+      let result = '';
+      const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      const charactersLength = characters.length;
+      for (var i = 0; i < length; i++) {
+        result += characters.charAt(
+          Math.floor(Math.random() * charactersLength)
+        );
+      }
+      return result;
     },
-    
-    handleNewLine(text) {
-      return text ? text.replace(/\n/g, '<br>') : '';
-    }
+    updatePosOffers(offers) {
+      const toRemove = [];
+      let new_offer_added = false;
+      this.pos_offers.forEach((pos_offer) => {
+        const offer = offers.find((offer) => offer.name === pos_offer.name);
+        if (!offer) {
+          toRemove.push(pos_offer.row_id);
+        }
+      });
+      this.removeOffers(toRemove);
+      offers.forEach((offer) => {
+        const pos_offer = this.pos_offers.find(
+          (pos_offer) => offer.name === pos_offer.name
+        );
+        if (pos_offer) {
+          pos_offer.items = offer.items;
+          if (
+            pos_offer.offer === 'Grand Total' &&
+            !this.discount_percentage_offer_name
+          ) {
+            pos_offer.offer_applied = !!pos_offer.auto;
+          }
+          if (
+            offer.apply_on == 'Item Group' &&
+            offer.apply_type == 'Item Group' &&
+            offer.replace_cheapest_item
+          ) {
+            pos_offer.give_item = offer.give_item;
+            pos_offer.apply_item_code = offer.apply_item_code;
+          }
+        } else {
+          const newOffer = { ...offer };
+          if (!offer.row_id) {
+            newOffer.row_id = this.makeid(20);
+          }
+          if (offer.apply_type == 'Item Code') {
+            newOffer.give_item = offer.apply_item_code || 'Nothing';
+          }
+          if (offer.offer_applied) {
+            newOffer.offer_applied == !!offer.offer_applied;
+          } else {
+            if (
+              offer.apply_type == 'Item Group' &&
+              offer.offer == 'Give Product' &&
+              !offer.replace_cheapest_item &&
+              !offer.replace_item
+            ) {
+              newOffer.offer_applied = false;
+            } else if (
+              offer.offer === 'Grand Total' &&
+              this.discount_percentage_offer_name
+            ) {
+              newOffer.offer_applied = false;
+            } else {
+              newOffer.offer_applied = !!offer.auto;
+            }
+          }
+          if (newOffer.offer == 'Give Product' && !newOffer.give_item) {
+            newOffer.give_item = this.get_give_items(newOffer)[0].item_code;
+          }
+          this.pos_offers.push(newOffer);
+          // this.eventBus.emit('show_message', {
+          //   title: __('New Offer Available'),
+          //   color: 'warning',
+          // });
+          // toast.warn('New Offer Available');
+          new_offer_added = true;
+        }
+      });
+        if (new_offer_added) {
+    toast.warn('New Offer Available');
+  }
+    },
+    removeOffers(offers_id_list) {
+      this.pos_offers = this.pos_offers.filter(
+        (offer) => !offers_id_list.includes(offer.row_id)
+      );
+    },
+    handelOffers() {
+      const applyedOffers = this.pos_offers.filter(
+        (offer) => offer.offer_applied
+      );
+      this.eventBus.emit('update_invoice_offers', applyedOffers);
+    },
+    handleNewLine(str) {
+      if (str) {
+        return str.replace(/(?:\r\n|\r|\n)/g, '<br />');
+      } else {
+        return '';
+      }
+    },
+    get_give_items(offer) {
+      if (offer.apply_type == 'Item Code') {
+        return [offer.apply_item_code];
+      } else if (offer.apply_type == 'Item Group') {
+        const items = this.allItems;
+        let filterd_items = [];
+        const filterd_items_1 = items.filter(
+          (item) => item.item_group == offer.apply_item_group
+        );
+        if (offer.less_then > 0) {
+          filterd_items = filterd_items_1.filter(
+            (item) => item.rate < offer.less_then
+          );
+        } else {
+          filterd_items = filterd_items_1;
+        }
+        return filterd_items;
+      } else {
+        return [];
+      }
+    },
+    updateCounters() {
+      this.eventBus.emit('update_offers_counters', {
+        offersCount: this.offersCount,
+        appliedOffersCount: this.appliedOffersCount,
+      });
+    },
+    updatePosCoupuns() {
+      const applyedOffers = this.pos_offers.filter(
+        (offer) => offer.offer_applied && offer.coupon_based
+      );
+      this.eventBus.emit('update_pos_coupons', applyedOffers);
+    },
   },
-
+  watch: {
+    pos_offers: {
+      deep: true,
+      handler(pos_offers) {
+        this.handelOffers();
+        this.updateCounters();
+        this.updatePosCoupuns();
+      },
+    },
+  },
   created: function () {
-    this.eventBus.on("register_pos_profile", (data) => {
-      this.pos_profile = data.pos_profile;
+    this.$nextTick(function () {
+      this.eventBus.on('register_pos_profile', (data) => {
+        this.pos_profile = data.pos_profile;
+      });
     });
-    
-    this.eventBus.on("set_offers", (data) => {
-      this.pos_offers = data;
+    this.eventBus.on('update_customer', (customer) => {
+      if (this.customer != customer) {
+        this.offers = [];
+      }
+    });
+    this.eventBus.on('update_pos_offers', (data) => {
+      this.updatePosOffers(data);
+    });
+    this.eventBus.on('update_discount_percentage_offer_name', (data) => {
+      this.discount_percentage_offer_name = data.value;
+    });
+    this.eventBus.on('set_all_items', (data) => {
+      this.allItems = data;
     });
   },
 };

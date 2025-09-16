@@ -145,7 +145,7 @@
         
         <!-- Enhanced Controls Row -->
         <v-col cols="12">
-          <v-row no-gutters align="center" class="enhanced-bottom-controls">
+          <v-row no-gutters align="center" class="enhanced-bottom-controls flex-nowrap pr-4">
             <v-col cols="4">
               <div class="enhanced-view-toggle">
                 <button 
