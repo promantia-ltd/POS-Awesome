@@ -1,7 +1,7 @@
 <template>
   <v-row justify="center">
     <v-dialog v-model="varaintsDialog" max-width="600px">
-      <v-card min-height="500px">
+      <v-card min-height="500px" elevation="8" rounded="xl">
         <v-card-title>
           <span class="text-h5 text-primary">Select Item</span>
           <v-spacer></v-spacer>

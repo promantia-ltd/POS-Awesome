@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="height:100%;">
     <v-dialog v-model="cancel_dialog" max-width="600px">
       <v-card elevation="8" rounded="xl">
         <v-card-title class="text-h5">
@@ -22,7 +22,7 @@
       </v-card>
     </v-dialog>
     <v-card
-      style="max-height: 70vh; height: 70vh"
+      style="height: calc(100% - 190px);"
       class="cards my-0 py-0 mt-1 bg-grey-lighten-5">
       <v-row align="center" class="items px-2 py-1">
         <v-col
@@ -144,7 +144,7 @@
         </v-col>
       </v-row>
 
-      <div class="my-0 py-0 overflow-y-auto" style="max-height: 60vh">
+      <div class="my-0 py-0 overflow-y-auto" style="max-height: 30vh">
         <v-data-table
           :headers="items_headers"
           :items="items"
@@ -705,7 +705,7 @@
         </v-data-table>
       </div>
     </v-card>
-    <v-card class="cards mb-0 mt-3 py-0" elevation="2" rounded="lg">
+    <v-card class="cards mb-0 mt-3 py-0" elevation="2" rounded="lg" style="height: 190px;">
       <v-row no-gutters>
         <v-col cols="7">
           <v-row no-gutters class="pa-1 pt-2 pr-1">

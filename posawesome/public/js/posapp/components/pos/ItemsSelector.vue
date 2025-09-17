@@ -1,6 +1,6 @@
 <template>
   <div class="enhanced-items-container">
-    <v-card class="selection mx-auto" style="max-height: 75vh; height: 75vh;" elevation="2" rounded="lg">
+    <v-card class="selection mx-auto"     style="height: calc(100% - 120px);" elevation="2" rounded="lg">
       <v-progress-linear :active="loading" :indeterminate="loading" absolute :location="top"
         color="info"></v-progress-linear>
       <v-row class="items px-3 py-2">
@@ -122,7 +122,7 @@
         </v-col>
       </v-row>
     </v-card>
-    <v-card class="enhanced-controls mb-0 mt-3" elevation="2">
+    <v-card class="enhanced-controls mb-0 mt-3" elevation="2" style="height: 120px;">
       <v-row no-gutters align="center" justify="center" class="pa-1">
         <v-col cols="12" class="mb-2">
           <v-select 
@@ -769,6 +769,7 @@ export default {
 <style scoped>
 .enhanced-items-container {
   position: relative;
+  height: 100%;
 }
 
 .enhanced-items-card {

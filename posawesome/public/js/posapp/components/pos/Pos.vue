@@ -1,5 +1,5 @@
 <template>
-  <div fluid class="mt-2">
+  <div fluid class="mt-2 pos-page">
     <ClosingDialog></ClosingDialog>
     <Drafts></Drafts>
     <SalesOrders></SalesOrders>
@@ -13,15 +13,15 @@
     <CouponsModal v-model="showCouponsModal"></CouponsModal>
     <OffersModal v-model="showOffersModal"></OffersModal>
     
-    <v-row v-show="!dialog">
-      <v-col v-show="!payment" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0">
+    <v-row v-show="!dialog" class="test-class">
+      <v-col v-show="!payment" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0 test-pos">
         <ItemsSelector></ItemsSelector>
       </v-col>
-      <v-col v-show="payment" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0">
+      <v-col v-show="payment" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0 test-pos">
         <Payments></Payments>
       </v-col>
 
-      <v-col xl="7" lg="7" md="7" sm="7" cols="12" class="pos">
+      <v-col xl="7" lg="7" md="7" sm="7" cols="12" class="pos test-pos">
         <Invoice></Invoice>
       </v-col>
     </v-row>
@@ -192,4 +192,15 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.pos-page {
+  height: calc(100vh - 72px );
+  /* max-height: calc(100vh - 73px); */
+}
+.test-class {
+    height: calc(100vh - 84px);
+}
+.test-pos{
+  height: 100%;
+}
+</style>

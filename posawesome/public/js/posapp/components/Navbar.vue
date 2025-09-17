@@ -256,6 +256,9 @@ export default {
   border-bottom: 1px solid #e2e8f0 !important;
   backdrop-filter: blur(10px);
   padding: 0 1rem;
+  height: 72px;
+  max-height: 72px;
+  ;
 }
 
 .modern-nav-icon {

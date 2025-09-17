@@ -49,5 +49,6 @@ export default {
 <style scoped>
 .container1 {
   margin-top: 0px;
+  height: 100vh;
 }
 </style>
