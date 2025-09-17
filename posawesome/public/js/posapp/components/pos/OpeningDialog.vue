@@ -34,7 +34,6 @@
               />
             </v-col>
 
-            <v-divider />
             
             <v-col cols="12">
               <v-data-table

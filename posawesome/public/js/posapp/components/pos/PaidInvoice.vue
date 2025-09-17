@@ -1,7 +1,7 @@
 <template>
   <v-row justify="center">
     <v-dialog v-model="paidDialog" max-width="900px">
-      <v-card class="rounded-xl shadow-lg">
+      <v-card class="rounded-xl shadow-lg" elevation="8" rounded="xl">
         <v-card-title>
           <span class="text-h5 text-primary">
             {{ __('Load Sales Invoice Items') }}

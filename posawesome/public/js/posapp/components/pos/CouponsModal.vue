@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="dialog" max-width="800" persistent>
-    <v-card class="enhanced-modal-card">
+    <v-card class="enhanced-modal-card" elevation="8" rounded="xl">
       <v-card-title class="enhanced-modal-header">
         <div class="d-flex align-center justify-space-between w-100">
           <div class="d-flex align-center">

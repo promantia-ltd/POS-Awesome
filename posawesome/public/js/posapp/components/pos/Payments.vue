@@ -587,40 +587,34 @@
     <v-card elevation="2" rounded="lg" class="mt-3">
       <v-card-text class="pa-4">
         <v-row align="start" no-gutters>
-        <v-col cols="6">
+        <v-col cols="4">
           <v-btn
             block
+            theme="dark"
             variant="tonal"
-            size="large"
-            rounded="lg"
-            elevation="4"
             @click="submit"
             :disabled="vaildatPayment">
             <v-icon start size="20">mdi-check-circle</v-icon>
             {{ __("Submit") }}
           </v-btn>
         </v-col>
-        <v-col cols="6" class="pl-1">
+        <v-col cols="4" class="pl-1">
           <v-btn
             block
             variant="tonal"
-            size="large"
-            rounded="lg"
-            elevation="4"
+            theme="dark"
             @click="submit(undefined, false, true)"
             :disabled="vaildatPayment">
             <v-icon start size="20">mdi-printer</v-icon>
             {{ __("Submit & Print") }}
           </v-btn>
         </v-col>
-        <v-col cols="12">
+        <v-col cols="4" class="pl-1">
           <v-btn
             block
+            theme="dark"
             variant="tonal"
-            size="large"
-            rounded="lg"
-            elevation="4"
-            class="mt-3 action-btn cancel-btn"
+            class=" action-btn cancel-btn"
             @click="back_to_invoice">
             <v-icon start size="20">mdi-cancel</v-icon>
             {{ __("Cancel Payment") }}
@@ -631,7 +625,7 @@
     </v-card>
     <div>
       <v-dialog v-model="phone_dialog" max-width="400px">
-        <v-card>
+        <v-card elevation="8" rounded="xl">
           <v-card-title>
             <span class="text-h5 text-primary">{{
               __("Confirm Mobile Number")
