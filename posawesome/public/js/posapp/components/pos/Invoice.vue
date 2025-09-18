@@ -2974,18 +2974,18 @@ export default {
       this.close_payments();
       this.eventBus.emit("set_customer", this.customer);
       this.fetch_customer_details();
-      this.set_delivery_charges();
-      this.items.forEach(item => this.update_item_detail(item));
-      if (this.customer === this.pos_profile.customer) {
-        this.items.forEach(item => {
-          if (item.posa_offer_applied == 0) {
-            item.discount_percentage = 0;
-            item.discount_amount = 0;
-            this.calc_item_price(item);
-          }
-        });
-        this.$forceUpdate();
-      }
+      this.set_delivery_charges()
+      // Loop through items once and handle both update_item_detail and discount reset
+      this.items.forEach(item => {
+        this.update_item_detail(item);
+        if (item.posa_offer_applied == 0) {
+          item.discount_percentage = 0;
+          item.discount_amount = 0;
+          this.calc_item_price(item);
+        }
+      });
+
+      this.$forceUpdate();
     },
     customer_info(newVal) {
       this.eventBus.emit("set_customer_info_to_edit", newVal);
