@@ -450,7 +450,8 @@
           <v-row no-gutters class="pa-1 pt-2 pl-0">
             <v-col cols="6" class="pa-1">
               <v-btn block class="pa-0" color="accent" theme="dark" @click="save_and_clear_invoice">
-                {{ __("Save and Clear") }}</v-btn>
+                {{ __("Save and Clear") }}
+              </v-btn>
             </v-col>
             <v-col cols="6" class="pa-1">
               <v-btn block class="pa-0" color="warning" theme="dark" @click="get_draft_invoices">{{
@@ -1714,7 +1715,9 @@ export default {
                 !item.posa_is_offer &&
                 !item.posa_is_replace
               ) {
-                item.price_list_rate = data.price_list_rate;
+                if (data.price_list_rate > 0) {
+                  item.price_list_rate = data.price_list_rate;
+                }
               }
             }
             item.last_purchase_rate = data.last_purchase_rate;
@@ -1756,6 +1759,8 @@ export default {
             vm.update_price_list();
           },
         });
+      } else {
+        vm.customer_info = {};
       }
     },
 
@@ -2970,10 +2975,22 @@ export default {
       this.eventBus.emit("set_customer", this.customer);
       this.fetch_customer_details();
       this.set_delivery_charges();
+      this.items.forEach(item => this.update_item_detail(item));
+      if (this.customer === this.pos_profile.customer) {
+        this.items.forEach(item => {
+          if (item.posa_offer_applied == 0) {
+            item.discount_percentage = 0;
+            item.discount_amount = 0;
+            this.calc_item_price(item);
+          }
+        });
+        this.$forceUpdate();
+      }
     },
     customer_info(newVal) {
       this.eventBus.emit("set_customer_info_to_edit", newVal);
-      if (this.pos_profile.posa_apply_customer_discount && newVal.posa_discount > 0 && newVal.posa_discount <= 100) {
+      if (this.customer && this.customer !== this.pos_profile.customer &&
+          this.pos_profile.posa_apply_customer_discount && newVal.posa_discount > 0 && newVal.posa_discount <= 100) {
         this.items.forEach(item => {
           if (item.posa_is_offer == 0 && !item.posa_is_replace && item.posa_offer_applied == 0) {
             if (item.max_discount > 0) {
