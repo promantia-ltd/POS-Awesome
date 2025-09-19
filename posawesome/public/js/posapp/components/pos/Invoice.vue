@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%">
+  <div style="height: 100%; display: flex; flex-direction: column;">
     <v-dialog v-model="cancel_dialog" max-width="600px">
       <v-card elevation="8" rounded="xl">
         <v-card-title class="text-h5">
@@ -27,7 +27,7 @@
     </v-dialog>
     <v-card
       style="
-        height: calc(100% - 25vh);
+        flex: 1 1 auto;
         overflow-y: scroll;
         display: flex;
         flex-direction: column;
@@ -802,14 +802,10 @@
         </v-data-table>
       </div>
     </v-card>
-    <v-card
-      class="cards mb-0 mt-3 py-0"
-      elevation="2"
-      rounded="lg"
-      style="height: 25vh;"
-    >
+    <v-card class="cards mb-0 mt-3 py-0" elevation="2" rounded="lg" style="flex: 0 0 auto;"
+>
       <v-row no-gutters>
-        <v-col cols="7">
+        <v-col cols="12" sm="6" class="pa-1">
           <v-row no-gutters class="pa-1 pt-2 pr-1">
             <v-col cols="6" class="pa-1">
               <v-text-field
@@ -903,70 +899,71 @@
             </v-col>
           </v-row>
         </v-col>
-        <v-col cols="5">
-          <v-row no-gutters class="pa-1 pt-2 pl-0">
-            <v-col cols="6" class="pa-1">
-              <v-btn
-                variant="tonal"
-                block
-                class="pa-0 enhanced-action-btn"
-                theme="dark"
-                @click="save_and_clear_invoice"
+        <v-col no-gutters class="pa-1 pt-2 pl-0 flex-wrap">
+          <div class="flex-grow-1 d-flex flex-wrap">
+            <v-row no-gutters class="pa-1 pt-2 pl-0">
+              <v-col cols="6" class="pa-1">
+                <v-btn
+                  variant="tonal"
+                  block
+                  class="pa-0 enhanced-action-btn"
+                  theme="dark"
+                  @click="save_and_clear_invoice"
+                >
+                  {{ __("Save and Clear") }}</v-btn
+                >
+              </v-col>
+              <v-col cols="6" class="pa-1">
+                <v-btn
+                  variant="tonal"
+                  block
+                  class="pa-0 enhanced-action-btn"
+                  theme="dark"
+                  @click="get_draft_invoices"
+                  >{{ __("Load Draft sales") }}</v-btn
+                >
+              </v-col>
+              <v-col
+                v-if="pos_profile.custom_allow_select_sales_order === 1"
+                cols="6"
+                class="pa-1"
               >
-                {{ __("Save and Clear") }}</v-btn
+                <v-btn
+                  variant="tonal"
+                  block
+                  class="pa-0 enhanced-action-btn"
+                  theme="dark"
+                  @click="get_draft_orders"
+                  >{{ __("Select S.O") }}</v-btn
+                >
+              </v-col>
+              <v-col cols="6" class="pa-1">
+                <v-btn
+                  block
+                  variant="tonal"
+                  class="pa-0 enhanced-action-btn"
+                  theme="dark"
+                  @click="cancel_dialog = true"
+                  >{{ __("Cancel Sale") }}</v-btn
+                >
+              </v-col>
+              <v-col
+                v-if="pos_profile.posa_allow_return == 1"
+                cols="6"
+                class="pa-1"
               >
-            </v-col>
-            <v-col cols="6" class="pa-1">
-              <v-btn
-                variant="tonal"
-                block
-                class="pa-0 enhanced-action-btn"
-                theme="dark"
-                @click="get_draft_invoices"
-                >{{ __("Load Draft sales") }}</v-btn
-              >
-            </v-col>
-            <v-col
-              v-if="pos_profile.custom_allow_select_sales_order === 1"
-              cols="6"
-              class="pa-1"
-            >
-              <v-btn
-                variant="tonal"
-                block
-                class="pa-0 enhanced-action-btn"
-                theme="dark"
-                @click="get_draft_orders"
-                >{{ __("Select S.O") }}</v-btn
-              >
-            </v-col>
-            <v-col cols="6" class="pa-1">
-              <v-btn
-                block
-                variant="tonal"
-                class="pa-0 enhanced-action-btn"
-                theme="dark"
-                @click="cancel_dialog = true"
-                >{{ __("Cancel Sale") }}</v-btn
-              >
-            </v-col>
-            <v-col
-              v-if="pos_profile.posa_allow_return == 1"
-              cols="6"
-              class="pa-1"
-            >
-              <v-btn
-                block
-                variant="tonal"
-                class="pa-0 enhanced-action-btn"
-                :class="{ 'disable-events': !pos_profile.posa_allow_return }"
-                theme="dark"
-                @click="open_returns"
-                >{{ __("Sales Return") }}</v-btn
-              >
-            </v-col>
+                <v-btn
+                  block
+                  variant="tonal"
+                  class="pa-0 enhanced-action-btn"
+                  :class="{ 'disable-events': !pos_profile.posa_allow_return }"
+                  theme="dark"
+                  @click="open_returns"
+                  >{{ __("Sales Return") }}</v-btn
+                >
+              </v-col>
 
-            <v-col class="pa-1">
+              <!-- <v-col class="pa-1">
               <v-btn
                 block
                 variant="tonal"
@@ -977,22 +974,38 @@
                 <v-icon start size="20">mdi-credit-card</v-icon>
                 <span class="pay-text">{{ __("PAY") }}</span>
               </v-btn>
-            </v-col>
-            <v-col
-              v-if="pos_profile.posa_allow_print_draft_invoices"
-              cols="6"
-              class="pa-1"
-            >
-              <v-btn
-                variant="tonal"
-                block
-                class="pa-0 enhanced-action-btn"
-                @click="print_draft_invoice"
-                theme="dark"
-                >{{ __("Print Draft") }}</v-btn
+            </v-col> -->
+              <v-col
+                v-if="pos_profile.posa_allow_print_draft_invoices"
+                cols="6"
+                class="pa-1"
               >
+                <v-btn
+                  variant="tonal"
+                  block
+                  class="pa-0 enhanced-action-btn"
+                  @click="print_draft_invoice"
+                  theme="dark"
+                  >{{ __("Print Draft") }}</v-btn
+                >
+              </v-col>
+            </v-row>
+          </div>
+
+          <div class="d-flex justify-center">
+            <v-col cols="12" sm="6" md="6" class="pa-0">
+              <v-btn
+                block
+                variant="tonal"
+                class="pay-button ma-1"
+                elevation="4"
+                @click="show_payment"
+              >
+                <v-icon start size="20">mdi-credit-card</v-icon>
+                <span class="pay-text">{{ __("PAY") }}</span>
+              </v-btn>
             </v-col>
-          </v-row>
+          </div>
         </v-col>
       </v-row>
     </v-card>
@@ -3530,5 +3543,4 @@ export default {
   font-weight: 500 !important;
   text-transform: none !important;
 }
-
 </style>

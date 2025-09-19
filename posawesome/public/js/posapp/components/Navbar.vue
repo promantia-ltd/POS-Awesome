@@ -72,7 +72,7 @@
         </v-menu>
       </div>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" v-model:mini-variant="mini" class="modern-sidebar" width="280">
+    <v-navigation-drawer v-model="drawer" v-model:mini-variant="mini" class="modern-sidebar" width="280" temporary>
       <!-- Company Header Section -->
       <div class="sidebar-header">
         <div class="company-info">
@@ -150,6 +150,7 @@ export default {
   methods: {
     changePage(key) {
       this.$emit('changePage', key);
+      this.drawer = false;
     },
     go_desk() {
       frappe.set_route('/');
