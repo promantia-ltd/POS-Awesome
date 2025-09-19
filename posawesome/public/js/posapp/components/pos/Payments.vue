@@ -584,10 +584,10 @@
     </v-card>
 
     <!-- Action Buttons -->
-    <v-card elevation="2" rounded="lg" class="mt-3">
-      <v-card-text class="pa-4">
-        <v-row align="start" no-gutters>
-        <v-col cols="4">
+  <v-card elevation="2" rounded="lg" class="mt-3">
+    <v-card-text class="pa-4">
+      <v-row align="center" justify="space-between" no-gutters class="flex-wrap">
+        <v-col cols="12" md="6" class="pa-1">
           <v-btn
             block
             theme="dark"
@@ -598,7 +598,8 @@
             {{ __("Submit") }}
           </v-btn>
         </v-col>
-        <v-col cols="4" class="pl-1">
+
+        <v-col cols="12" md="6" class="pa-1">
           <v-btn
             block
             variant="tonal"
@@ -609,7 +610,8 @@
             {{ __("Submit & Print") }}
           </v-btn>
         </v-col>
-        <v-col cols="4" class="pl-1">
+
+        <v-col cols="12" md="6" class="pa-1">
           <v-btn
             block
             theme="dark"
@@ -620,9 +622,9 @@
             {{ __("Cancel Payment") }}
           </v-btn>
         </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+      </v-row>
+    </v-card-text>
+  </v-card>
     <div>
       <v-dialog v-model="phone_dialog" max-width="400px">
         <v-card elevation="8" rounded="xl">
