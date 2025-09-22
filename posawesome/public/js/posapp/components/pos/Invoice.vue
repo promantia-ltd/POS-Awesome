@@ -32,7 +32,7 @@
         display: flex;
         flex-direction: column;
       "
-      class="cards my-0 py-0 mt-3 bg-grey-lighten-5"
+      class="cards my-0 py-0 bg-grey-lighten-5"
     >
       <v-row
         align="center"
@@ -49,7 +49,7 @@
               ? 12
               : pos_profile.posa_allow_sales_order
               ? 6
-              : 10
+              : 9
           "
           :class="$vuetify.display.mdAndDown ? '0' : 'pb-2 pr-0'"
         >
@@ -57,8 +57,8 @@
         </v-col>
         <v-col
           v-if="pos_profile.posa_allow_sales_order"
-          :cols="$vuetify.display.mdAndDown ? 12 : 4"
-          :style="{ paddingTop: $vuetify.display.mdAndDown ? '0px' : '10px' }"
+          :cols="$vuetify.display.mdAndDown ? 12 : 3"
+          :style="{ paddingTop: $vuetify.display.mdAndDown ? '0px' : '5px' }"
           :class="$vuetify.display.mdAndDown ? '0' : 'pb-2'"
         >
           <v-select
@@ -75,7 +75,7 @@
         </v-col>
         <!-- Inclusive Tax Switch -->
         <v-col
-          :cols="$vuetify.display.mdAndDown ? 12 : 2"
+          :cols="$vuetify.display.mdAndDown ? 12 : 3"
           :class="
             $vuetify.display.mdAndDown
               ? '0'
@@ -91,9 +91,10 @@
             class="small-switch mt-n2"
           >
             <template v-slot:label>
-              <span class="ml-n0 mt-4 d-block">{{
-                frappe._("Inclusive Tax")
-              }}</span>
+              <span class="ml-n0 mt-4 d-block">
+                <span class="d-inline-block text-nowrap">{{ frappe._("Inclusive") }}</span>
+                <span class="d-inline-block text-nowrap ml-1">{{ frappe._("Tax") }}</span>
+              </span>
             </template>
           </v-switch>
         </v-col>
@@ -162,7 +163,7 @@
         </v-col>
         <v-col
           v-if="pos_profile.posa_allow_change_posting_date"
-          :cols="$vuetify.display.mdAndDown ? 12 : 4"
+          :cols="$vuetify.display.mdAndDown ? 12 : 3"
           :class="$vuetify.display.mdAndDown ? '0' : 'pb-0 mb-0 pr-0 pt-0'"
         >
           <v-menu
