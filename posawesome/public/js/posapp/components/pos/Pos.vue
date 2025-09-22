@@ -13,7 +13,7 @@
     <CouponsModal v-model="showCouponsModal"></CouponsModal>
     <OffersModal v-model="showOffersModal"></OffersModal>
     
-    <v-row v-show="!dialog" class="test-class">
+    <v-row v-show="!dialog" class="itemselector-section">
       <v-col v-show="!payment" xl="5" lg="5" md="5" sm="5" cols="12" class="pos pr-0 test-pos">
         <ItemsSelector></ItemsSelector>
       </v-col>
@@ -21,7 +21,7 @@
         <Payments></Payments>
       </v-col>
 
-      <v-col xl="7" lg="7" md="7" sm="7" cols="12" class="pos test-pos">
+      <v-col xl="7" lg="7" md="7" sm="7" cols="12" class="pos invoice-section">
         <Invoice></Invoice>
       </v-col>
     </v-row>
@@ -197,10 +197,10 @@ export default {
   height: calc(100vh - 72px );
   /* max-height: calc(100vh - 73px); */
 }
-.test-class {
+.itemselector-section {
     height: calc(100vh - 84px);
 }
-.test-pos{
+.invoice-section{
   height: 100%;
 }
 </style>

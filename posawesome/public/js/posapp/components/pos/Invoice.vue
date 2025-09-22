@@ -28,7 +28,7 @@
     <v-card
       style="
         flex: 1 1 auto;
-        overflow-y: scroll;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
       "
@@ -75,11 +75,11 @@
         </v-col>
         <!-- Inclusive Tax Switch -->
         <v-col
-          :cols="$vuetify.display.mdAndDown ? 12 : 3"
+          :cols="$vuetify.display.mdAndDown ? 12 : 2"
           :class="
             $vuetify.display.mdAndDown
               ? '0'
-              : 'pb-0 mb-0 pt-0 d-flex align-center'
+              : 'pb-0 mb-0 pt-0 d-flex align-start'
           "
         >
           <v-switch
@@ -88,13 +88,13 @@
             inset
             dense
             hide-details
-            class="small-switch mt-n2"
+            class="small-switch mt-n2 items-start"
           >
             <template v-slot:label>
-              <span class="ml-n0 mt-4 d-block">
-                <span class="d-inline-block text-nowrap">{{ frappe._("Inclusive") }}</span>
-                <span class="d-inline-block text-nowrap ml-1">{{ frappe._("Tax") }}</span>
-              </span>
+              <div class="flex flex-col leading-tight mt-1">
+                <span class="pr-1 text-nowrap">{{ frappe._("Inclusive") }}</span>
+                <span class="text-nowrap">{{ frappe._("Tax") }}</span>
+              </div>
             </template>
           </v-switch>
         </v-col>
@@ -805,108 +805,108 @@
     </v-card>
     <v-card class="cards mb-0 mt-3 py-0" elevation="2" rounded="lg" style="flex: 0 0 auto;"
 >
-      <v-row no-gutters>
-        <v-col cols="12" sm="6" class="pa-1">
-          <v-row no-gutters class="pa-1 pt-2 pr-1">
-            <v-col cols="6" class="pa-1">
-              <v-text-field
-                :model-value="formatFloat(total_qty)"
-                :label="frappe._('Total Qty')"
-                variant="outlined"
-                density="compact"
-                readonly
-                hide-details
-                color="accent"
-              ></v-text-field>
-            </v-col>
-            <v-col
-              v-if="!pos_profile.posa_use_percentage_discount"
-              cols="6"
-              class="pa-1"
-            >
-              <v-text-field
-                :model-value="formatCurrency(discount_amount)"
-                @change="
-                  setFormatedCurrency(
-                    discount_amount,
-                    'discount_amount',
-                    null,
-                    false,
-                    $event
-                  )
-                "
-                :rules="[isNumber]"
-                :label="frappe._('Additional Discount')"
-                ref="discount"
-                variant="outlined"
-                density="compact"
-                hide-details
-                color="warning"
-                :prefix="currencySymbol(pos_profile.currency)"
-                :disabled="
-                  !pos_profile.posa_allow_user_to_edit_additional_discount ||
-                  discount_percentage_offer_name
-                    ? true
-                    : false
-                "
-              ></v-text-field>
-            </v-col>
-            <v-col
-              v-if="pos_profile.posa_use_percentage_discount"
-              cols="6"
-              class="pa-1"
-            >
-              <v-text-field
-                v-model="additional_discount_percentage"
-                @change="update_discount_umount"
-                @blur="format_discount_input"
-                :rules="[isNumber]"
-                :label="frappe._('Additional Discount %')"
-                ref="percentage_discount"
-                variant="outlined"
-                density="compact"
-                color="warning"
-                hide-details
-                :disabled="
-                  !pos_profile.posa_allow_user_to_edit_additional_discount ||
-                  discount_percentage_offer_name
-                "
-              ></v-text-field>
-            </v-col>
-            <v-col cols="6" class="pa-1 mt-2">
-              <v-text-field
-                :model-value="formatCurrency(total_items_discount_amount)"
-                :prefix="currencySymbol(pos_profile.currency)"
-                :label="frappe._('Items Discounts')"
-                variant="outlined"
-                density="compact"
-                color="warning"
-                readonly
-                hide-details
-              ></v-text-field>
-            </v-col>
-
-            <v-col cols="6" class="pa-1 mt-2">
-              <v-text-field
-                :model-value="formatCurrency(subtotal)"
-                :prefix="currencySymbol(pos_profile.currency)"
-                :label="frappe._('Total')"
-                variant="outlined"
-                density="compact"
-                readonly
-                hide-details
-                color="success"
-              ></v-text-field>
-            </v-col>
-          </v-row>
+  <v-row no-gutters>
+    <v-col cols="12" sm="6" class="pa-1">
+      <v-row no-gutters class="pa-1 pt-2 pr-1">
+        <v-col cols="6" class="pa-1">
+          <v-text-field
+            :model-value="formatFloat(total_qty)"
+            :label="frappe._('Total Qty')"
+            variant="outlined"
+            density="compact"
+            readonly
+            hide-details
+            color="accent"
+          ></v-text-field>
         </v-col>
+        <v-col
+          v-if="!pos_profile.posa_use_percentage_discount"
+          cols="6"
+          class="pa-1"
+        >
+          <v-text-field
+            :model-value="formatCurrency(discount_amount)"
+            @change="
+              setFormatedCurrency(
+                discount_amount,
+                'discount_amount',
+                null,
+                false,
+                $event
+              )
+            "
+            :rules="[isNumber]"
+            :label="frappe._('Additional Discount')"
+            ref="discount"
+            variant="outlined"
+            density="compact"
+            hide-details
+            color="warning"
+            :prefix="currencySymbol(pos_profile.currency)"
+            :disabled="
+              !pos_profile.posa_allow_user_to_edit_additional_discount ||
+              discount_percentage_offer_name
+                ? true
+                : false
+            "
+          ></v-text-field>
+        </v-col>
+        <v-col
+          v-if="pos_profile.posa_use_percentage_discount"
+          cols="6"
+          class="pa-1"
+        >
+          <v-text-field
+            v-model="additional_discount_percentage"
+            @change="update_discount_umount"
+            @blur="format_discount_input"
+            :rules="[isNumber]"
+            :label="frappe._('Additional Discount %')"
+            ref="percentage_discount"
+            variant="outlined"
+            density="compact"
+            color="warning"
+            hide-details
+            :disabled="
+              !pos_profile.posa_allow_user_to_edit_additional_discount ||
+              discount_percentage_offer_name
+            "
+          ></v-text-field>
+        </v-col>
+        <v-col cols="6" class="pa-1 mt-2">
+          <v-text-field
+            :model-value="formatCurrency(total_items_discount_amount)"
+            :prefix="currencySymbol(pos_profile.currency)"
+            :label="frappe._('Items Discounts')"
+            variant="outlined"
+            density="compact"
+            color="warning"
+            readonly
+            hide-details
+          ></v-text-field>
+        </v-col>
+
+        <v-col cols="6" class="pa-1 mt-2">
+          <v-text-field
+            :model-value="formatCurrency(subtotal)"
+            :prefix="currencySymbol(pos_profile.currency)"
+            :label="frappe._('Total')"
+            variant="outlined"
+            density="compact"
+            readonly
+            hide-details
+            color="success"
+          ></v-text-field>
+        </v-col>
+      </v-row>
+    </v-col>
         <v-col no-gutters class="pa-1 pt-2 pl-0 flex-wrap">
           <div class="flex-grow-1 d-flex flex-wrap">
             <v-row no-gutters class="pa-1 pt-2 pl-0">
               <v-col cols="6" class="pa-1">
-                <v-btn
+          <v-btn
                   variant="tonal"
-                  block
+            block
                   class="pa-0 enhanced-action-btn"
                   theme="dark"
                   @click="save_and_clear_invoice"
@@ -916,10 +916,10 @@
               </v-col>
               <v-col cols="6" class="pa-1">
                 <v-btn
-                  variant="tonal"
+            variant="tonal"
                   block
                   class="pa-0 enhanced-action-btn"
-                  theme="dark"
+            theme="dark"
                   @click="get_draft_invoices"
                   >{{ __("Load Draft sales") }}</v-btn
                 >
@@ -932,7 +932,7 @@
                 <v-btn
                   variant="tonal"
                   block
-                  class="pa-0 enhanced-action-btn"
+            class="pa-0 enhanced-action-btn"
                   theme="dark"
                   @click="get_draft_orders"
                   >{{ __("Select S.O") }}</v-btn
@@ -962,19 +962,19 @@
                   @click="open_returns"
                   >{{ __("Sales Return") }}</v-btn
                 >
-              </v-col>
+        </v-col>
 
               <!-- <v-col class="pa-1">
-              <v-btn
-                block
-                variant="tonal"
-                elevation="4"
+          <v-btn
+            block
+            variant="tonal"
+            elevation="4"
                 class="pay-button enhanced-action-btn"
-                @click="show_payment"
-              >
-                <v-icon start size="20">mdi-credit-card</v-icon>
-                <span class="pay-text">{{ __("PAY") }}</span>
-              </v-btn>
+            @click="show_payment"
+          >
+            <v-icon start size="20">mdi-credit-card</v-icon>
+            <span class="pay-text">{{ __("PAY") }}</span>
+          </v-btn>
             </v-col> -->
               <v-col
                 v-if="pos_profile.posa_allow_print_draft_invoices"
@@ -989,22 +989,22 @@
                   theme="dark"
                   >{{ __("Print Draft") }}</v-btn
                 >
-              </v-col>
-            </v-row>
+        </v-col>
+      </v-row>
           </div>
 
           <div class="d-flex justify-center">
             <v-col cols="12" sm="6" md="6" class="pa-0">
-              <v-btn
+    <v-btn
                 block
                 variant="tonal"
                 class="pay-button ma-1"
                 elevation="4"
                 @click="show_payment"
-              >
+    >
                 <v-icon start size="20">mdi-credit-card</v-icon>
                 <span class="pay-text">{{ __("PAY") }}</span>
-              </v-btn>
+    </v-btn>
             </v-col>
           </div>
         </v-col>
