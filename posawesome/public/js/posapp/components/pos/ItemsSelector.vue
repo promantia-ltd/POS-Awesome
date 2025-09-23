@@ -1,6 +1,6 @@
 <template>
   <div class="enhanced-items-container">
-    <v-card class="selection mx-auto"     style="height: calc(100% - 120px);" elevation="2" rounded="lg">
+    <v-card class="selection mx-auto" elevation="2" rounded="lg">
       <v-progress-linear :active="loading" :indeterminate="loading" absolute :location="top"
         color="info"></v-progress-linear>
       <v-row class="items px-3 py-2">
@@ -122,8 +122,8 @@
         </v-col>
       </v-row>
     </v-card>
-    <v-card class="enhanced-controls mb-0 mt-3" elevation="2" style="height: 120px;">
-      <v-row no-gutters align="center" justify="center" class="pa-1">
+    <v-card class="enhanced-controls mb-0 mt-3" elevation="2">
+      <v-row no-gutters align="center" justify="center" class="pa-1 mt-2">
         <v-col cols="12" class="mb-2">
           <v-select 
             :items="items_group" 
@@ -153,14 +153,14 @@
                   :class="{ active: items_view === 'list' }"
                   @click="items_view = 'list'">
                   <v-icon size="16" class="mr-1">mdi-format-list-bulleted</v-icon>
-                  {{ __("List") }}
+                  <span class="enhanced-btn-label">{{ __("List") }}</span>
                 </button>
                 <button 
                   class="enhanced-view-btn" 
                   :class="{ active: items_view === 'card' }"
                   @click="items_view = 'card'">
                   <v-icon size="16" class="mr-1">mdi-view-grid-outline</v-icon>
-                  {{ __("Card") }}
+                  <span class="enhanced-btn-label">{{ __("Card") }}</span>
                 </button>
               </div>
             </v-col>
@@ -178,7 +178,7 @@
                   color="success" 
                   :model-value="couponsCount > 0"
                   inline>
-                  {{ __("Coupons") }}
+                  <span class="enhanced-btn-label">{{ __("Coupons") }}</span>
                 </v-badge>
               </v-btn>
             </v-col>
@@ -196,7 +196,7 @@
                   color="success" 
                   :model-value="offersCount > 0"
                   inline>
-                  {{ __("Offers") }}
+                  <span class="enhanced-btn-label">{{ __("Offers") }}</span>
                 </v-badge>
               </v-btn>
             </v-col>
@@ -768,8 +768,28 @@ export default {
 
 <style scoped>
 .enhanced-items-container {
-  position: relative;
+  display: flex;
+  flex-direction: column;
   height: 100%;
+}
+
+.selection {
+  flex: 1;
+  min-height: 0;
+}
+
+.enhanced-controls {
+  flex-shrink: 0;
+}
+
+.enhanced-btn-label {
+  display: inline;
+}
+
+@media (max-width: 900px) {
+  .enhanced-btn-label {
+    display: none;
+  }
 }
 
 .enhanced-items-card {
