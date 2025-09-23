@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%; display: flex; flex-direction: column;">
+  <div style="height: 100%; display: flex; flex-direction: column">
     <v-dialog v-model="cancel_dialog" max-width="600px">
       <v-card elevation="8" rounded="xl">
         <v-card-title class="text-h5">
@@ -31,181 +31,192 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
+        min-height: 0;
       "
       class="cards my-0 py-0 bg-grey-lighten-5"
     >
-      <v-row
-        align="center"
-        class="items px-2 py-1 flex-wrap"
-        :class="$vuetify.display.mdAndDown ? 'pa-2' : ''"
-        :style="{
-          rowGap: $vuetify.display.mdAndDown ? '0' : '12px',
-          flex: '0 0 auto',
-        }"
-      >
-        <v-col
-          :cols="
-            $vuetify.display.mdAndDown
-              ? 12
-              : pos_profile.posa_allow_sales_order
-              ? 6
-              : 9
-          "
-          :class="$vuetify.display.mdAndDown ? '0' : 'pb-2 pr-0'"
+      <div :style="$vuetify.display.mdAndDown ? 'height: 70vh;' : ''">
+        <v-row
+          align="center"
+          class="items px-2 py-1 flex-wrap"
+          :class="$vuetify.display.mdAndDown ? 'pa-2' : ''"
+          :style="{
+            rowGap: $vuetify.display.mdAndDown ? '0' : '12px',
+            flex: '0 0 auto',
+          }"
         >
-          <Customer />
-        </v-col>
-        <v-col
-          v-if="pos_profile.posa_allow_sales_order"
-          :cols="$vuetify.display.mdAndDown ? 12 : 3"
-          :style="{ paddingTop: $vuetify.display.mdAndDown ? '0px' : '5px' }"
-          :class="$vuetify.display.mdAndDown ? '0' : 'pb-2'"
-        >
-          <v-select
-            density="compact"
-            hide-details
-            variant="outlined"
-            color="primary"
-            bg-color="white"
-            :items="invoiceTypes"
-            :label="frappe._('Type')"
-            v-model="invoiceType"
-            :disabled="invoiceType == 'Return'"
-          />
-        </v-col>
-        <!-- Inclusive Tax Switch -->
-        <v-col
-          :cols="$vuetify.display.mdAndDown ? 12 : 2"
-          :class="
-            $vuetify.display.mdAndDown
-              ? '0'
-              : 'pb-0 mb-0 pt-0 d-flex align-start'
-          "
-        >
-          <v-switch
-            v-model="inclusive_tax"
-            color="blue-accent-4"
-            inset
-            dense
-            hide-details
-            class="small-switch mt-n2 items-start"
+          <v-col
+            :cols="
+              $vuetify.display.mdAndDown
+                ? 12
+                : pos_profile.posa_allow_sales_order
+                ? 6
+                : 9
+            "
+            :class="$vuetify.display.mdAndDown ? '0' : 'pb-2 pr-0'"
           >
-            <template v-slot:label>
-              <div class="flex flex-col leading-tight mt-1">
-                <span class="pr-1 text-nowrap">{{ frappe._("Inclusive") }}</span>
-                <span class="text-nowrap">{{ frappe._("Tax") }}</span>
-              </div>
-            </template>
-          </v-switch>
-        </v-col>
-      </v-row>
-
-      <v-row
-        align="center"
-        class="items px-2 py-1 mt-4 pt-0 flex-wrap"
-        :class="$vuetify.display.mdAndDown ? 'pa-2' : ''"
-        v-if="pos_profile.posa_use_delivery_charges"
-        :style="{
-          rowGap: $vuetify.display.mdAndDown ? '0' : '12px',
-          flex: '0 0 auto',
-        }"
-      >
-        <v-col
-          :cols="$vuetify.display.mdAndDown ? 12 : 3"
-          :class="$vuetify.display.mdAndDown ? '0' : 'pb-0 mb-0 pt-0'"
-        >
-          <v-autocomplete
-            density="compact"
-            clearable
-            auto-select-first
-            variant="outlined"
-            color="primary"
-            :label="frappe._('Delivery Charges')"
-            v-model="selected_delivery_charge"
-            :items="delivery_charges"
-            item-title="name"
-            item-value="name"
-            return-object
-            bg-color="white"
-            :no-data-text="__('Charges not found')"
-            hide-details
-            :customFilter="deliveryChargesFilter"
-            @update:model-value="update_delivery_charges()"
+            <Customer />
+          </v-col>
+          <v-col
+            v-if="pos_profile.posa_allow_sales_order"
+            :cols="$vuetify.display.mdAndDown ? 12 : 3"
+            :style="{ paddingTop: $vuetify.display.mdAndDown ? '0px' : '5px' }"
+            :class="$vuetify.display.mdAndDown ? '0' : 'pb-2'"
           >
-            <template v-slot:item="{ props, item }">
-              <v-list-item v-bind="props">
-                <v-list-item-title
-                  class="text-primary text-subtitle-1"
-                  v-html="item.raw.name"
-                ></v-list-item-title>
-                <v-list-item-subtitle
-                  v-html="`Rate: ${item.raw.rate}`"
-                ></v-list-item-subtitle>
-              </v-list-item>
-            </template>
-          </v-autocomplete>
-        </v-col>
-        <v-col
-          :cols="$vuetify.display.mdAndDown ? 12 : 3"
-          :class="$vuetify.display.mdAndDown ? '0' : 'pb-0 mb-0 pt-0'"
-        >
-          <v-text-field
-            density="compact"
-            variant="outlined"
-            color="primary"
-            :label="frappe._('Delivery Charges Rate')"
-            bg-color="white"
-            hide-details
-            :model-value="formatCurrency(delivery_charges_rate)"
-            :prefix="currencySymbol(pos_profile.currency)"
-            readonly
-          ></v-text-field>
-        </v-col>
-        <v-col
-          v-if="pos_profile.posa_allow_change_posting_date"
-          :cols="$vuetify.display.mdAndDown ? 12 : 3"
-          :class="$vuetify.display.mdAndDown ? '0' : 'pb-0 mb-0 pr-0 pt-0'"
-        >
-          <v-menu
-            ref="invoice_posting_date"
-            v-model="invoice_posting_date"
-            :close-on-content-click="false"
-            transition="scale-transition"
-            density="default"
-          >
-            <template v-slot:activator="{ props }">
-              <v-text-field
-                v-model="posting_date"
-                :label="frappe._('Posting Date')"
-                readonly
-                variant="outlined"
-                density="compact"
-                bg-color="white"
-                clearable
-                color="primary"
-                hide-details
-                v-bind="props"
-              />
-            </template>
-            <v-date-picker
-              v-model="raw_posting_date"
-              no-title
-              scrollable
+            <v-select
+              density="compact"
+              hide-details
+              variant="outlined"
               color="primary"
-              :min="
-                frappe.datetime.add_days(frappe.datetime.now_date(true), -7)
-              "
-              :max="frappe.datetime.add_days(frappe.datetime.now_date(true), 7)"
-              @update:model-value="onPostingDateChange"
-              @input="invoice_posting_date = false"
+              bg-color="white"
+              :items="invoiceTypes"
+              :label="frappe._('Type')"
+              v-model="invoiceType"
+              :disabled="invoiceType == 'Return'"
             />
-          </v-menu>
-        </v-col>
-      </v-row>
+          </v-col>
+          <!-- Inclusive Tax Switch -->
+          <v-col
+            :cols="$vuetify.display.mdAndDown ? 12 : 2"
+            :class="
+              $vuetify.display.mdAndDown
+                ? '0'
+                : 'pb-0 mb-0 pt-0 d-flex align-start'
+            "
+          >
+            <v-switch
+              v-model="inclusive_tax"
+              color="blue-accent-4"
+              inset
+              dense
+              hide-details
+              class="small-switch mt-n2 items-start"
+            >
+              <template v-slot:label>
+                <div class="flex flex-col leading-tight mt-1">
+                  <span class="pr-1 text-nowrap">{{
+                    frappe._("Inclusive")
+                  }}</span>
+                  <span class="text-nowrap">{{ frappe._("Tax") }}</span>
+                </div>
+              </template>
+            </v-switch>
+          </v-col>
+        </v-row>
+
+        <v-row
+          align="center"
+          class="items px-2 py-1 mt-4 pt-0 flex-wrap"
+          :class="$vuetify.display.mdAndDown ? 'pa-2' : ''"
+          v-if="pos_profile.posa_use_delivery_charges"
+          :style="{
+            rowGap: $vuetify.display.mdAndDown ? '0' : '12px',
+            flex: '0 0 auto',
+          }"
+        >
+          <v-col
+            :cols="$vuetify.display.mdAndDown ? 12 : 3"
+            :class="$vuetify.display.mdAndDown ? '0' : 'pb-0 mb-0 pt-0'"
+          >
+            <v-autocomplete
+              density="compact"
+              clearable
+              auto-select-first
+              variant="outlined"
+              color="primary"
+              :label="frappe._('Delivery Charges')"
+              v-model="selected_delivery_charge"
+              :items="delivery_charges"
+              item-title="name"
+              item-value="name"
+              return-object
+              bg-color="white"
+              :no-data-text="__('Charges not found')"
+              hide-details
+              :customFilter="deliveryChargesFilter"
+              @update:model-value="update_delivery_charges()"
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <v-list-item-title
+                    class="text-primary text-subtitle-1"
+                    v-html="item.raw.name"
+                  ></v-list-item-title>
+                  <v-list-item-subtitle
+                    v-html="`Rate: ${item.raw.rate}`"
+                  ></v-list-item-subtitle>
+                </v-list-item>
+              </template>
+            </v-autocomplete>
+          </v-col>
+          <v-col
+            :cols="$vuetify.display.mdAndDown ? 12 : 3"
+            :class="$vuetify.display.mdAndDown ? '0' : 'pb-0 mb-0 pt-0'"
+          >
+            <v-text-field
+              density="compact"
+              variant="outlined"
+              color="primary"
+              :label="frappe._('Delivery Charges Rate')"
+              bg-color="white"
+              hide-details
+              :model-value="formatCurrency(delivery_charges_rate)"
+              :prefix="currencySymbol(pos_profile.currency)"
+              readonly
+            ></v-text-field>
+          </v-col>
+          <v-col
+            v-if="pos_profile.posa_allow_change_posting_date"
+            :cols="$vuetify.display.mdAndDown ? 12 : 3"
+            :class="$vuetify.display.mdAndDown ? '0' : 'pb-0 mb-0 pr-0 pt-0'"
+          >
+            <v-menu
+              ref="invoice_posting_date"
+              v-model="invoice_posting_date"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              density="default"
+            >
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  v-model="posting_date"
+                  :label="frappe._('Posting Date')"
+                  readonly
+                  variant="outlined"
+                  density="compact"
+                  bg-color="white"
+                  clearable
+                  color="primary"
+                  hide-details
+                  v-bind="props"
+                />
+              </template>
+              <v-date-picker
+                v-model="raw_posting_date"
+                no-title
+                scrollable
+                color="primary"
+                :min="
+                  frappe.datetime.add_days(frappe.datetime.now_date(true), -7)
+                "
+                :max="
+                  frappe.datetime.add_days(frappe.datetime.now_date(true), 7)
+                "
+                @update:model-value="onPostingDateChange"
+                @input="invoice_posting_date = false"
+              />
+            </v-menu>
+          </v-col>
+        </v-row>
+      </div>
 
       <div
         class="my-0 py-0 pt-4 overflow-y-auto"
-        style="flex: 1; overflow-y: auto"
+        :style="
+          $vuetify.display.mdAndDown
+            ? 'flex: 0 0 30vh; min-height: 0; overflow-y: auto;'
+            : 'flex: 1 1 auto; min-height: 0; overflow-y: auto;'
+        "
       >
         <v-data-table
           :headers="items_headers"
@@ -803,110 +814,114 @@
         </v-data-table>
       </div>
     </v-card>
-    <v-card class="cards mb-0 mt-3 py-0" elevation="2" rounded="lg" style="flex: 0 0 auto;"
->
-  <v-row no-gutters>
-    <v-col cols="12" sm="6" class="pa-1">
-      <v-row no-gutters class="pa-1 pt-2 pr-1">
-        <v-col cols="6" class="pa-1">
-          <v-text-field
-            :model-value="formatFloat(total_qty)"
-            :label="frappe._('Total Qty')"
-            variant="outlined"
-            density="compact"
-            readonly
-            hide-details
-            color="accent"
-          ></v-text-field>
-        </v-col>
-        <v-col
-          v-if="!pos_profile.posa_use_percentage_discount"
-          cols="6"
-          class="pa-1"
-        >
-          <v-text-field
-            :model-value="formatCurrency(discount_amount)"
-            @change="
-              setFormatedCurrency(
-                discount_amount,
-                'discount_amount',
-                null,
-                false,
-                $event
-              )
-            "
-            :rules="[isNumber]"
-            :label="frappe._('Additional Discount')"
-            ref="discount"
-            variant="outlined"
-            density="compact"
-            hide-details
-            color="warning"
-            :prefix="currencySymbol(pos_profile.currency)"
-            :disabled="
-              !pos_profile.posa_allow_user_to_edit_additional_discount ||
-              discount_percentage_offer_name
-                ? true
-                : false
-            "
-          ></v-text-field>
-        </v-col>
-        <v-col
-          v-if="pos_profile.posa_use_percentage_discount"
-          cols="6"
-          class="pa-1"
-        >
-          <v-text-field
-            v-model="additional_discount_percentage"
-            @change="update_discount_umount"
-            @blur="format_discount_input"
-            :rules="[isNumber]"
-            :label="frappe._('Additional Discount %')"
-            ref="percentage_discount"
-            variant="outlined"
-            density="compact"
-            color="warning"
-            hide-details
-            :disabled="
-              !pos_profile.posa_allow_user_to_edit_additional_discount ||
-              discount_percentage_offer_name
-            "
-          ></v-text-field>
-        </v-col>
-        <v-col cols="6" class="pa-1 mt-2">
-          <v-text-field
-            :model-value="formatCurrency(total_items_discount_amount)"
-            :prefix="currencySymbol(pos_profile.currency)"
-            :label="frappe._('Items Discounts')"
-            variant="outlined"
-            density="compact"
-            color="warning"
-            readonly
-            hide-details
-          ></v-text-field>
-        </v-col>
+    <v-card
+      class="cards mb-0 mt-3 py-0"
+      elevation="2"
+      rounded="lg"
+      style="flex: 0 0 auto"
+    >
+      <v-row no-gutters>
+        <v-col cols="12" sm="6" class="pa-1">
+          <v-row no-gutters class="pa-1 pt-2 pr-1">
+            <v-col cols="6" class="pa-1">
+              <v-text-field
+                :model-value="formatFloat(total_qty)"
+                :label="frappe._('Total Qty')"
+                variant="outlined"
+                density="compact"
+                readonly
+                hide-details
+                color="accent"
+              ></v-text-field>
+            </v-col>
+            <v-col
+              v-if="!pos_profile.posa_use_percentage_discount"
+              cols="6"
+              class="pa-1"
+            >
+              <v-text-field
+                :model-value="formatCurrency(discount_amount)"
+                @change="
+                  setFormatedCurrency(
+                    discount_amount,
+                    'discount_amount',
+                    null,
+                    false,
+                    $event
+                  )
+                "
+                :rules="[isNumber]"
+                :label="frappe._('Additional Discount')"
+                ref="discount"
+                variant="outlined"
+                density="compact"
+                hide-details
+                color="warning"
+                :prefix="currencySymbol(pos_profile.currency)"
+                :disabled="
+                  !pos_profile.posa_allow_user_to_edit_additional_discount ||
+                  discount_percentage_offer_name
+                    ? true
+                    : false
+                "
+              ></v-text-field>
+            </v-col>
+            <v-col
+              v-if="pos_profile.posa_use_percentage_discount"
+              cols="6"
+              class="pa-1"
+            >
+              <v-text-field
+                v-model="additional_discount_percentage"
+                @change="update_discount_umount"
+                @blur="format_discount_input"
+                :rules="[isNumber]"
+                :label="frappe._('Additional Discount %')"
+                ref="percentage_discount"
+                variant="outlined"
+                density="compact"
+                color="warning"
+                hide-details
+                :disabled="
+                  !pos_profile.posa_allow_user_to_edit_additional_discount ||
+                  discount_percentage_offer_name
+                "
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6" class="pa-1 mt-2">
+              <v-text-field
+                :model-value="formatCurrency(total_items_discount_amount)"
+                :prefix="currencySymbol(pos_profile.currency)"
+                :label="frappe._('Items Discounts')"
+                variant="outlined"
+                density="compact"
+                color="warning"
+                readonly
+                hide-details
+              ></v-text-field>
+            </v-col>
 
-        <v-col cols="6" class="pa-1 mt-2">
-          <v-text-field
-            :model-value="formatCurrency(subtotal)"
-            :prefix="currencySymbol(pos_profile.currency)"
-            :label="frappe._('Total')"
-            variant="outlined"
-            density="compact"
-            readonly
-            hide-details
-            color="success"
-          ></v-text-field>
+            <v-col cols="6" class="pa-1 mt-2">
+              <v-text-field
+                :model-value="formatCurrency(subtotal)"
+                :prefix="currencySymbol(pos_profile.currency)"
+                :label="frappe._('Total')"
+                variant="outlined"
+                density="compact"
+                readonly
+                hide-details
+                color="success"
+              ></v-text-field>
+            </v-col>
+          </v-row>
         </v-col>
-      </v-row>
-    </v-col>
         <v-col no-gutters class="pa-1 pt-2 pl-0 flex-wrap">
           <div class="flex-grow-1 d-flex flex-wrap">
             <v-row no-gutters class="pa-1 pt-2 pl-0">
               <v-col cols="6" class="pa-1">
-          <v-btn
+                <v-btn
                   variant="tonal"
-            block
+                  block
                   class="pa-0 enhanced-action-btn"
                   theme="dark"
                   @click="save_and_clear_invoice"
@@ -916,10 +931,10 @@
               </v-col>
               <v-col cols="6" class="pa-1">
                 <v-btn
-            variant="tonal"
+                  variant="tonal"
                   block
                   class="pa-0 enhanced-action-btn"
-            theme="dark"
+                  theme="dark"
                   @click="get_draft_invoices"
                   >{{ __("Load Draft sales") }}</v-btn
                 >
@@ -932,7 +947,7 @@
                 <v-btn
                   variant="tonal"
                   block
-            class="pa-0 enhanced-action-btn"
+                  class="pa-0 enhanced-action-btn"
                   theme="dark"
                   @click="get_draft_orders"
                   >{{ __("Select S.O") }}</v-btn
@@ -962,7 +977,7 @@
                   @click="open_returns"
                   >{{ __("Sales Return") }}</v-btn
                 >
-        </v-col>
+              </v-col>
 
               <!-- <v-col class="pa-1">
           <v-btn
@@ -989,22 +1004,22 @@
                   theme="dark"
                   >{{ __("Print Draft") }}</v-btn
                 >
-        </v-col>
-      </v-row>
+              </v-col>
+            </v-row>
           </div>
 
           <div class="d-flex justify-center">
             <v-col cols="12" sm="6" md="6" class="pa-0">
-    <v-btn
+              <v-btn
                 block
                 variant="tonal"
                 class="pay-button ma-1"
                 elevation="4"
                 @click="show_payment"
-    >
+              >
                 <v-icon start size="20">mdi-credit-card</v-icon>
                 <span class="pay-text">{{ __("PAY") }}</span>
-    </v-btn>
+              </v-btn>
             </v-col>
           </div>
         </v-col>
