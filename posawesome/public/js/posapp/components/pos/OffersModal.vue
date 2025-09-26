@@ -345,12 +345,6 @@ export default {
   overflow: hidden;
 }
 
-.enhanced-modal-header {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-bottom: 1px solid #e2e8f0;
-  padding: 1.5rem;
-}
-
 .enhanced-list-section {
   min-height: 400px;
 }

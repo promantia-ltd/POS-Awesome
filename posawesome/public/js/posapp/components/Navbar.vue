@@ -253,7 +253,6 @@ export default {
 <style scoped>
 /* Modern Header Styles */
 .modern-header {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
   border-bottom: 1px solid #e2e8f0 !important;
   backdrop-filter: blur(10px);
   padding: 0 1rem;
