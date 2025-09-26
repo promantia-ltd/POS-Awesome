@@ -304,20 +304,20 @@ export default {
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #f59e0b 100%);
+  background: var(--brand-underline);
   border-radius: 2px;
   opacity: 0.8;
 }
 
 .brand-pos {
+  font-family: var(--brand-font-latin);
+  background: var(--brand-gradient-dark);
   font-size: 1.7rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #64748b 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: 1.5px;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
   text-transform: uppercase;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
   position: relative;
@@ -326,13 +326,13 @@ export default {
 }
 
 .brand-mati {
+  font-family: var(--brand-font-devanagari);
+  background: var(--brand-gradient-colorful);
   font-size: 1.7rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #f59e0b 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-family: 'Devanagari Sangam MN', 'Noto Sans Devanagari', 'Mangal', sans-serif;
   letter-spacing: 0.5px;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
   line-height: 1;
@@ -364,14 +364,14 @@ export default {
 
 /* Modern Sidebar Styles */
 .modern-sidebar {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  background: var(--sidebar-bg) !important;
   border-right: 1px solid #e2e8f0 !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
 }
 
 .sidebar-header {
   padding: 24px 20px 20px 20px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: var(--sidebar-header-bg);
 }
 
 .company-info {
@@ -425,12 +425,12 @@ export default {
 }
 
 .nav-item:hover {
-  background-color: #f1f5f9 !important;
+  background-color: var(--hover-bg) !important;
   transform: translateX(2px);
 }
 
 .nav-item.v-list-item--active {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+   background: var(--active-gradient) !important;
   color: white !important;
   box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
@@ -447,7 +447,7 @@ export default {
 }
 
 .nav-item:hover .nav-icon-container {
-  background-color: #e2e8f0;
+   background-color: var(--hover-bg-dark);
 }
 
 .nav-item.v-list-item--active .nav-icon-container {

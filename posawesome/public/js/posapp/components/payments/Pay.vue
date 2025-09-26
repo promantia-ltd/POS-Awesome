@@ -833,7 +833,7 @@ export default {
 /* Modern Payments Card Styles */
 .modern-payments-card {
   border-radius: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  background: var(--card-bg) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
   padding: 1.5rem;
 }
@@ -848,9 +848,9 @@ export default {
 }
 
 .modern-section-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  background: var(--section-bg) !important;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-light);
 }
 
 .section-title {
@@ -862,8 +862,8 @@ export default {
 }
 
 .section-icon {
-  color: #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.1);
+  color: var(--icon-section) !important;
+  background: var(--icon-section-bg);
   border-radius: 8px;
   padding: 6px;
 }
@@ -875,13 +875,13 @@ export default {
 .section-main-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-main);
   line-height: 1.2;
 }
 
 .section-subtitle {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-sub);
   margin-top: 2px;
 }
 
@@ -892,14 +892,14 @@ export default {
 /* Modern Totals Card Styles */
 .modern-totals-card {
   border-radius: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  background: var(--card-bg) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
   padding: 1.5rem;
   overflow-y: auto;
 }
 
 .totals-header {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-light);
   padding-bottom: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -914,9 +914,9 @@ export default {
 }
 
 .modern-subsection-card {
-  background: linear-gradient(135deg, #fafbff 0%, #f0f4ff 100%) !important;
+  background: var(--subsection-bg) !important;
   border-radius: 10px;
-  border: 1px solid #ddd6fe;
+  border: 1px solid var(--border-subsection);
 }
 
 .subsection-title {
@@ -928,23 +928,23 @@ export default {
 }
 
 .subsection-icon {
-  color: #6366f1 !important;
-  background: rgba(99, 102, 241, 0.1);
+  color: var(--icon-subsection) !important;
+  background: var(--icon-subsection-bg);
   border-radius: 6px;
   padding: 4px;
 }
 
 .subsection-text {
   font-weight: 500;
-  color: #374151;
+  color: var(--text-subsection);
 }
 
 /* Difference Section */
 .difference-section {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  background: var(--difference-bg);
   border-radius: 12px;
   padding: 1rem;
-  border: 1px solid #bbf7d0;
+  border: 1px solid var(--border-difference);
 }
 
 .difference-label {
@@ -956,7 +956,7 @@ export default {
 .v-data-table {
   border-radius: 12px !important;
   overflow: hidden;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid var(--border-light) !important;
 }
 
 .v-data-table .v-data-table__wrapper {
@@ -992,10 +992,10 @@ input[total_selected_mpesa_payments] {
 
 /* Modern Button Styling */
 .v-btn {
-  border-radius: 10px !important;
+  border-radius: var(--btn-radius) !important;
   text-transform: none !important;
   font-weight: 500 !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: var(--btn-shadow) !important;
 }
 
 .v-btn:hover {
@@ -1005,7 +1005,7 @@ input[total_selected_mpesa_payments] {
 
 /* Enhanced Chips */
 .v-chip {
-  border-radius: 8px !important;
+  border-radius: var(--chip-radius) !important;
   font-weight: 500 !important;
 }
 </style>

@@ -341,7 +341,7 @@ export default {
 
 <style scoped>
 .enhanced-modal-card {
-  border-radius: 16px;
+  border-radius: var(--offersmodal-radius-card);
   overflow: hidden;
 }
 
@@ -350,18 +350,18 @@ export default {
 }
 
 .enhanced-offers-table {
-  border-radius: 12px;
+  border-radius: var(--offersmodal-radius-table);
   overflow: hidden;
 }
 
 .enhanced-expanded-row {
-  background: #f8fafc !important;
+  background: var(--offersmodal-color-bg) !important;
   padding: 0 !important;
 }
 
 .enhanced-modal-actions {
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--offersmodal-color-bg);
+  border-top: 1px solid var(--offersmodal-color-border);
   padding: 1rem 1.5rem;
 }
 
@@ -370,22 +370,22 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: var(--offersmodal-empty-padding);
   text-align: center;
-  color: #64748b;
+  color: var(--offersmodal-color-text-muted);
 }
 
 .enhanced-empty-state-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--offersmodal-color-text-main);
   margin: 1rem 0 0.5rem 0;
 }
 
 .enhanced-empty-state-description {
   font-size: 0.9rem;
-  color: #64748b;
-  max-width: 300px;
+  color: var(--offersmodal-color-text-muted);
+  max-width: var(--offersmodal-empty-max-width);
   line-height: 1.5;
 }
 </style>

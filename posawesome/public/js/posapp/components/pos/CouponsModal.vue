@@ -293,20 +293,20 @@ export default {
 
 <style scoped>
 .enhanced-modal-card {
-  border-radius: 16px;
+  border-radius: var(--modal-radius);
   overflow: hidden;
 }
 
 .enhanced-add-section {
-  background: #f8fafc;
-  border-radius: 12px;
+  background: var(--add-section-bg);
+  border-radius: var(--add-section-radius);
   padding: 1rem;
-  border: 1px solid #e2e8f0;
+  border: var(--add-section-border);
 }
 
 .enhanced-add-btn {
-  text-transform: none !important;
-  font-weight: 600;
+  text-transform: var(--btn-text-transform) !important;
+  font-weight: var(--btn-font-weight);
 }
 
 .enhanced-list-section {
@@ -314,13 +314,13 @@ export default {
 }
 
 .enhanced-coupons-table {
-  border-radius: 12px;
+  border-radius: var(--table-radius);
   overflow: hidden;
 }
 
 .enhanced-modal-actions {
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--modal-bg);
+  border-top: var(--modal-border);
   padding: 1rem 1.5rem;
 }
 
@@ -331,19 +331,19 @@ export default {
   justify-content: center;
   padding: 3rem 2rem;
   text-align: center;
-  color: #64748b;
+  color: var(--coupons-empty-text-color);
 }
 
 .enhanced-empty-state-title {
-  font-size: 1.1rem;
+  font-size: var(--coupons-empty-title-size);
   font-weight: 600;
-  color: #475569;
+  color: var(--coupons-empty-title-color);
   margin: 1rem 0 0.5rem 0;
 }
 
 .enhanced-empty-state-description {
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: var(--coupons-empty-desc-size);
+  color: var(--coupons-empty-text-color);
   max-width: 300px;
   line-height: 1.5;
 }

@@ -1430,12 +1430,12 @@ export default {
 <style scoped>
 .payment-method-btn {
   transition: all 0.3s ease !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: var(--payments-shadow-btn) !important;
 }
 
 .payment-method-btn:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: var(--payments-shadow-btn-hover) !important;
 }
 
 .action-btn {
@@ -1446,7 +1446,7 @@ export default {
 }
 
 .submit-btn {
-  background: linear-gradient(45deg, #1976d2 0%, #2196f3 100%) !important;
+  background: var(--payments-gradient-submit) !important;
   box-shadow: 0 6px 16px rgba(25, 118, 210, 0.3) !important;
 }
 
@@ -1456,7 +1456,7 @@ export default {
 }
 
 .print-btn {
-  background: linear-gradient(45deg, #4caf50 0%, #66bb6a 100%) !important;
+  background: var(--payments-gradient-print) !important;
   box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3) !important;
 }
 
@@ -1479,7 +1479,6 @@ export default {
 .section-header .v-card-title {
   font-weight: 600 !important;
 }
-
 
 .section-header-title {
   display: flex;

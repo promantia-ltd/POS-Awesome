@@ -2,19 +2,19 @@
 
 /* =================== CUSTOM FONT: SAMARKAN =================== */
 @font-face {
-  font-family: 'Samarkan';
-  src: url('/assets/posawesome/fonts/SAMAN___.TTF') format('truetype');
+  font-family: "Samarkan";
+  src: url("/assets/posawesome/fonts/SAMAN___.TTF") format("truetype");
 }
 
 .indian-style {
-  font-family: 'Samarkan', sans-serif !important;
+  font-family: "Samarkan", sans-serif !important;
   font-size: 32px;
   color: #000;
 }
 
 /* =================== GLOBAL IMPROVEMENTS =================== */
 .pos-enhanced {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* =================== MODERN HEADER ENHANCEMENTS =================== */
@@ -604,8 +604,12 @@ nav[role="navigation"] .v-list-item:hover {
 }
 
 @keyframes enhanced-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* =================== NOTIFICATIONS =================== */
@@ -635,16 +639,16 @@ nav[role="navigation"] .v-list-item:hover {
   .enhanced-item-card {
     margin-bottom: 1rem;
   }
-  
+
   .enhanced-controls {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .enhanced-action-buttons {
     flex-direction: column;
   }
-  
+
   .enhanced-cart-panel {
     padding: 1rem;
   }
@@ -674,8 +678,14 @@ nav[role="navigation"] .v-list-item:hover {
 }
 
 @keyframes enhanced-fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .enhanced-scale-in {
@@ -683,8 +693,14 @@ nav[role="navigation"] .v-list-item:hover {
 }
 
 @keyframes enhanced-scaleIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* =================== CUSTOM SCROLLBAR =================== */
@@ -710,8 +726,8 @@ nav[role="navigation"] .v-list-item:hover {
 .compact-pagination {
   margin: 0 !important;
   padding: 0 1rem !important;
-    display: flex !important;
-  align-items: center !important;         /* vertical centering */
+  display: flex !important;
+  align-items: center !important; /* vertical centering */
   justify-content: space-between !important;
   width: 100%;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
@@ -722,16 +738,16 @@ nav[role="navigation"] .v-list-item:hover {
 }
 
 .compact-pagination .page-info {
-  flex: 0 0 20%;              
+  flex: 0 0 20%;
 }
 
 .compact-pagination .v-pagination {
-  flex: 0 0 30%; 
+  flex: 0 0 30%;
   display: flex;
-  justify-content: flex-end; 
-} 
+  justify-content: flex-end;
+}
 
-.compact-pagination nav[role="navigation"]{
+.compact-pagination nav[role="navigation"] {
   border-bottom: 0 !important;
   background: transparent !important;
 }
@@ -750,4 +766,176 @@ nav[role="navigation"] .v-list-item:hover {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border-bottom: 1px solid #e2e8f0;
   padding: 1.5rem;
+}
+
+:root {
+  /* Brand Gradients */
+  --brand-gradient-dark: linear-gradient(
+    135deg,
+    #1e293b 0%,
+    #475569 50%,
+    #64748b 100%
+  );
+  --brand-gradient-colorful: linear-gradient(
+    135deg,
+    #8b5cf6 0%,
+    #3b82f6 50%,
+    #f59e0b 100%
+  );
+  --brand-underline: linear-gradient(
+    90deg,
+    #3b82f6 0%,
+    #8b5cf6 50%,
+    #f59e0b 100%
+  );
+
+  /* Sidebar Backgrounds */
+  --sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  --sidebar-header-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+
+  /* Hover / Active States */
+  --hover-bg: #f1f5f9;
+  --hover-bg-dark: #e2e8f0;
+  --active-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+
+  /* Fonts */
+  --brand-font-latin: "Inter", "Segoe UI", sans-serif;
+  --brand-font-devanagari: "Devanagari Sangam MN", "Noto Sans Devanagari",
+    "Mangal", sans-serif;
+
+  /* Pay vue */
+
+  /* === Background Gradients === */
+  --card-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  --section-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --subsection-bg: linear-gradient(135deg, #fafbff 0%, #f0f4ff 100%);
+  --difference-bg: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+
+  /* === Borders === */
+  --border-light: #e2e8f0;
+  --border-subsection: #ddd6fe;
+  --border-difference: #bbf7d0;
+
+  /* === Text Colors === */
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --text-subsection: #374151;
+
+  /* === Icon Colors === */
+  --icon-section: #3b82f6;
+  --icon-subsection: #6366f1;
+
+  /* === Icon Backgrounds === */
+  --icon-section-bg: rgba(59, 130, 246, 0.1);
+  --icon-subsection-bg: rgba(99, 102, 241, 0.1);
+
+  /* === Button === */
+  --btn-radius: 10px;
+  --btn-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  /* === Chip === */
+  --chip-radius: 8px;
+
+  /* Coupons Modal */
+  /* Modal */
+  --modal-radius: 16px;
+  --modal-bg: #f8fafc;
+  --modal-border: 1px solid #e2e8f0;
+
+  /* Add Section */
+  --add-section-bg: #f8fafc;
+  --add-section-border: 1px solid #e2e8f0;
+  --add-section-radius: 12px;
+
+  /* Buttons */
+  --btn-text-transform: none;
+  --btn-font-weight: 600;
+
+  /* Tables */
+  --table-radius: 12px;
+
+  /* Empty State */
+  --coupons-empty-title-color: #475569;
+  --coupons-empty-text-color: #64748b;
+  --coupons-empty-title-size: 1.1rem;
+  --coupons-empty-desc-size: 0.9rem;
+
+  /* Empty State */
+  --empty-bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  --empty-border: 2px dashed #cbd5e1;
+  --empty-radius: 12px;
+  --empty-text-color: #64748b;
+  --empty-title-color: #475569;
+  --empty-title-size: 1.25rem;
+  --empty-desc-size: 0.95rem;
+
+  /* Action Button */
+  --empty-btn-bg: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  --empty-btn-color: #fff;
+  --empty-btn-radius: 8px;
+  --empty-btn-font-weight: 500;
+  --empty-btn-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
+
+  /* item selector */
+  --itemselect-color-primary: #3b82f6;
+  --itemselect-color-primary-dark: #1d4ed8;
+  --itemselect-color-success: #10b981;
+  --itemselect-color-warning: #f59e0b;
+  --itemselect-color-error: #ef4444;
+  --itemselect-color-bg-card: #ffffff;
+  --itemselect-color-bg-container: #f8fafc;
+  --itemselect-color-bg-empty: #f1f5f9;
+  --itemselect-color-border: #e2e8f0;
+  --itemselect-color-text-main: #1e293b;
+  --itemselect-color-text-muted: #64748b;
+  --itemselect-color-text-secondary: #6b7280;
+
+  /* Fonts */
+  --itemselect-font-base: "Roboto", "Helvetica", "Arial", sans-serif;
+
+  /* Gradients */
+  --itemselect-gradient-card: linear-gradient(
+    135deg,
+    var(--itemselect-color-bg-card) 0%,
+    var(--itemselect-color-bg-container) 100%
+  );
+  --itemselect-gradient-empty: linear-gradient(
+    135deg,
+    var(--itemselect-color-bg-container) 0%,
+    var(--itemselect-color-bg-empty) 100%
+  );
+  --itemselect-gradient-action-btn: linear-gradient(
+    135deg,
+    var(--itemselect-color-primary) 0%,
+    var(--itemselect-color-primary-dark) 100%
+  );
+
+  /* offers modal */
+  --offersmodal-color-primary: #3b82f6;
+  --offersmodal-color-primary-dark: #1d4ed8;
+  --offersmodal-color-text-main: #1e293b;
+  --offersmodal-color-text-muted: #64748b;
+  --offersmodal-color-border: #e2e8f0;
+  --offersmodal-color-bg: #f8fafc;
+  --offersmodal-color-bg-card: #ffffff;
+
+  /* Fonts */
+  --offersmodal-font-base: "Roboto", "Helvetica", "Arial", sans-serif;
+
+  /* Border radius */
+  --offersmodal-radius-card: 16px;
+  --offersmodal-radius-table: 12px;
+
+  /* Empty state */
+  --offersmodal-empty-padding: 3rem 2rem;
+  --offersmodal-empty-max-width: 300px;
+
+  /* Shadows */
+  --payments-shadow-btn: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --payments-shadow-btn-hover: 0 6px 16px rgba(0, 0, 0, 0.2);
+
+  /* Gradients */
+  --payments-gradient-submit: linear-gradient(45deg, #1976d2 0%, #2196f3 100%);
+  --payments-gradient-print: linear-gradient(45deg, #4caf50 0%, #66bb6a 100%);
+  --payments-gradient-cancel: linear-gradient(45deg, #f44336 0%, #ef5350 100%);
 }

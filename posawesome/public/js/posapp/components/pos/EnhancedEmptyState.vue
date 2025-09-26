@@ -42,36 +42,36 @@ defineEmits(['action'])
   justify-content: center;
   padding: 3rem 2rem;
   text-align: center;
-  color: #64748b;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 12px;
-  border: 2px dashed #cbd5e1;
+  color: var(--empty-text-color);
+  background: var(--empty-bg-gradient);
+  border-radius: var(--empty-radius);
+  border: var(--empty-border);
   margin: 2rem 0;
   min-height: 300px;
 }
 
 .enhanced-empty-state-title {
-  font-size: 1.25rem;
+  font-size: var(--empty-title-size);
   font-weight: 600;
-  color: #475569;
+  color: var(--empty-title-color);
   margin: 1rem 0 0.5rem 0;
 }
 
 .enhanced-empty-state-description {
-  font-size: 0.95rem;
-  color: #64748b;
+  font-size: var(--empty-desc-size);
+  color: var(--empty-text-color);
   margin-bottom: 1.5rem;
   max-width: 400px;
   line-height: 1.5;
 }
 
 .enhanced-empty-state-action {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
+  background: var(--empty-btn-bg);
+  color: var(--empty-btn-color);
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: var(--empty-btn-radius);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: var(--empty-btn-font-weight);
   transition: all 0.3s ease;
   border: none;
   cursor: pointer;
@@ -79,7 +79,7 @@ defineEmits(['action'])
 
 .enhanced-empty-state-action:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
+  box-shadow: var(--empty-btn-shadow);
 }
 
 .enhanced-fade-in {
