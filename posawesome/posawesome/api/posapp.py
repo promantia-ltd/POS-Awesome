@@ -439,6 +439,19 @@ def get_customer_names(pos_profile):
         return _get_customer_names(pos_profile)
 
 
+def clear_customer_cache(pos_profile_doc):
+    """Clear customer cache after customer creation/update"""
+    try:
+        # Use wildcard pattern to match all cached customer queries for this POS profile
+        # The redis_cache creates keys in format: module.function::hash(args)
+        # We need to clear all variations of get_customer_names cache
+        cache_key_pattern = "posawesome.posawesome.api.posapp.get_customer_names.<locals>.__get_customer_names"
+        frappe.cache().delete_keys(cache_key_pattern)
+        
+    except Exception as e:
+        frappe.log_error(f"Error clearing customer cache: {str(e)}", "POSAwesome Customer Cache Clear")
+
+
 @frappe.whitelist()
 def get_sales_person_names():
     sales_persons = frappe.get_list(
@@ -564,7 +577,6 @@ def update_invoice(data):
 
     invoice_doc.save()
     return invoice_doc
-
 
 @frappe.whitelist()
 def submit_invoice(invoice, data):
@@ -1104,6 +1116,8 @@ def create_customer(
             else:
                 customer.territory = "All Territories"
             customer.save()
+            # Clear customer cache after creation
+            clear_customer_cache(pos_profile_doc)
             return {"name": customer.name}
         else:
             frappe.throw(_("Customer already exists"))
@@ -1124,6 +1138,8 @@ def create_customer(
             set_customer_info(customer_doc.name, "mobile_no", mobile_no)
         if email_id != customer_doc.email_id:
             set_customer_info(customer_doc.name, "email_id", email_id)
+        # Clear customer cache after update
+        clear_customer_cache(pos_profile_doc)
         return {"name": customer_doc.name}
 
     
