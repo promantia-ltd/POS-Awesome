@@ -985,7 +985,7 @@ export default {
       );
       item.rate = this.flt(parsedTotal / item.qty, this.currency_precision);
 
-      // Mark the item as modified so it doesn't reset
+      // Mark the item as modified to prevent auto-update from overriding
       item.modified = true;
       item.amount = parsedTotal;
       //this.set(this.items, this.items.indexOf(item), item);
@@ -1340,6 +1340,11 @@ export default {
         if (!item.posa_row_id) {
           item.posa_row_id = this.makeid(20);
         }
+        // Detect if rate was customized by comparing with price_list_rate
+        // Set modified flag to prevent auto-update from overriding custom rates
+        if (item.rate && item.price_list_rate && flt(item.rate) !== flt(item.price_list_rate)) {
+          item.modified = true;
+        }
         if (item.batch_no) {
           this.set_batch_qty(item, item.batch_no);
         }
@@ -1423,6 +1428,11 @@ export default {
         this.items.forEach((item) => {
           if (!item.posa_row_id) {
             item.posa_row_id = this.makeid(20);
+          }
+          // Detect if rate was customized by comparing with price_list_rate
+          // Set modified flag to prevent auto-update from overriding custom rates
+          if (item.rate && item.price_list_rate && flt(item.rate) !== flt(item.price_list_rate)) {
+            item.modified = true;
           }
           if (item.batch_no) {
             this.set_batch_qty(item, item.batch_no);
@@ -2070,7 +2080,8 @@ export default {
               if (
                 !item.is_free_item &&
                 !item.posa_is_offer &&
-                !item.posa_is_replace
+                !item.posa_is_replace &&
+                !item.modified  // Don't override rate for manually modified items
               ) {
                 item.price_list_rate = data.price_list_rate;
               }
@@ -2174,7 +2185,7 @@ export default {
         item.rate = flt(item.rate) - flt(value);
         item.discount_amount = this.flt(value, this.currency_precision);
 
-        // Mark the item as modified
+        // Mark the item as modified to prevent auto-update from overriding
         item.modified = true;
         this.$forceUpdate();
         //this.set(this.items, this.items.indexOf(item), item);
@@ -2213,6 +2224,8 @@ export default {
           item.rate = newValue;
           item.discount_amount = 0;
         }
+        // Mark item as modified to preserve custom rate during draft load
+        item.modified = true;
       } else if ($event?.target?.id === "discount_amount") {
         if (newValue < 0) {
           item.discount_amount = 0;
@@ -2224,6 +2237,8 @@ export default {
           );
           item.discount_percentage = 0;
         }
+        // Mark item as modified to preserve custom rate during draft load
+        item.modified = true;
       } else if ($event?.target?.id === "discount_percentage") {
         if (newValue < 0) {
           item.discount_amount = 0;
@@ -2239,6 +2254,8 @@ export default {
             this.currency_precision
           );
         }
+        // Mark item as modified to preserve custom rate during draft load
+        item.modified = true;
       }
 
       item.item_total = this.flt(
