@@ -1913,16 +1913,20 @@ export default {
         }
       }
       if (item.discount_percentage) {
+        // Use current rate as base if item is modified, otherwise use price_list_rate
+        const base_rate = item.modified ? item.rate : item.price_list_rate;
         item.rate =
-          flt(item.price_list_rate) -
-          (flt(item.price_list_rate) * flt(item.discount_percentage)) / 100;
+          flt(base_rate) -
+          (flt(base_rate) * flt(item.discount_percentage)) / 100;
         item.discount_amount = this.flt(
-          flt(item.price_list_rate) - flt(item.rate),
+          flt(base_rate) - flt(item.rate),
           this.currency_precision
         );
       } else if (item.discount_amount) {
+        // Use current rate as base if item is modified, otherwise use price_list_rate
+        const base_rate = item.modified ? item.rate : item.price_list_rate;
         item.rate = this.flt(
-          flt(item.price_list_rate) - flt(item.discount_amount),
+          flt(base_rate) - flt(item.discount_amount),
           this.currency_precision
         );
       }
