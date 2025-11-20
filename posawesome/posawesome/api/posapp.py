@@ -658,7 +658,14 @@ def submit_invoice(invoice, data):
             update_modified=False,
         )
 
-    if frappe.get_value("POS Profile", invoice_doc.pos_profile, "posa_allow_submissions_in_background_job"):
+    # Store the setting value before processing
+    allow_background_submission = frappe.get_value(
+        "POS Profile",
+        invoice_doc.pos_profile,
+        "posa_allow_submissions_in_background_job"
+    )
+
+    if allow_background_submission:
         invoices_list = frappe.get_all(
             "Sales Invoice",
             filters={
@@ -709,7 +716,8 @@ def submit_invoice(invoice, data):
         "name": invoice_doc.name,
         "status": invoice_doc.docstatus,
         "return_against": invoice_doc.return_against,
-        "update_outstanding_for_self": invoice_doc.update_outstanding_for_self
+        "update_outstanding_for_self": invoice_doc.update_outstanding_for_self,
+        "submitted_in_background": allow_background_submission or False,
     }
 
 

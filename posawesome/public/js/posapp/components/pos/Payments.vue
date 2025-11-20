@@ -813,13 +813,16 @@ export default {
       data["is_cashback"] = this.is_cashback;
 
       const vm = this;
+      // Check POS Profile setting for background processing
+      let use_async = this.pos_profile?.posa_allow_submissions_in_background_job || false;
+
       frappe.call({
         method: "posawesome.posawesome.api.posapp.submit_invoice",
         args: {
           data: data,
           invoice: this.invoice_doc,
         },
-        async: false,
+        async: use_async ? true : false,
         callback: function (r) {
           if (!r?.message) {
             vm.eventBus.emit("show_message", {
@@ -837,10 +840,20 @@ export default {
           vm.sales_person = "";
 
           vm.eventBus.emit("set_last_invoice", vm.invoice_doc.name);
-          vm.eventBus.emit("show_message", {
-            title: `Invoice ${r.message.name} is Submited`,
-            color: "success",
-          });
+
+          // Check if invoice was queued for background submission
+          if (r.message.submitted_in_background) {
+            vm.eventBus.emit("show_message", {
+              title: `Invoice ${r.message.name} queued for submission`,
+              color: "info",
+            });
+          } else {
+            vm.eventBus.emit("show_message", {
+              title: `Invoice ${r.message.name} is Submited`,
+              color: "success",
+            });
+          }
+
           frappe.utils.play_sound("submit");
           vm.addresses = [];
           vm.eventBus.emit("clear_invoice");
