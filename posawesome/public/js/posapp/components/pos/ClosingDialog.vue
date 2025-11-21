@@ -1,6 +1,6 @@
 <template>
-  <v-dialog v-model="closingDialog" max-width="800px" persistent>
-    <v-card rounded="xl" elevation="8">
+  <v-dialog v-model="closingDialog" max-width="900px" width="95vw" persistent>
+    <v-card rounded="xl" elevation="8" class="closing-dialog-card">
       <v-card-title class="d-flex align-center justify-space-between px-6 py-4 enhanced-modal-header">
         <span class="text-h6 font-weight-bold text-primary">
           {{ __('Closing POS Shift') }}
@@ -34,37 +34,30 @@
           </template>
 
           <template v-slot:item.closing_amount="props">
-            <v-confirm-edit v-model:return-value="props.item.closing_amount">
-              <span class="font-mono">
-                {{ currencySymbol(pos_profile.currency) }}
-                {{ formatCurrency(props.item.closing_amount) }}
-              </span>
-              <template v-slot:input>
-                <v-text-field
-                  v-model="props.item.closing_amount"
-                  type="number"
-                  density="compact"
-                  variant="outlined"
-                  :rules="[max25chars]"
-                  hide-details
-                />
-              </template>
-            </v-confirm-edit>
+            <v-text-field
+              v-model.number="props.item.closing_amount"
+              type="text"
+              inputmode="decimal"
+              density="compact"
+              variant="outlined"
+              :rules="amountRules"
+              :prefix="currencySymbol(pos_profile.currency)"
+              hide-details
+              class="mt-n1"
+            />
           </template>
 
           <template v-slot:item.difference="{ item }">
             <span
-              :class="{
-                'text-success': item.expected_amount - item.closing_amount === 0,
-                'text-error': item.expected_amount - item.closing_amount !== 0
-              }"
-              class="font-mono"
+              class="font-mono text-no-wrap"
+              :class="differenceClass(item)"
             >
               {{ currencySymbol(pos_profile.currency) }}
               {{
-                (item.difference = formatCurrency(
-                  item.expected_amount - item.closing_amount
-                ))
+                formatCurrency(
+                  numberAmount(item.expected_amount) -
+                  numberAmount(item.closing_amount)
+                )
               }}
             </span>
           </template>
@@ -89,6 +82,8 @@
 <script>
 
 import format from '../../format';
+import { toast } from 'vue3-toastify';
+import { amountRules, isAmountValid } from './validation';
 export default {
   mixins: [format],
   data: () => ({
@@ -105,18 +100,18 @@ export default {
       },
       {
         title: __('Opening Amount'),
-        align: 'end',
+        align: 'center',
         sortable: true,
         value: 'opening_amount',
       },
       {
         title: __('Closing Amount'),
         value: 'closing_amount',
-        align: 'end',
+        align: 'center',
         sortable: true,
       },
     ],
-    max25chars: (v) => v.length <= 20 || 'Input too long!', // TODO : should validate as number
+    amountRules,
     pagination: {},
   }),
   watch: {},
@@ -125,7 +120,35 @@ export default {
     close_dialog() {
       this.closingDialog = false;
     },
+    numberAmount(val) {
+      return Number(val || 0);
+    },
+    differenceClass(item) {
+      const expected = this.numberAmount(item.expected_amount);
+      const closing = this.numberAmount(item.closing_amount);
+      const diff = expected - closing;
+      return Math.abs(diff) < 0.01 ? 'text-success' : 'text-error';
+    },
     submit_dialog() {
+      const payments = this.dialog_data.payment_reconciliation || [];
+      const has_invalid_amount = payments.some(
+        (p) => !isAmountValid(p.closing_amount)
+      );
+      if (has_invalid_amount) {
+        toast.error(__('Please enter valid non-negative amounts.'), {
+          autoClose: 5000,
+        });
+        return;
+      }
+      this.dialog_data.payment_reconciliation = payments.map((p) => ({
+        ...p,
+        closing_amount:
+          p.closing_amount === '' ||
+          p.closing_amount === null ||
+          p.closing_amount === undefined
+            ? 0
+            : Number(p.closing_amount),
+      }));
       this.eventBus.emit('submit_closing_pos', this.dialog_data);
       this.closingDialog = false;
     },
@@ -156,3 +179,13 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.text-no-wrap {
+  white-space: nowrap;
+}
+
+.closing-dialog-card {
+  width: min(900px, 95vw);
+}
+</style>
