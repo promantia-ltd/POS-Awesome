@@ -85,6 +85,7 @@
 
 import format from '../../format';
 import { toast } from 'vue3-toastify';
+import { amountRules, isAmountValid } from './validation';
 export default {
   mixins: [format],
   data: () => ({
@@ -112,17 +113,7 @@ export default {
         sortable: true,
       },
     ],
-    amountRules: [
-      (v) =>
-        v === '' ||
-        v === null ||
-        v === undefined ||
-        (!isNaN(v) && Number(v) >= 0) ||
-        'Enter a non-negative number',
-      (v) =>
-        (v !== null && v !== undefined ? String(v).length <= 12 : true) ||
-        'Input too long!',
-    ],
+    amountRules,
     pagination: {},
   }),
   watch: {},
@@ -134,7 +125,7 @@ export default {
     submit_dialog() {
       const payments = this.dialog_data.payment_reconciliation || [];
       const has_invalid_amount = payments.some(
-        (p) => !this.is_amount_valid(p.closing_amount)
+        (p) => !isAmountValid(p.closing_amount)
       );
       if (has_invalid_amount) {
         toast.error(__('Please enter valid non-negative amounts.'), {
@@ -153,16 +144,6 @@ export default {
       }));
       this.eventBus.emit('submit_closing_pos', this.dialog_data);
       this.closingDialog = false;
-    },
-    is_amount_valid(val) {
-      if (val === '' || val === null || val === undefined) {
-        return true;
-      }
-      if (isNaN(val)) {
-        return false;
-      }
-      const num = Number(val);
-      return num >= 0 && String(val).length <= 12;
     },
   },
 
