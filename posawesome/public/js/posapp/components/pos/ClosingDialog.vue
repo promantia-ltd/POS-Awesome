@@ -1,6 +1,6 @@
 <template>
-  <v-dialog v-model="closingDialog" max-width="800px" persistent>
-    <v-card rounded="xl" elevation="8">
+  <v-dialog v-model="closingDialog" max-width="900px" width="95vw" persistent>
+    <v-card rounded="xl" elevation="8" class="closing-dialog-card">
       <v-card-title class="d-flex align-center justify-space-between px-6 py-4 enhanced-modal-header">
         <span class="text-h6 font-weight-bold text-primary">
           {{ __('Closing POS Shift') }}
@@ -49,17 +49,15 @@
 
           <template v-slot:item.difference="{ item }">
             <span
-              :class="{
-                'text-success': item.expected_amount - item.closing_amount === 0,
-                'text-error': item.expected_amount - item.closing_amount !== 0
-              }"
-              class="font-mono"
+              class="font-mono text-no-wrap"
+              :class="differenceClass(item)"
             >
               {{ currencySymbol(pos_profile.currency) }}
               {{
-                (item.difference = formatCurrency(
-                  item.expected_amount - item.closing_amount
-                ))
+                formatCurrency(
+                  numberAmount(item.expected_amount) -
+                  numberAmount(item.closing_amount)
+                )
               }}
             </span>
           </template>
@@ -122,6 +120,15 @@ export default {
     close_dialog() {
       this.closingDialog = false;
     },
+    numberAmount(val) {
+      return Number(val || 0);
+    },
+    differenceClass(item) {
+      const expected = this.numberAmount(item.expected_amount);
+      const closing = this.numberAmount(item.closing_amount);
+      const diff = expected - closing;
+      return Math.abs(diff) < 0.01 ? 'text-success' : 'text-error';
+    },
     submit_dialog() {
       const payments = this.dialog_data.payment_reconciliation || [];
       const has_invalid_amount = payments.some(
@@ -172,3 +179,13 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.text-no-wrap {
+  white-space: nowrap;
+}
+
+.closing-dialog-card {
+  width: min(900px, 95vw);
+}
+</style>
