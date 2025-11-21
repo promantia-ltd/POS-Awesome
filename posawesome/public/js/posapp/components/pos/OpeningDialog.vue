@@ -46,22 +46,17 @@
                 hide-default-footer
               >
                 <template v-slot:item.amount="props">
-                  <v-confirm-edit v-model:return-value="props.item.amount">
-                    <span class="font-mono">
-                      {{ currencySymbol(props.item.currency) }}
-                      {{ formatCurrency(props.item.amount) }}
-                    </span>
-                    <template v-slot:input>
-                      <v-text-field
-                        v-model="props.item.amount"
-                        type="number"
-                        density="compact"
-                        variant="outlined"
-                        :rules="[max25chars]"
-                        hide-details
-                      />
-                    </template>
-                  </v-confirm-edit>
+                  <v-text-field
+                    v-model.number="props.item.amount"
+                    type="text"
+                    inputmode="decimal"
+                    density="compact"
+                    variant="outlined"
+                    :rules="amountRules"
+                    :prefix="currencySymbol(props.item.currency)"
+                    hide-details
+                    class="mt-n1"
+                  />
                 </template>
               </v-data-table>
             </v-col>
@@ -92,6 +87,7 @@
 <script>
 
 import format from '../../format';
+import { toast } from 'vue3-toastify';
 export default {
   mixins: [format],
   props: ['dialog'],
@@ -122,7 +118,17 @@ export default {
         },
       ],
       itemsPerPage: 100,
-      max25chars: (v) => v.length <= 12 || 'Input too long!', // TODO : should validate as number
+      amountRules: [
+        (v) =>
+          v === '' ||
+          v === null ||
+          v === undefined ||
+          (!isNaN(v) && Number(v) >= 0) ||
+          'Enter a non-negative number',
+        (v) =>
+          (v !== null && v !== undefined ? String(v).length <= 12 : true) ||
+          'Input too long!',
+      ],
       pagination: {},
       snack: false, // TODO : need to remove
       snackColor: '', // TODO : need to remove
@@ -181,22 +187,51 @@ export default {
       if (!this.payments_methods.length || !this.company || !this.pos_profile) {
         return;
       }
+      const has_invalid_amount = this.payments_methods.some(
+        (p) => !this.is_amount_valid(p.amount)
+      );
+      if (has_invalid_amount) {
+        toast.error(__('Please enter valid non-negative amounts.'), {
+          autoClose: 5000,
+        });
+        return;
+      }
       this.is_loading = true;
-      var vm = this;
+      const vm = this;
+      const balance_details = this.payments_methods.map((p) => ({
+        ...p,
+        amount:
+          p.amount === '' || p.amount === null || p.amount === undefined
+            ? 0
+            : Number(p.amount),
+      }));
       return frappe
         .call('posawesome.posawesome.api.posapp.create_opening_voucher', {
           pos_profile: this.pos_profile,
           company: this.company,
-          balance_details: this.payments_methods,
+          balance_details,
         })
         .then((r) => {
           if (r.message) {
             vm.eventBus.emit('register_pos_data', r.message);
             vm.eventBus.emit('set_company', r.message.company);
             vm.close_opening_dialog();
-            is_loading = false;
+            vm.is_loading = false;
           }
+        })
+        .finally(() => {
+          vm.is_loading = false;
         });
+    },
+    is_amount_valid(val) {
+      if (val === '' || val === null || val === undefined) {
+        return true;
+      }
+      if (isNaN(val)) {
+        return false;
+      }
+      const num = Number(val);
+      return num >= 0 && String(val).length <= 12;
     },
     go_desk() {
       frappe.set_route('/');

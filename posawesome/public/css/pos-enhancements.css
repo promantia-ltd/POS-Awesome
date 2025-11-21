@@ -939,3 +939,22 @@ nav[role="navigation"] .v-list-item:hover {
   --payments-gradient-print: linear-gradient(45deg, #4caf50 0%, #66bb6a 100%);
   --payments-gradient-cancel: linear-gradient(45deg, #f44336 0%, #ef5350 100%);
 }
+
+/* =================== ALERT POSITIONING (TOP RIGHT) =================== */
+#alert-container {
+  position: fixed !important;
+  top: 16px !important;
+  right: 16px !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 1100 !important;
+  width: auto;
+  max-width: 420px;
+  pointer-events: none;
+}
+
+#alert-container .alert {
+  pointer-events: auto;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
