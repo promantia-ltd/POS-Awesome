@@ -102,6 +102,26 @@
               </template>
             </v-switch>
           </v-col>
+          <!-- Return Mode Badge -->
+          <v-col
+            v-if="invoice_doc.is_return"
+            :cols="$vuetify.display.mdAndDown ? 12 : 2"
+            :class="
+              $vuetify.display.mdAndDown
+                ? 'py-1'
+                : 'pb-0 mb-0 pt-0 d-flex align-center'
+            "
+          >
+            <v-chip
+              color="error"
+              variant="flat"
+              size="default"
+              class="font-weight-bold"
+            >
+              <v-icon start size="small">mdi-arrow-u-left-bottom</v-icon>
+              {{ __('RETURN MODE') }}
+            </v-chip>
+          </v-col>
         </v-row>
 
         <v-row
@@ -230,31 +250,45 @@
           @item-expanded="preserveItemState"
         >
           <template v-slot:item.qty="{ item }">
-            <v-text-field
-              density="compact"
-              variant="outlined"
-              color="primary"
-              :label="frappe._('')"
-              bg-color="white"
-              hide-details
-              :model-value="formatFloat(item.qty)"
-              @change="
-                [
-                  this.setFormatedFloat(
-                    item,
-                    'qty',
-                    null,
-                    false,
-                    $event.srcElement._value
-                  ),
-                  this.calc_stock_qty(item, $event.srcElement._value),
-                  this.resetDiscountOnQtyChange(item),
-                ]
-              "
-              :rules="[isNumber]"
-              :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
-            >
-            </v-text-field>
+            <div>
+              <v-text-field
+                density="compact"
+                variant="outlined"
+                color="primary"
+                :label="frappe._('')"
+                bg-color="white"
+                hide-details
+                :model-value="formatFloat(invoice_doc.is_return ? Math.abs(item.qty) : item.qty)"
+                :prefix="invoice_doc.is_return ? '-' : ''"
+                @change="
+                  [
+                    this.setReturnQty(
+                      item,
+                      $event.srcElement._value
+                    ),
+                    this.resetDiscountOnQtyChange(item),
+                  ]
+                "
+                :rules="[isNumber]"
+                :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
+              >
+              </v-text-field>
+              <!-- Return qty limit indicator -->
+              <div v-if="invoice_doc.is_return && item.max_returnable_qty" class="return-qty-indicator mt-1">
+                <div class="text-caption text-grey d-flex justify-space-between">
+                  <span>{{ __('Max') }}: {{ item.max_returnable_qty }}</span>
+                  <span v-if="item.already_returned_qty > 0" class="text-warning">
+                    {{ __('Returned') }}: {{ item.already_returned_qty }}
+                  </span>
+                </div>
+                <v-progress-linear
+                  :model-value="(Math.abs(item.qty) / item.max_returnable_qty) * 100"
+                  :color="Math.abs(item.qty) === item.max_returnable_qty ? 'success' : 'primary'"
+                  height="3"
+                  rounded
+                ></v-progress-linear>
+              </div>
+            </div>
           </template>
           <template v-slot:item.rate="{ item }">
             <v-text-field
@@ -300,12 +334,12 @@
               :label="frappe._('')"
               bg-color="white"
               hide-details
-              :prefix="currencySymbol(pos_profile.currency)"
-              :model-value="formatCurrency(item.qty * item.rate || 0.0)"
+              :prefix="invoice_doc.is_return ? '-' + currencySymbol(pos_profile.currency) : currencySymbol(pos_profile.currency)"
+              :model-value="formatCurrency(Math.abs(item.qty * item.rate) || 0.0)"
               @change="
                 [updateItemTotal(item, $event), resetDiscountOnQtyChange(item)]
               "
-              :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
+              :disabled="!pos_profile.custom_allow_user_to_edit_item_total || invoice_doc.is_return"
             ></v-text-field>
           </template>
           <template v-slot:item.posa_is_offer="{ item }">
@@ -364,7 +398,7 @@
                       text-align: center;
                     "
                   >
-                    {{ item.qty }}
+                    {{ invoice_doc.is_return ? '-' + Math.abs(item.qty) : item.qty }}
                   </span>
 
                   <v-btn
@@ -1312,23 +1346,41 @@ export default {
     },
 
     add_one(item) {
-      item.qty++;
+      if (this.invoice_doc.is_return) {
+        // For returns: "+" increases return qty (more negative)
+        item.qty--;
+      } else {
+        item.qty++;
+      }
       if (item.qty == 0) {
         this.remove_item(item);
       }
       this.calc_stock_qty(item, item.qty);
+      item.amount = item.qty * item.rate;
       this.$forceUpdate();
     },
     subtract_one(item) {
-      item.qty--;
+      if (this.invoice_doc.is_return) {
+        // For returns: "-" decreases return qty (less negative, closer to 0)
+        item.qty++;
+      } else {
+        item.qty--;
+      }
       if (item.qty == 0) {
         this.remove_item(item);
       }
       this.calc_stock_qty(item, item.qty);
+      item.amount = item.qty * item.rate;
       this.$forceUpdate();
     },
 
     add_item(item) {
+      // Restrict adding new items during return flow
+      if (this.invoice_doc.is_return) {
+        toast.error(__('Cannot add items in return mode'));
+        return;
+      }
+
       if (!item.uom) {
         item.uom = item.stock_uom;
       }
@@ -1737,6 +1789,9 @@ export default {
           price_list_rate: item.price_list_rate,
           // Sales Person
           custom_sales_person: item.sales_person,
+          // Return item references (for sales returns)
+          sales_invoice_item: item.sales_invoice_item,
+          si_detail: item.si_detail,
           //
         };
         items_list.push(new_item);
@@ -2005,18 +2060,12 @@ export default {
             value = false;
             return value;
           }
-          if (Math.abs(this.subtotal) > Math.abs(this.return_doc.total)) {
-            toast.error(
-              __(`Return Invoice Total should not be higher than {0}`, [
-                this.return_doc.total,
-              ])
-            );
-            value = false;
-            return value;
-          }
+
+          // Validate each item exists in original invoice
           this.items.forEach((item) => {
+            // Use String() to avoid type mismatch between string and int item_code
             const return_item = this.return_doc.items.find(
-              (element) => element.item_code == item.item_code
+              (element) => String(element.item_code) === String(item.item_code)
             );
 
             if (!return_item) {
@@ -2028,14 +2077,23 @@ export default {
               );
               value = false;
               return value;
-            } else if (
-              Math.abs(item.qty) > Math.abs(return_item.qty) ||
-              Math.abs(item.qty) == 0
-            ) {
+            }
+
+            const return_qty = Math.abs(item.qty);
+
+            if (return_qty === 0) {
               toast.error(
-                __(`The QTY of the item {0} cannot be greater than {1}`, [
+                __(`Return quantity for item {0} cannot be zero`, [item.item_name])
+              );
+              value = false;
+              return value;
+            }
+
+            if (return_qty > Math.abs(return_item.qty)) {
+              toast.error(
+                __(`The QTY of item {0} cannot be greater than {1}`, [
                   item.item_name,
-                  return_item.qty,
+                  Math.abs(return_item.qty),
                 ])
               );
               value = false;
@@ -2422,6 +2480,48 @@ export default {
 
     calc_stock_qty(item, value) {
       item.stock_qty = item.conversion_factor * value;
+    },
+
+    /**
+     * Handle qty changes for both regular and return invoices.
+     * For returns: user enters positive value, we store as negative.
+     * Display shows absolute value with "-" prefix for returns.
+     * For partial returns: enforces max_returnable_qty limit.
+     * Note: New items cannot be added in return mode (blocked in add_item).
+     */
+    setReturnQty(item, inputValue) {
+      // Parse the input value
+      let newQty = parseFloat(inputValue) || 0;
+
+      if (this.invoice_doc.is_return) {
+        // For returns: user enters positive qty, we store as negative
+        // Since we block adding new items in return mode, all items here are return items
+        newQty = Math.abs(newQty);
+
+        // Enforce max returnable quantity for partial returns
+        if (item.max_returnable_qty && newQty > item.max_returnable_qty) {
+          toast.warning(__('Cannot return more than {0} {1}. Already returned: {2}', [
+            item.max_returnable_qty,
+            item.uom || '',
+            item.already_returned_qty || 0
+          ]));
+          newQty = item.max_returnable_qty;
+        }
+
+        // Ensure at least 1 if qty was set
+        if (newQty < 1 && inputValue) {
+          newQty = 1;
+        }
+
+        item.qty = -newQty;
+        item.stock_qty = item.conversion_factor * -newQty;
+        item.amount = item.rate * -newQty;
+      } else {
+        // For regular invoices: use standard logic
+        this.setFormatedFloat(item, 'qty', null, false, inputValue);
+        this.calc_stock_qty(item, parseFloat(inputValue) || 0);
+      }
+      this.$forceUpdate();
     },
 
     set_serial_no(item) {
