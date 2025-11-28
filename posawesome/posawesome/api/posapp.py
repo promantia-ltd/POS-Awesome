@@ -591,8 +591,14 @@ def submit_invoice(invoice, data):
     if isinstance(is_cashback, str):
         is_cashback = is_cashback.lower() == "true"
 
-    if invoice_doc.is_return and invoice_doc.return_against :
+    if invoice_doc.is_return and invoice_doc.return_against:
         invoice_doc.update_outstanding_for_self = 0 if is_cashback else 1
+
+        # Only add payments for cashback (immediate refund)
+        # For store credit, leave payments empty so outstanding_amount stays negative
+        if not is_cashback:
+            invoice_doc.payments = []
+            invoice_doc.paid_amount = 0
 
     if data.get("credit_change") and is_cashback:
         advance_payment_entry = frappe.get_doc({
@@ -836,30 +842,37 @@ def submit_in_background_job(kwargs):
 
 @frappe.whitelist()
 def get_available_credit(customer, company):
+    """
+    Get available customer credit from two sources:
+    1. Credit Notes (Return Invoices with outstanding credit)
+    2. Advance Payments (Unallocated payment entries)
+    """
     total_credit = []
 
-    outstanding_invoices = frappe.get_all(
+    # Get credit from Credit Notes (Return Invoices)
+    credit_notes = frappe.get_all(
         "Sales Invoice",
         {
-            "outstanding_amount": ["<", 0],
+            "outstanding_amount": ["<", 0],  # Has available credit (negative outstanding)
             "docstatus": 1,
-            "is_return": 0,
+            "is_return": 1,  # Only return invoices (credit notes)
             "customer": customer,
             "company": company,
         },
-        ["name", "outstanding_amount"],
+        ["name", "outstanding_amount", "return_against"],
     )
 
-    for row in outstanding_invoices:
-        outstanding_amount = -(row.outstanding_amount)
-        row = {
-            "type": "Invoice",
+    for row in credit_notes:
+        outstanding_amount = -(row.outstanding_amount)  # Convert to positive for display
+        credit_entry = {
+            "type": "Invoice",  # Keep as "Invoice" for compatibility with redemption code
             "credit_origin": row.name,
             "total_credit": outstanding_amount,
             "credit_to_redeem": 0,
+            "return_against": row.return_against,  # Reference to original invoice
         }
 
-        total_credit.append(row)
+        total_credit.append(credit_entry)
 
     advances = frappe.get_all(
         "Payment Entry",
@@ -1253,31 +1266,129 @@ def search_invoices_with_items(invoice_name, company):
     return data
 
 @frappe.whitelist()
+def get_invoice_return_status(invoice_name):
+    """
+    Get return status for each line item in an invoice.
+
+    Uses ERPNext's native return tracking to calculate:
+    - original_qty: Original quantity sold
+    - already_returned_qty: Total quantity already returned across all return invoices
+    - remaining_qty: Quantity still available for return
+
+    Returns list of items with their return status.
+    """
+    invoice = frappe.get_doc("Sales Invoice", invoice_name)
+
+    # Query to get already returned quantities grouped by sales_invoice_item
+    already_returned_data = frappe.db.sql(
+        """
+        SELECT
+            child.sales_invoice_item,
+            child.item_code,
+            SUM(ABS(child.qty)) as returned_qty,
+            SUM(ABS(child.stock_qty)) as returned_stock_qty
+        FROM
+            `tabSales Invoice Item` child
+        INNER JOIN
+            `tabSales Invoice` parent ON child.parent = parent.name
+        WHERE
+            parent.docstatus = 1
+            AND parent.is_return = 1
+            AND parent.return_against = %s
+        GROUP BY
+            child.sales_invoice_item, child.item_code
+        """,
+        (invoice_name,),
+        as_dict=True
+    )
+
+    # Build lookup dict by sales_invoice_item (the line item reference)
+    returned_qty_map = {}
+    for row in already_returned_data:
+        returned_qty_map[row.sales_invoice_item] = {
+            "qty": row.returned_qty or 0,
+            "stock_qty": row.returned_stock_qty or 0,
+        }
+
+    return_status = []
+    for item in invoice.items:
+        original_qty = abs(item.qty)
+        returned_info = returned_qty_map.get(item.name, {"qty": 0, "stock_qty": 0})
+        already_returned_qty = returned_info["qty"]
+        remaining_qty = original_qty - already_returned_qty
+
+        return_status.append({
+            "item_code": item.item_code,
+            "item_name": item.item_name,
+            "sales_invoice_item": item.name,
+            "original_qty": original_qty,
+            "already_returned_qty": already_returned_qty,
+            "remaining_qty": max(0, remaining_qty),  # Ensure non-negative
+            "can_return": remaining_qty > 0,
+            "uom": item.uom,
+            "stock_uom": item.stock_uom,
+            "conversion_factor": item.conversion_factor,
+            "rate": item.rate,
+            "amount": item.amount,
+            "batch_no": item.batch_no,
+            "serial_no": item.serial_no,
+            "warehouse": item.warehouse,
+        })
+
+    return return_status
+
+
+@frappe.whitelist()
 def search_invoices_for_return(invoice_name, company):
+    """
+    Search for invoices available for return.
+
+    If invoice_name is empty/None, returns the 20 most recent submitted invoices.
+    Includes return status metadata (has_returns, fully_returned) for each invoice.
+    """
+    filters = {
+        "company": company,
+        "docstatus": 1,
+        "is_return": 0,
+    }
+
+    # If search term provided, filter by invoice name
+    if invoice_name and invoice_name.strip():
+        filters["name"] = ["like", f"%{invoice_name.strip()}%"]
+
     invoices_list = frappe.get_list(
         "Sales Invoice",
-        filters={
-            "name": ["like", f"%{invoice_name}%"],
-            "company": company,
-            "docstatus": 1,
-            "is_return": 0,
-        },
+        filters=filters,
         fields=["name"],
-        limit_page_length=0,
-        order_by="customer",
+        limit_page_length=20,  # Limit to 20 most recent
+        order_by="posting_date desc, creation desc",  # Most recent first
     )
+
     data = []
-    is_returned = frappe.get_all(
-        "Sales Invoice",
-        filters={"return_against": invoice_name, "docstatus": 1},
-        fields=["name"],
-        order_by="customer",
-    )
-    if len(is_returned):
-        return data
     for invoice in invoices_list:
-        data.append(frappe.get_doc("Sales Invoice", invoice["name"]))
+        try:
+            invoice_doc = frappe.get_doc("Sales Invoice", invoice["name"])
+            invoice_dict = invoice_doc.as_dict()
+
+            # Get return status for this invoice
+            return_status = get_invoice_return_status(invoice["name"])
+
+            # Add return metadata
+            has_returns = any(item["already_returned_qty"] > 0 for item in return_status)
+            fully_returned = all(item["remaining_qty"] == 0 for item in return_status)
+
+            invoice_dict["has_returns"] = has_returns
+            invoice_dict["fully_returned"] = fully_returned
+            invoice_dict["return_status"] = return_status
+
+            data.append(invoice_dict)
+        except Exception as e:
+            frappe.log_error(f"Error processing invoice {invoice['name']}: {str(e)}")
+            continue
+
     return data
+
+
 
 
 @frappe.whitelist()
