@@ -1,4 +1,4 @@
-// Copyright (c) 2025, Youssef Restom and contributors
+// Copyright (c) 2025, promantia business solutions
 // For license information, please see license.txt
 
 frappe.query_reports["Customer Credit Redemption"] = {
