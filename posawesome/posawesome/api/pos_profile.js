@@ -9,4 +9,14 @@ frappe.ui.form.on('POS Profile', {
             };
         });
     },
+
+    refresh: function (frm) {
+        // Toggle hardware manager setting field visibility
+        frm.toggle_display('posa_hardware_manager_setting', frm.doc.posa_hardware_manager);
+    },
+
+    posa_hardware_manager: function (frm) {
+        // Toggle hardware manager setting field when checkbox changes
+        frm.toggle_display('posa_hardware_manager_setting', frm.doc.posa_hardware_manager);
+    },
 });

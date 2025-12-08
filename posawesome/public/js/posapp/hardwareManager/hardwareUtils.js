@@ -7,13 +7,8 @@ const frappeCall = (method, args = {}) =>
 export default {
   methods: {
     hardwareConfiguration(pos_name) {
-      // Check awesome_pos_hw app is installed else return false
-      if (!frappe.boot.awesome_pos_hw) {
-        return false;
-      }
-
       return frappeCall(
-        "awesome_pos_hw.api.get_hardware_details.get_hardware_manager_setting",
+        "posawesome.posawesome.api.hardware_manager.get_hardware_manager_setting",
         { pos_profile_name: pos_name }
       );
     },
@@ -21,7 +16,7 @@ export default {
     async hardwareURL(api_name) {
       try {
         const url = await frappeCall(
-          "awesome_pos_hw.api.get_hardware_details.hardware_url",
+          "posawesome.posawesome.api.hardware_manager.hardware_url",
           { api_name }
         );
         if (!url) {
@@ -41,13 +36,14 @@ export default {
         const url = await this.hardwareURL("Printer");
         if (!url) return;
 
+        // Generate XML using default template for Sales Invoice
         const xmlPayload = await frappeCall(
-          "posawesome.api.pos_sales_hm.generate_print_xml",
+          "posawesome.posawesome.api.hardware_manager.generate_print_xml",
           {
             doc_type: "Sales Invoice",
             sales_invoice_name: invoice_name,
-            template_path:
-              "posawesome/templates/print_formats/sales_invoice_template.xml",
+            // template_path and template_name are optional
+            // If not provided, will use default template for Sales Invoice
           }
         );
 
