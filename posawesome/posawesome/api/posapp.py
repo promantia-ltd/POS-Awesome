@@ -10,6 +10,10 @@ from frappe import _
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
 from erpnext.stock.get_item_details import get_item_details
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_item_groups
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
+    get_accounting_dimensions,
+    get_checks_for_pl_and_bs_accounts,
+)
 from frappe.utils.background_jobs import enqueue
 from erpnext.accounts.party import get_party_bank_account
 from erpnext.stock.doctype.batch.batch import (
@@ -504,6 +508,114 @@ def update_invoice(data):
     invoice_doc.flags.ignore_permissions = True
     frappe.flags.ignore_account_permission = True
 
+    # Map custom accounting dimensions and custom fields from POS Profile to Sales Invoice
+    if invoice_doc.pos_profile and invoice_doc.is_pos:
+        # Get meta objects once (cached by Frappe, but explicit for clarity)
+        pos_profile_meta = frappe.get_meta("POS Profile")
+        sales_invoice_meta = frappe.get_meta("Sales Invoice")
+        
+        accounting_dimensions_fields = []
+        accounting_dimensions = []
+        all_fields_to_fetch = []
+        
+        # Step 1: Handle accounting dimensions (custom + standard)
+        try:
+            accounting_dimensions = get_accounting_dimensions(as_list=False, filters={"disabled": 0})
+            accounting_dimensions_fields = [d.fieldname for d in accounting_dimensions]
+            
+            # Include standard dimensions
+            standard_dimensions = ["cost_center", "project"]
+            all_dimension_fields = accounting_dimensions_fields + standard_dimensions
+            all_fields_to_fetch.extend(all_dimension_fields)
+        except Exception as e:
+            frappe.log_error(
+                message=f"Error getting accounting dimensions: {str(e)}",
+                title="Accounting Dimensions Error"
+            )
+            # Fallback to standard dimensions only
+            accounting_dimensions = []
+            accounting_dimensions_fields = []
+            all_dimension_fields = ["cost_center", "project"]
+            all_fields_to_fetch.extend(all_dimension_fields)
+        
+        # Step 2: Prepare custom fields to fetch (excluding accounting dimensions and standard fields)
+        custom_fields_to_copy = set()
+        try:
+            # Exclude layout/non-data fieldtypes (these don't have values to copy)
+            excluded_fieldtypes = {"Section Break", "Column Break", "Tab Break", "HTML", "Button", "Table"}
+            
+            # Exclude fields already handled by set_pos_fields() or system fields
+            # These are set by ERPNext's set_pos_fields() method called earlier via set_missing_values()
+            fields_handled_by_set_pos_fields = {
+                "currency", "letter_head", "tc_name", "company", "select_print_heading",
+                "write_off_account", "taxes_and_charges", "write_off_cost_center",
+                "apply_discount_on", "cost_center", "tax_category", "ignore_pricing_rule",
+                "company_address", "account_for_change_amount"
+            }
+            # System/metadata fields that shouldn't be copied
+            system_fields = {
+                "name", "owner", "creation", "modified", "modified_by", "docstatus",
+                "company", "customer", "is_pos", "pos_profile"
+            }
+            excluded_fields = fields_handled_by_set_pos_fields | system_fields
+            
+            # Get field sets for both doctypes (only data fields, not read-only)
+            pos_profile_fields = {
+                f.fieldname for f in pos_profile_meta.fields
+                if f.fieldtype not in excluded_fieldtypes and not f.read_only
+            }
+            sales_invoice_fields = {
+                f.fieldname for f in sales_invoice_meta.fields
+                if f.fieldtype not in excluded_fieldtypes and not f.read_only
+            }
+            
+            # Find common fields and exclude already handled ones
+            accounting_dimension_fields_set = set(accounting_dimensions_fields) | {"cost_center", "project"}
+            custom_fields_to_copy = (pos_profile_fields & sales_invoice_fields) - excluded_fields - accounting_dimension_fields_set
+            
+            if custom_fields_to_copy:
+                all_fields_to_fetch.extend(custom_fields_to_copy)
+        except Exception as e:
+            frappe.log_error(
+                message=f"Error preparing custom fields: {str(e)}",
+                title="Custom Fields Preparation Error"
+            )
+        
+        # Step 3: Fetch all field values from POS Profile in a single query
+        if all_fields_to_fetch:
+            try:
+                pos_profile_values = frappe.db.get_value(
+                    "POS Profile",
+                    invoice_doc.pos_profile,
+                    list(set(all_fields_to_fetch)),  # Remove duplicates
+                    as_dict=1,
+                )
+                
+                if pos_profile_values:
+                    # Direct mapping: Copy accounting dimensions and custom fields from POS Profile
+                    # This includes profit_center and any other accounting dimension/custom fields
+                    # Build set of fields we want to copy (accounting dimensions + custom fields)
+                    fields_to_copy = set(accounting_dimensions_fields) | {"cost_center", "project"} | custom_fields_to_copy
+                    
+                    for fieldname in fields_to_copy:
+                        # Skip if already set on invoice (preserve user-entered values)
+                        if invoice_doc.get(fieldname):
+                            continue
+                        
+                        # Verify field exists on Sales Invoice before setting
+                        if not sales_invoice_meta.has_field(fieldname):
+                            continue
+                        
+                        value = pos_profile_values.get(fieldname)
+                        # Set the value if it exists and is not empty
+                        if value is not None and value != "":
+                            invoice_doc.set(fieldname, value)
+            except Exception as e:
+                frappe.log_error(
+                    message=f"Error mapping fields from POS Profile to Sales Invoice: {str(e)}",
+                    title="POS Profile Field Mapping Error"
+                )
+
     if invoice_doc.is_return and invoice_doc.return_against:
         ref_doc = frappe.get_cached_doc(invoice_doc.doctype, invoice_doc.return_against)
         if not ref_doc.update_stock:
@@ -521,7 +633,13 @@ def update_invoice(data):
     )
     for item in invoice_doc.items:
         if not item.rate or item.rate == 0:
-            if allow_zero_rated_items:
+            # Allow zero rate for promotional offer items (giveaway items)
+            # or if explicitly marked as free item, or if zero rated items are allowed
+            is_promotional_item = (
+                getattr(item, "posa_is_offer", 0) == 1
+                or getattr(item, "is_free_item", 0) == 1
+            )
+            if is_promotional_item or allow_zero_rated_items:
                 item.price_list_rate = 0.00
                 item.is_free_item = 1
             else:
