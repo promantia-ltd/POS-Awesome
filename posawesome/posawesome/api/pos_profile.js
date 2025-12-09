@@ -9,4 +9,9 @@ frappe.ui.form.on('POS Profile', {
             };
         });
     },
+
+    refresh: function (frm) {
+        // Hardware manager section is always visible
+        // The checkbox enables/disables hardware manager functionality
+    },
 });
