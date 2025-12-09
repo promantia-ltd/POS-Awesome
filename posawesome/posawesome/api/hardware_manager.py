@@ -3,10 +3,17 @@
 
 import frappe
 from frappe import _
-from frappe.utils import format_currency, format_date, format_datetime, format_time, cint, flt
+from frappe.utils import format_date, format_datetime, format_time, cint, flt, fmt_money
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 import re
+
+
+def format_currency(amount, currency=None):
+	"""Format amount as currency string"""
+	if currency:
+		return fmt_money(amount, currency=currency)
+	return fmt_money(amount)
 
 
 def extract_base_url(url: str) -> str:
@@ -140,33 +147,53 @@ def render_receipt_xml_to_html(xml_string, doctype=None, docname=None):
 		html_output = """
 		<div class="xml-preview" style="
 			font-family: 'Courier New', monospace;
-			white-space: pre;
-			width: 336px;  /* 8px * 42 characters */
+			font-size: 12px;
+			line-height: 1.4;
+			width: 336px;
+			max-width: 336px;
+			overflow: hidden;
 			margin: auto;
 			border: 1px dashed #ccc;
 			padding: 8px;
 			background: #fff;
+			box-sizing: content-box;
 		">
 		"""
 
 		for ticket in root.findall('ticket'):
 			for line in ticket.findall('line'):
-				line_html = '<div class="line" style="margin-bottom: 4px;">'
-				for text in line.findall('text'):
+				# Calculate total line width to detect overflow
+				text_elements = line.findall('text')
+				total_width = sum(int(t.attrib.get('length', '42')) for t in text_elements)
+				overflow_style = ""
+				overflow_title = ""
+				if total_width > 42 and len(text_elements) > 1:
+					overflow_style = "border-left: 3px solid red; padding-left: 3px;"
+					overflow_title = f' title="Line exceeds 42 chars ({total_width})"'
+				line_html = f'<div class="line" style="margin-bottom: 2px; white-space: nowrap; overflow: hidden; max-width: 336px;{overflow_style}"{overflow_title}>'
+				for text in text_elements:
 					content = text.text or ""
 					align = text.attrib.get('align', 'left')
 					bold = "font-weight:bold;" if text.attrib.get('bold') == 'true' else ""
 					underline = "text-decoration:underline;" if text.attrib.get('underline') == 'true' else ""
 					size = text.attrib.get('size', '1')
 					length = int(text.attrib.get('length', '42'))  # default to 42 chars
-					char_width_px = 8
+
+					# Truncate content if it exceeds the length for accurate preview
+					if len(content) > length:
+						content = content[:length-1] + "…"
+
+					# Calculate width as percentage of 42-char line (336px total)
+					width_percent = (length / 42) * 100
 
 					style = (
 						f"display:inline-block;"
-						f"width:{char_width_px * length}px;"
+						f"width:{width_percent:.2f}%;"
 						f"text-align:{align};"
+						f"overflow:hidden;"
+						f"text-overflow:ellipsis;"
+						f"white-space:nowrap;"
 						f"{bold}{underline}"
-						f"font-size:{int(size)*8}px;"
 					)
 
 					line_html += f"<span style='{style}'>{content}</span>"
@@ -269,9 +296,9 @@ def generate_print_xml(doc_type, sales_invoice_name, template_path=None, templat
 	return rendered_xml
 
 
-# ============================================================================
+
 # Template Validation Functions
-# ============================================================================
+
 
 def remove_jinja_tags(template):
 	"""
@@ -504,14 +531,14 @@ def validate_xml_template(xml_template, doc_type):
 	except ET.ParseError as e:
 		errors.append(f"XML Parse Error: {str(e)}")
 
-	# 2. Validate OpenBravo structure
+	# 2. Validate XML print structure
 	required_elements = ["output", "ticket"]
 	for element in required_elements:
 		if f"<{element}" not in xml_template:
 			errors.append(f"Missing required element: <{element}>")
 
 	if "<output>" in xml_template and "</output>" in xml_template:
-		info.append("Required OpenBravo elements present")
+		info.append("Required print format elements present")
 
 	# 3. Validate Jinja syntax
 	jinja_errors = validate_jinja_syntax(xml_template)

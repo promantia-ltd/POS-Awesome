@@ -3,7 +3,7 @@
 
 """
 HTML to XML Template Converter
-Converts Frappe Print Format HTML/Jinja templates to OpenBravo XML format
+Converts Frappe Print Format HTML/Jinja templates to thermal printer XML format
 """
 
 import frappe
@@ -21,7 +21,7 @@ JINJA_PLACEHOLDER_SUFFIX = "___"
 @frappe.whitelist()
 def convert_print_format_to_xml(print_format_name=None, html_content=None, doc_type=None):
 	"""
-	Convert a Frappe Print Format or HTML content to OpenBravo XML template
+	Convert a Frappe Print Format or HTML content to thermal printer XML template
 
 	Args:
 		print_format_name: Name of Print Format to convert
@@ -41,8 +41,41 @@ def convert_print_format_to_xml(print_format_name=None, html_content=None, doc_t
 	# Get HTML content
 	if print_format_name:
 		print_format = frappe.get_doc("Print Format", print_format_name)
-		html_content = print_format.html
 		doc_type = doc_type or print_format.doc_type
+
+		# Try to get HTML content from different sources
+		html_content = print_format.html
+
+		# If html field is empty, check if it's a standard or Jinja template
+		if not html_content:
+			# Check if it's a standard print format (no custom HTML)
+			if print_format.standard == "Yes" or print_format.print_format_type == "Standard":
+				frappe.throw(
+					_("Cannot convert Standard Print Format '{0}'. Only custom Print Formats with HTML/Jinja content can be converted.").format(print_format_name),
+					title=_("Standard Print Format")
+				)
+
+			# Check for Jinja template file
+			if print_format.print_format_type == "Jinja":
+				# Try to read from template file
+				template_path = frappe.get_app_path(
+					print_format.module.lower().replace(" ", "_") if print_format.module else "frappe",
+					"print_format",
+					frappe.scrub(print_format_name),
+					frappe.scrub(print_format_name) + ".html"
+				)
+				try:
+					html_content = frappe.read_file(template_path)
+				except Exception:
+					pass
+
+			# If still no content, throw error
+			if not html_content:
+				frappe.throw(
+					_("Print Format '{0}' has no HTML content to convert. Please select a Print Format with custom HTML/Jinja template.").format(print_format_name),
+					title=_("No HTML Content")
+				)
+
 		info.append(f"Converted from Print Format: {print_format_name}")
 	elif not html_content:
 		frappe.throw(_("Either print_format_name or html_content must be provided"))
@@ -59,7 +92,7 @@ def convert_print_format_to_xml(print_format_name=None, html_content=None, doc_t
 
 
 class HTMLToXMLConverter:
-	"""Handles the conversion from HTML/Jinja to OpenBravo XML"""
+	"""Handles the conversion from HTML/Jinja to thermal printer XML"""
 
 	def __init__(self, html_content, doc_type=None, warnings=None, info=None):
 		self.original_html = html_content
@@ -351,7 +384,7 @@ class HTMLToXMLConverter:
 			self.info.append("Detected logo image - added logo element")
 			return lines
 
-		self.warnings.append(f"Image detected: {src} - OpenBravo XML has limited image support")
+		self.warnings.append(f"Image detected: {src} - Thermal printer XML has limited image support")
 		return [' ' * indent + f'<!-- Image: {src} (not supported) -->']
 
 	def _convert_generic(self, element, indent):

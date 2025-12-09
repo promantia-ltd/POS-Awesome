@@ -143,7 +143,7 @@ function escapeHtml(text) {
 function show_print_format_converter(frm) {
 	// Get available Print Formats for this DocType
 	frappe.call({
-		method: "posawesome.posawesome.api.template_converter.get_print_formats_for_doctype",
+		method: "posawesome.api.template_converter.get_print_formats_for_doctype",
 		args: {
 			doc_type: frm.doc.ref_doctype
 		},
@@ -165,7 +165,7 @@ function show_print_format_converter(frm) {
 							<div style="padding: 10px; background: #f8f9fa; border-left: 3px solid #17a2b8; margin-bottom: 15px;">
 								<p style="margin: 0; color: #0c5460;">
 									<strong>⚙️ HTML to XML Converter</strong><br>
-									This tool converts Frappe Print Format HTML/Jinja templates to OpenBravo XML format.
+									This tool converts Frappe Print Format HTML/Jinja templates to thermal printer XML format.
 									The converter will attempt to map HTML elements to thermal printer commands.
 								</p>
 							</div>
@@ -199,7 +199,7 @@ function show_print_format_converter(frm) {
 
 					// Call conversion API
 					frappe.call({
-						method: "posawesome.posawesome.api.template_converter.convert_print_format_to_xml",
+						method: "posawesome.api.template_converter.convert_print_format_to_xml",
 						args: {
 							print_format_name: values.print_format,
 							doc_type: frm.doc.ref_doctype

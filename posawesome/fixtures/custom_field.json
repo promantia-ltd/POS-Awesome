@@ -5669,7 +5669,7 @@
   "in_list_view": 0,
   "in_preview": 0,
   "in_standard_filter": 0,
-  "insert_after": "posa_use_percentage_discount",
+  "insert_after": "apply_discount_on",
   "is_system_generated": 0,
   "is_virtual": 0,
   "label": "Hardware Manager Setting",
