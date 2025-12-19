@@ -2,6 +2,13 @@
   <v-app class="container1">
     <v-main>
       <Navbar @changePage="setPage($event)"></Navbar>
+      <!--DEV BANNER(UI)-->
+      <v-card class="pa-2 mb-2" outlined>
+      <strong>DEV BANNER</strong><br />
+      Page:{{ page }}<br />
+      User:{{ currentUser }}<br />
+      Last Action:{{ formattedLastActionTime }}
+      </v-card>
       <component v-bind:is="page" class="mx-4 md-4"></component>
     </v-main>
   </v-app>
@@ -16,6 +23,8 @@ export default {
   data: function () {
     return {
       page: 'POS',
+      lastActionTime:null,
+      currentUser:'',
     };
   },
   components: {
@@ -36,6 +45,9 @@ export default {
   },
   mounted() {
     this.remove_frappe_nav();
+    if(window.frappe && frappe.session){
+      this.currentUser=frappe.session.user;
+    }
   },
   updated() { },
   created: function () {
@@ -43,6 +55,20 @@ export default {
       this.remove_frappe_nav();
     }, 1000);
   },
+  computed:{
+    formattedLastActionTime(){
+      if(!this.lastActionTime){
+        return '--';
+      }
+      return this.lastActionTime.toLocaleString();
+    }
+  },
+  watch:{
+    page(newPage, oldPage){
+      console.log('Page changed from', oldPage, 'to', newPage)
+      this.lastActionTime=new Date();
+    }
+  }
 };
 </script>
 
