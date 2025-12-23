@@ -9,7 +9,8 @@
       User:{{ currentUser }}<br />
       Last Action:{{ formattedLastActionTime }}
       </v-card>
-      <component v-bind:is="page" class="mx-4 md-4"></component>
+    <component v-bind:is="page" class="mx-4 md-4" :shift-status="shiftStatus" :pos-profile-name="posProfileName"></component>
+
     </v-main>
   </v-app>
 </template>
@@ -18,6 +19,7 @@
 import Navbar from './components/Navbar.vue';
 import POS from './components/pos/Pos.vue';
 import Payments from './components/payments/Pay.vue';
+import Debug  from './components/pos/Debug.vue' ;
 
 export default {
   data: function () {
@@ -25,12 +27,15 @@ export default {
       page: 'POS',
       lastActionTime:null,
       currentUser:'',
+      shiftStatus: 'OPEN..',
+      posProfileName: 'Demo POS Profile',
     };
   },
   components: {
     Navbar,
     POS,
     Payments,
+    Debug,
   },
   methods: {
     setPage(page) {
@@ -71,7 +76,6 @@ export default {
   }
 };
 </script>
-
 <style scoped>
 .container1 {
   margin-top: 0px;
