@@ -43,17 +43,17 @@
             </div>
             <!-- Items Grid -->
             <v-row v-else density="compact" class="overflow-y-auto pa-2" style="max-height: 67vh">
-              <v-col v-for="(item, idx) in filtered_items" :key="idx" xl="3" lg="3" md="4" sm="6" cols="6"
-                class="pa-2">
+              <v-col v-for="(item, idx) in filtered_items" :key="idx" cols="12" sm="12" md="6" lg="4" xl="3" class="pa-6">
                 <v-card 
                   hover 
+                  color="blue-grey-lighten-5"
                   @click="add_item(item)" 
                   class="enhanced-item-card"
                   :class="{ 'enhanced-out-of-stock': item.actual_qty <= 0 }">
                   <div class="enhanced-item-image">
                     <v-img :src="item.image ||
                       '/assets/posawesome/js/posapp/components/pos/placeholder-image.png'
-                      " class="text-white align-end" gradient="to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)" height="120px" cover>
+                      " class="text-white align-end" gradient="to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)" height="180px" cover>
                     </v-img>
                     <div class="enhanced-item-badge" :class="{ 'out-of-stock': item.actual_qty <= 0, 'low-stock': item.actual_qty > 0 && item.actual_qty <= 5 }">
                       {{ item.actual_qty <= 0 ? 'Out of Stock' : item.actual_qty <= 5 ? 'Low Stock' : 'In Stock' }}

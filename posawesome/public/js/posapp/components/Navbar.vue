@@ -1,6 +1,6 @@
 <template>
   <nav>
-    <v-app-bar height="72" class="modern-header" elevation="1">
+    <v-app-bar density="compact"  class="modern-header" elevation="1">
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" class="modern-nav-icon"></v-app-bar-nav-icon>
       <v-toolbar-title @click="go_desk" class="stylish-brand">
         <div class="brand-container">
@@ -10,11 +10,11 @@
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
-      <div class="user-info">
-        <v-chip class="user-chip" variant="tonal" color="primary">
-          <v-icon start size="small">mdi-account-circle</v-icon>
+      <div class="user-profile d-flex align-center px-3 py-1">
+        <v-icon size="18" class="mr-2">mdi-account-circle</v-icon>
+        <span class="user-name">
           {{ pos_profile.name || 'User' }}
-        </v-chip>
+        </span>
       </div>
       <div class="text-center">
         <v-menu>
@@ -340,8 +340,11 @@ export default {
 }
 
 .user-info {
-  margin-right: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color:#334155;
 }
+
 
 .user-chip {
   height: 36px;
@@ -489,5 +492,18 @@ export default {
 .v-navigation-drawer .v-icon {
   color: inherit !important;
 }
+
+.user-profile {
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background-color: #ffffff;
+}
+
+.user-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #334155;
+}
+
 </style>
 
