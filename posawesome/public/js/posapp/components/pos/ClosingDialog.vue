@@ -70,7 +70,7 @@
         <v-btn variant="text" color="grey-darken-1" @click="close_dialog">
           {{ __('Close') }}
         </v-btn>
-        <v-btn variant="elevated" color="primary" @click="submit_dialog">
+        <v-btn variant="elevated" color="primary" :disabled="is_loading" @click="submit_dialog">
           {{ __('Submit') }}
         </v-btn>
       </v-card-actions>
@@ -88,6 +88,7 @@ export default {
   mixins: [format],
   data: () => ({
     closingDialog: false,
+    is_loading: false,
     itemsPerPage: 20,
     dialog_data: {},
     pos_profile: '',
@@ -130,6 +131,9 @@ export default {
       return Math.abs(diff) < 0.01 ? 'text-success' : 'text-error';
     },
     submit_dialog() {
+      if(this.is_loading){
+        return;
+      }
       const payments = this.dialog_data.payment_reconciliation || [];
       const has_invalid_amount = payments.some(
         (p) => !isAmountValid(p.closing_amount)
@@ -140,6 +144,7 @@ export default {
         });
         return;
       }
+      this.is_loading = true;
       this.dialog_data.payment_reconciliation = payments.map((p) => ({
         ...p,
         closing_amount:
@@ -151,6 +156,7 @@ export default {
       }));
       this.eventBus.emit('submit_closing_pos', this.dialog_data);
       this.closingDialog = false;
+      this.is_loading = false;
     },
   },
 
