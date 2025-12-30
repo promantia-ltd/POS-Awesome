@@ -50,8 +50,9 @@ frappe.PosApp.posapp = class {
         app.use(eventBus);
         app.use(vuetify)
         app.use(Vue3Toastify, {
-        autoClose: 3000,   
+        autoClose: 4000,   
         position: "top-right",
+        theme:"dark",
         })
         app.mount(this.$el[0]);
     }

@@ -121,11 +121,11 @@ export default {
         )
         .then((r) => {
           if (r.message) {
-
-            toast.success(__('POS Shift Closed'));
+            toast.success(__('POS Shift Closed...'));
             this.check_opening_entry();
           } else {
             console.log(r);
+            toast.error(__('Error in closing POS Shift'));
           }
         });
     },
@@ -160,7 +160,12 @@ export default {
         this.get_offers(this.pos_profile.name);
         this.pos_opening_shift = data.pos_opening_shift;
         this.eventBus.emit('register_pos_profile', data);
+        toast.success(__('POS Shift Opened'));
         console.info('LoadPosProfile');
+      });
+      this.eventBus.on('opening_shift_error',(err)=>{
+        toast.error(__('Failed to open POS Shift'));
+        console.error(err);
       });
       this.eventBus.on('show_payment', (data) => {
         this.payment = data === 'true';
