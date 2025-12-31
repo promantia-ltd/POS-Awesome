@@ -20,6 +20,7 @@
         </v-card-title>
 
         <v-card-text>
+          <v-form ref="customerForm" >
           <v-container>
             <v-row dense>
               <v-col cols="12">
@@ -29,6 +30,7 @@
                   color="primary"
                   :label="frappe._('Customer Name') + ' *'"
                   v-model="customer_name"
+                  :rules="customerNameRules(3)"
                   class="mb-3"
                 />
               </v-col>
@@ -50,6 +52,7 @@
                   color="primary"
                   :label="frappe._('Mobile No')"
                   v-model="mobile_no"
+                  :rules="mobileNumeberRules(10)"
                   class="mb-3"
                 />
               </v-col>
@@ -61,6 +64,7 @@
                   color="primary"
                   :label="frappe._('Email Id')"
                   v-model="email_id"
+                  :rules="emailRules()"
                   class="mb-3"
                 />
               </v-col>
@@ -126,6 +130,7 @@
                   variant="outlined"
                   color="primary"
                   :label="frappe._('Customer Group') + ' *'"
+                  :rules="requiredRules('Customer Group')"
                   v-model="group"
                   :items="groups"
                   :no-data-text="__('Group not found')"
@@ -140,6 +145,7 @@
                   variant="outlined"
                   color="primary"
                   :label="frappe._('Territory') + ' *'"
+                  :rules="requiredRules('Territory')"
                   v-model="territory"
                   :items="territorys"
                   :no-data-text="__('Territory not found')"
@@ -147,7 +153,6 @@
                   class="mb-3"
                 />
               </v-col>
-
               <v-col cols="6" v-if="loyalty_program">
                 <v-text-field
                   v-model="loyalty_program"
@@ -170,6 +175,7 @@
               </v-col>
             </v-row>
           </v-container>
+          </v-form>
         </v-card-text>
 
         <v-card-actions class="d-flex justify-end py-4 enhanced-modal-header">
@@ -197,6 +203,7 @@
 
 <script>
  import { toast } from "vue3-toastify";
+ import { customerNameRules, mobileNumeberRules, emailRules,requiredRules } from "./utils/validation";
 
 export default {
   data: () => ({
@@ -309,19 +316,12 @@ export default {
           }
         });
     },
-    submit_dialog() {
+   async submit_dialog() {
       // validate if all required fields are filled
-      if (!this.customer_name) {
-        toast.error(__('Customer name is required.'));
-        return;
-      }
-      if (!this.group) {
-        toast.error(__('Customer group is required.'));
-        return;
-      }
-      if (!this.territory) {
-        toast.error(__('Customer territory is required.'));
-        return;
+      const result = await this.$refs.customerForm.validate();
+      if (!result.valid) {
+      toast.error(__('Please fix the highlighted fields.'));
+      return;
       }
       if (this.customer_name) {
         var vm = this;
@@ -368,6 +368,10 @@ export default {
         this.customerDialog = false;
       }
     },
+    customerNameRules,
+    mobileNumeberRules,
+    emailRules,
+    requiredRules,
   },
   created: function () {
     this.eventBus.on('open_update_customer', (data) => {
