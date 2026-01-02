@@ -3,7 +3,7 @@
     <v-dialog
       v-model="customerDialog"
       max-width="600px"
-      @click:outside="clear_customer"
+      @click:outside="close_dialog"
     >
       <v-card elevation="8" rounded="xl">
         <v-card-title class="d-flex justify-center align-center py-4 enhanced-modal-header">
@@ -245,6 +245,11 @@ export default {
       this.clear_customer();
     },
     clear_customer() {
+      this.$nextTick(() =>{
+        if(this.$refs.customerForm){
+          this.$refs.customerForm.resetValidation();
+        }
+      });
       this.customer_name = '';
       this.tax_id = '';
       this.mobile_no = '';
