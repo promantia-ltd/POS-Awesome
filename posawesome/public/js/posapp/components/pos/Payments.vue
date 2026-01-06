@@ -814,6 +814,8 @@ export default {
       data["is_cashback"] = this.is_cashback;
 
       const vm = this;
+      vm.is_loading = true;
+      try{
       frappe.call({
         method: "posawesome.posawesome.api.posapp.submit_invoice",
         args: {
@@ -845,6 +847,12 @@ export default {
           return;
         },
       });
+      }catch(error){
+        console.error("Invoice submission failed:", error);
+        toast.error("Failed to submit invoice. Please try again.");
+      }finally{
+        vm.is_loading=false;
+      }
       console.log(this.is_sucessful_invoice);
     },
     async handlePrint(invoice_name) {

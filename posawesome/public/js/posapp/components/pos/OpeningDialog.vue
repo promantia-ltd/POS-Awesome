@@ -203,12 +203,16 @@ export default {
           balance_details,
         })
         .then((r) => {
-          if (r.message) {
-            vm.eventBus.emit('register_pos_data', r.message);
-            vm.eventBus.emit('set_company', r.message.company);
-            vm.close_opening_dialog();
-            vm.is_loading = false;
+          if (!r.message) {
+            throw new Error('Invalid Response from opening voucherAPI');
           }
+          vm.eventBus.emit('register_pos_data', r.message);
+          vm.eventBus.emit('set_company', r.message.company);
+          vm.close_opening_dialog();
+        })
+        .catch((error)=>{
+          console.error('open Shift failed:',error);
+          toast.error(__('Failed to open POS Shift..Please try again.'));
         })
         .finally(() => {
           vm.is_loading = false;
