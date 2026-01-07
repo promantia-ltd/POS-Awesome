@@ -15,9 +15,9 @@
         <!-- Payment Status Section -->
         <div class="mb-4 blue-grey-lighten-5" v-if="invoice_doc">
           <v-card variant="flat" class="mb-3 section-header">
-            <v-card-title class="section-header-title font-weight-bold text-primary " >
-              <v-icon start size="20">mdi-cash-multiple</v-icon>
-              <span>Payment Summary</span>
+            <v-card-title class="section-header-title font-weight-bold">
+              <v-icon start size="20" color="#00BCD4">mdi-cash-multiple</v-icon>
+              <span style="color: #34495E;">Payment Summary</span>
             </v-card-title>
           </v-card>
           <v-row class="mb-2">
@@ -92,9 +92,9 @@
         <!-- Payment Methods Section -->
         <div class="mb-4" v-if="is_cashback">
           <v-card variant="flat" class="mb-3 section-header">
-            <v-card-title class="section-header-title font-weight-bold text-primary">
-              <v-icon start size="20">mdi-credit-card</v-icon>
-              <span>Payment Methods</span>
+            <v-card-title class="section-header-title font-weight-bold">
+              <v-icon start size="20" color="#00BCD4">mdi-credit-card</v-icon>
+              <span style="color: #34495E;">Payment Methods</span>
             </v-card-title>
           </v-card>
           <v-row
@@ -127,13 +127,13 @@
               ">
               <v-btn
                 block
-                variant="text"
-                color="primary"
+                variant="outlined"
                 size="large"
                 rounded="md"
                 class="payment-method-btn"
+                style="color: #34495E; border-color: #E0E0E0;"
                 @click="set_full_amount(payment.idx)">
-                <v-icon start size="20">mdi-cash</v-icon>
+                <v-icon start size="20" color="#00BCD4">mdi-cash</v-icon>
                 {{ payment.mode_of_payment }}
               </v-btn>
             </v-col>
@@ -485,6 +485,8 @@
             <v-switch
               class="my-0 py-0"
               v-model="is_write_off_change"
+              :color="is_write_off_change ? '#00BCD4' : '#BDBDBD'"
+              :base-color="is_write_off_change ? '#00BCD4' : '#BDBDBD'"
               flat
               :label="frappe._('Write Off Difference Amount')"></v-switch>
           </v-col>
@@ -493,6 +495,8 @@
             v-if="pos_profile.posa_allow_credit_sale && !invoice_doc.is_return">
             <v-switch
               v-model="is_credit_sale"
+              :color="is_credit_sale ? '#00BCD4' : '#BDBDBD'"
+              :base-color="is_credit_sale ? '#00BCD4' : '#BDBDBD'"
               :label="frappe._('Credit Sale?')"></v-switch>
           </v-col>
           <v-col
@@ -500,6 +504,8 @@
             v-if="invoice_doc.is_return && pos_profile.use_cashback">
             <v-switch
               v-model="is_cashback"
+              :color="is_cashback ? '#00BCD4' : '#BDBDBD'"
+              :base-color="is_cashback ? '#00BCD4' : '#BDBDBD'"
               flat
               :label="frappe._('Cashback?')"
               class="my-0 py-0"></v-switch>
@@ -536,6 +542,8 @@
             v-if="!invoice_doc.is_return && pos_profile.use_customer_credit">
             <v-switch
               v-model="redeem_customer_credit"
+              :color="redeem_customer_credit ? '#00BCD4' : '#BDBDBD'"
+              :base-color="redeem_customer_credit ? '#00BCD4' : '#BDBDBD'"
               flat
               :label="frappe._('Use Customer Credit')"
               class="my-0 py-0"
@@ -590,11 +598,10 @@
         <v-col cols="12" md="6" class="pa-1">
           <v-btn
             block
-            theme="dark"
-            variant="tonal"
+            class="btn-primary-action gradient-teal-animate hover-glow ripple-effect"
             @click="submit"
             :disabled="vaildatPayment">
-            <v-icon start size="20">mdi-check-circle</v-icon>
+            <v-icon start size="18">mdi-check-circle</v-icon>
             {{ __("Submit") }}
           </v-btn>
         </v-col>
@@ -602,11 +609,10 @@
         <v-col cols="12" md="6" class="pa-1">
           <v-btn
             block
-            variant="tonal"
-            theme="dark"
+            class="btn-primary-action gradient-teal-animate hover-glow ripple-effect"
             @click="submit(undefined, false, true)"
             :disabled="vaildatPayment">
-            <v-icon start size="20">mdi-printer</v-icon>
+            <v-icon start size="18">mdi-printer</v-icon>
             {{ __("Submit & Print") }}
           </v-btn>
         </v-col>
@@ -614,11 +620,9 @@
         <v-col cols="12" md="6" class="pa-1">
           <v-btn
             block
-            theme="dark"
-            variant="tonal"
-            class=" action-btn cancel-btn"
+            class="btn-danger click-squish"
             @click="back_to_invoice">
-            <v-icon start size="20">mdi-cancel</v-icon>
+            <v-icon start size="18">mdi-cancel</v-icon>
             {{ __("Cancel Payment") }}
           </v-btn>
         </v-col>
@@ -1494,18 +1498,46 @@ export default {
 /* Section headers styling - scoped to payment page only */
 .section-header .v-card-title {
   font-weight: 600 !important;
+  color: #34495E !important; /* Deep Slate - Design System */
 }
 
 .section-header-title {
   display: flex;
   align-items: center;
   padding-left: 0;
-  font-size: 1rem; 
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   background-color: #ECEFF1;
+  color: #34495E !important; /* Deep Slate - Design System */
 }
 
-.section-header-title v-icon {
-  margin-right: 6px;
+.section-header-title .v-icon {
+  color: #00BCD4 !important; /* Vibrant Teal - Design System */
+  margin-right: 8px;
+}
+
+/* Payment Method Buttons - Design System Compliant */
+.payment-method-btn {
+  color: #34495E !important; /* Deep Slate */
+  border: 1px solid #E0E0E0 !important;
+  background-color: #FFFFFF !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  transition: all 0.2s ease !important;
+}
+
+.payment-method-btn:hover {
+  border-color: #00BCD4 !important;
+  background-color: rgba(0, 188, 212, 0.05) !important;
+  box-shadow: 0 2px 8px rgba(0, 188, 212, 0.2) !important;
+}
+
+.payment-method-btn:active {
+  transform: scale(0.98) !important;
+}
+
+.payment-method-btn .v-icon {
+  color: #00BCD4 !important; /* Vibrant Teal for icons */
 }
 </style>

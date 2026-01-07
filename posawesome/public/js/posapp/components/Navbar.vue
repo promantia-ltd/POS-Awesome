@@ -3,15 +3,35 @@
     <v-app-bar height="72" class="modern-header" elevation="1">
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" class="modern-nav-icon"></v-app-bar-nav-icon>
       <v-toolbar-title @click="go_desk" class="stylish-brand">
-        <div class="brand-container">
-          <span class="brand-pos indian-style">POS</span>
-          <span class="brand-mati indian-style">MATI</span>
+        <div class="brand-container-modern hover-vibrant">
+          <div class="brand-icon">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="14" width="20" height="14" rx="3" fill="#34495E" opacity="0.2"/>
+              <rect x="6" y="11" width="20" height="14" rx="3" fill="#34495E" opacity="0.4"/>
+              <rect x="4" y="8" width="20" height="14" rx="3" fill="#34495E"/>
+              <rect x="7" y="11" width="10" height="3" rx="1.5" fill="#00BCD4"/>
+              <circle cx="8.5" cy="17.5" r="1" fill="#E2E8F0"/>
+              <circle cx="12" cy="17.5" r="1" fill="#E2E8F0"/>
+              <circle cx="15.5" cy="17.5" r="1" fill="#E2E8F0"/>
+              <circle cx="28" cy="12" r="5" fill="url(#accentGradient)"/>
+              <path d="M26 12L27.5 13.5L30.5 10.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="accentGradient" x1="23" y1="7" x2="33" y2="17" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#00BCD4"/>
+                  <stop offset="1" stop-color="#0097A7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name-primary">POS</span><span class="brand-name-accent">pire</span>
+          </div>
         </div>
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
       <div class="user-info">
-        <v-chip class="user-chip" variant="tonal" color="primary">
+        <v-chip class="user-chip posmati-chip-neutral" variant="tonal" color="grey-darken-2">
           <v-icon start size="small">mdi-account-circle</v-icon>
           {{ pos_profile.name || 'User' }}
         </v-chip>
@@ -251,7 +271,7 @@ export default {
 </script>
 
 <style scoped>
-/* Modern Header Styles */
+/* Header Styles */
 .modern-header {
   border-bottom: 1px solid #e2e8f0 !important;
   backdrop-filter: blur(10px);
@@ -272,7 +292,7 @@ export default {
   color: #334155 !important;
 }
 
-/* Elegant Brand Title Styling */
+/* Brand Title */
 .stylish-brand {
   cursor: pointer;
   transition: all 0.3s ease;
@@ -288,6 +308,126 @@ export default {
   transform: none;
 }
 
+/* Brand Container */
+.brand-container-modern {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(0, 188, 212, 0.08) 0%, rgba(52, 73, 94, 0.05) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 188, 212, 0.15);
+  transition: all 0.3s ease;
+}
+
+.brand-container-modern:hover {
+  background: linear-gradient(135deg, rgba(0, 188, 212, 0.12) 0%, rgba(52, 73, 94, 0.08) 100%);
+  border-color: rgba(0, 188, 212, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.15);
+}
+
+.brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-icon svg {
+  transition: transform 0.3s ease;
+}
+
+.brand-container-modern:hover .brand-icon svg {
+  transform: scale(1.05);
+}
+
+.brand-text {
+  display: flex;
+  align-items: baseline;
+}
+
+.brand-pos-modern {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #34495E;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.brand-pire-modern {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #00BCD4;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+/* Brand Text */
+.brand-name-primary {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #34495E;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  text-transform: uppercase;
+  position: relative;
+}
+
+.brand-name-accent {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: -0.3px;
+  line-height: 1;
+  text-transform: lowercase;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.brand-container-modern:hover .brand-name-accent {
+  color: #00BCD4;
+}
+
+/* Hover underline effect */
+.brand-container-modern:hover .brand-name-accent::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #00BCD4, rgba(0, 188, 212, 0.3));
+  border-radius: 2px;
+  animation: underlineSlide 0.3s ease-out;
+}
+
+@keyframes underlineSlide {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* Logo animation */
+@keyframes logoPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(1.3);
+  }
+}
+
+.brand-icon svg circle:last-of-type {
+  animation: logoPulse 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Legacy brand styles */
 .brand-container {
   display: flex;
   align-items: baseline;
@@ -297,46 +437,23 @@ export default {
   padding: 4px 0;
 }
 
-.brand-container::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--brand-underline);
-  border-radius: 2px;
-  opacity: 0.8;
-}
-
 .brand-pos {
   font-family: var(--brand-font-latin);
-  background: var(--brand-gradient-dark);
   font-size: 1.7rem;
   font-weight: 600;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #34495E;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-  position: relative;
   line-height: 1;
-  vertical-align: baseline;
 }
 
 .brand-mati {
-  font-family: var(--brand-font-devanagari);
-  background: var(--brand-gradient-colorful);
+  font-family: var(--brand-font-latin);
   font-size: 1.7rem;
   font-weight: 600;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #00BCD4;
   letter-spacing: 0.5px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
   line-height: 1;
-  vertical-align: baseline;
 }
 
 .user-info {
@@ -362,7 +479,7 @@ export default {
   color: #334155 !important;
 }
 
-/* Modern Sidebar Styles */
+/* Sidebar Styles */
 .modern-sidebar {
   background: var(--sidebar-bg) !important;
   border-right: 1px solid #e2e8f0 !important;

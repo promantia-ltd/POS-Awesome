@@ -198,7 +198,11 @@ export default {
   /* max-height: calc(100vh - 73px); */
 }
 .itemselector-section {
-    height: calc(100vh - 84px);
+  height: calc(100vh - 84px);
+}
+/* Ensure columns pass height to children */
+.pos {
+  height: 100%;
 }
 .invoice-section{
   height: 100%;

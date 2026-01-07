@@ -1,26 +1,33 @@
 <template>
   <div style="height: 100%; display: flex; flex-direction: column">
-    <v-dialog v-model="cancel_dialog" max-width="600px">
-      <v-card elevation="8" rounded="xl">
-        <v-card-title class="text-h5">
-          <span class="text-h5 text-primary">{{ __("Cancel Sale ?") }}</span>
+    <v-dialog v-model="cancel_dialog" max-width="480px">
+      <v-card class="posmati-modal">
+        <v-card-title class="posmati-modal-header">
+          <div class="posmati-modal-icon icon-warning">
+            <v-icon size="24">mdi-alert-circle-outline</v-icon>
+          </div>
+          <div>
+            <div class="posmati-modal-title">{{ __("Cancel Sale?") }}</div>
+          </div>
         </v-card-title>
-        <v-card-text>
-          This would cancel and delete the current sale. To save it as Draft,
-          click the "Save and Clear" instead.
+        <v-card-text class="posmati-modal-body">
+          {{ __("This will cancel and delete the current sale. To save it as a draft, use 'Save and Clear' instead.") }}
         </v-card-text>
-        <!-- <v-card- -->
-        <v-card-actions>
+        <v-card-actions class="posmati-modal-actions">
           <v-spacer></v-spacer>
-          <v-btn color="grey-darken-1" @click="cancel_invoice">
-            {{ __("Yes, Cancel sale") }}
-          </v-btn>
           <v-btn
-            color="primary"
-            variant="elevated"
+            class="posmati-modal-btn-secondary"
             @click="cancel_dialog = false"
           >
-            {{ __("Back") }}
+            <v-icon start size="18">mdi-arrow-left</v-icon>
+            {{ __("Go Back") }}
+          </v-btn>
+          <v-btn
+            class="btn-danger"
+            @click="cancel_invoice"
+          >
+            <v-icon start size="18">mdi-close-circle-outline</v-icon>
+            {{ __("Cancel Sale") }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -38,7 +45,7 @@
       <div :style="$vuetify.display.mdAndDown ? 'height: 70vh;' : ''">
         <v-row
           align="center"
-          class="items px-2 py-1 flex-wrap"
+          class="items px-2 pt-4 pb-1 flex-wrap"
           :class="$vuetify.display.mdAndDown ? 'pa-2' : ''"
           :style="{
             rowGap: $vuetify.display.mdAndDown ? '0' : '12px',
@@ -86,7 +93,8 @@
           >
             <v-switch
               v-model="inclusive_tax"
-              color="blue-accent-4"
+              :color="inclusive_tax ? '#00BCD4' : '#BDBDBD'"
+              :base-color="inclusive_tax ? '#00BCD4' : '#BDBDBD'"
               inset
               dense
               hide-details
@@ -384,6 +392,7 @@
                     size="small"
                     icon
                     color="secondary"
+                    class="click-squish"
                     :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
                     @click.stop="subtract_one(item)"
                   >
@@ -391,7 +400,8 @@
                   </v-btn>
 
                   <span
-                    class="mx-2 px-3 py-1 rounded text-body-2"
+                    class="mx-2 px-3 py-1 rounded text-body-2 qty-display"
+                    :class="{ 'animate-numberPop': item.qty_changed }"
                     style="
                       border: 1px solid #ddd;
                       min-width: 32px;
@@ -406,6 +416,7 @@
                     size="small"
                     icon
                     color="primary"
+                    class="click-squish hover-glow"
                     :disabled="!!item.posa_is_offer || !!item.posa_is_replace"
                     @click.stop="add_one(item)"
                   >
@@ -849,7 +860,7 @@
       </div>
     </v-card>
     <v-card
-      class="cards mb-0 mt-3 py-0"
+      class="cards mb-0 mt-3 py-0 posmati-invoice-footer"
       elevation="2"
       rounded="lg"
       style="flex: 0 0 auto"
@@ -1046,8 +1057,7 @@
             <v-col cols="12" sm="6" md="6" class="pa-0">
               <v-btn
                 block
-                variant="tonal"
-                class="pay-button ma-1"
+                class="btn-primary-action pay-button ma-1"
                 elevation="4"
                 @click="show_payment"
               >
@@ -3658,5 +3668,39 @@ export default {
 .enhanced-action-btn {
   font-weight: 500 !important;
   text-transform: none !important;
+}
+
+/* Invoice Footer */
+.posmati-invoice-footer {
+  background: var(--posmati-gradient-card) !important;
+  border: 2px solid var(--posmati-vibrant-teal) !important;
+  border-radius: var(--posmati-radius-lg) !important;
+}
+
+/* Items table styling */
+:deep(.v-data-table thead th) {
+  background: var(--posmati-light-gray) !important;
+  font: var(--posmati-font-body-medium) !important;
+  color: var(--posmati-deep-slate) !important;
+  height: 40px !important;
+  border-bottom: 2px solid var(--posmati-border-gray) !important;
+}
+
+:deep(.v-data-table tbody tr) {
+  height: 40px !important;
+}
+
+:deep(.v-data-table tbody tr:nth-child(even)) {
+  background: #FAFAFA;
+}
+
+:deep(.v-data-table tbody tr:hover) {
+  background: rgba(0, 188, 212, 0.05) !important;
+}
+
+/* PAY button text styling */
+.pay-text {
+  font: var(--posmati-font-headline) !important;
+  letter-spacing: 0.5px;
 }
 </style>
