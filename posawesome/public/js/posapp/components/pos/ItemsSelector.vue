@@ -42,33 +42,58 @@
               </button>
             </div>
             <!-- Items Grid -->
-            <v-row v-else density="compact" class="overflow-y-auto pa-2" style="max-height: 67vh">
+            <v-row v-else density="compact" class="overflow-y-auto pa-2 items-grid-scroll">
               <v-col v-for="(item, idx) in filtered_items" :key="idx" xl="3" lg="3" md="4" sm="6" cols="6"
                 class="pa-2">
-                <v-card 
-                  hover 
-                  @click="add_item(item)" 
-                  class="enhanced-item-card"
-                  :class="{ 'enhanced-out-of-stock': item.actual_qty <= 0 }">
-                  <div class="enhanced-item-image">
-                    <v-img :src="item.image ||
-                      '/assets/posawesome/js/posapp/components/pos/placeholder-image.png'
-                      " class="text-white align-end" gradient="to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)" height="120px" cover>
+                <v-card
+                  hover
+                  @click="add_item(item, idx)"
+                  class="posmati-product-card hover-vibrant ripple-effect"
+                  :class="{
+                    'out-of-stock': item.actual_qty <= 0,
+                    'item-selected': selectedItemIdx === idx
+                  }">
+
+                  <!-- 1:1 Square Image Container -->
+                  <div class="posmati-product-image-wrapper">
+                    <v-img
+                      :src="item.image || '/assets/posawesome/js/posapp/components/pos/placeholder-image.png'"
+                      :aspect-ratio="1"
+                      cover
+                      class="posmati-product-image">
                     </v-img>
-                    <div class="enhanced-item-badge" :class="{ 'out-of-stock': item.actual_qty <= 0, 'low-stock': item.actual_qty > 0 && item.actual_qty <= 5 }">
-                      {{ item.actual_qty <= 0 ? 'Out of Stock' : item.actual_qty <= 5 ? 'Low Stock' : 'In Stock' }}
+
+                    <!-- Stock Badge Overlay -->
+                    <div class="posmati-stock-badge"
+                      :class="{
+                        'badge-success': item.actual_qty > 5,
+                        'badge-warning animate-pulse': item.actual_qty > 0 && item.actual_qty <= 5,
+                        'badge-error animate-heartbeat': item.actual_qty <= 0
+                      }">
+                      {{ item.actual_qty <= 0 ? 'OUT' : item.actual_qty <= 5 ? 'LOW' : 'STOCK' }}
                     </div>
                   </div>
-                  <div class="enhanced-item-info">
-                    <div class="enhanced-item-name" :title="item.item_name">{{ item.item_name }}</div>
-                    <div class="enhanced-item-price">
-                      {{ currencySymbol(item.currency) || "" }}
-                      {{ formatCurrency(item.rate) || 0 }}
+
+                  <!-- Product Info -->
+                  <div class="posmati-product-info">
+                    <!-- HEADLINE TEXT: 16px Semibold -->
+                    <div class="posmati-product-name" :title="item.item_name">
+                      {{ item.item_name }}
                     </div>
-                    <div class="enhanced-item-stock">
-                      <div class="enhanced-stock-indicator" :class="{ 'low-stock': item.actual_qty > 0 && item.actual_qty <= 5, 'out-of-stock': item.actual_qty <= 0 }"></div>
-                      {{ formatFloat(item.actual_qty) || 0 }}
-                      {{ item.stock_uom || "" }} available
+
+                    <!-- BODY TEXT: 14px Medium -->
+                    <div class="posmati-product-price">
+                      {{ currencySymbol(item.currency) || "" }} {{ formatCurrency(item.rate) || 0 }}
+                    </div>
+
+                    <!-- SUPPORT TEXT: 12px Regular -->
+                    <div class="posmati-product-stock">
+                      <span class="stock-dot" :class="{
+                        'dot-success': item.actual_qty > 5,
+                        'dot-warning': item.actual_qty > 0 && item.actual_qty <= 5,
+                        'dot-error': item.actual_qty <= 0
+                      }"></span>
+                      {{ formatFloat(item.actual_qty) || 0 }} {{ item.stock_uom || "" }}
                     </div>
                   </div>
                 </v-card>
@@ -93,15 +118,16 @@
               </button>
             </div>
             <!-- Data Table -->
-            <div v-else class="my-0 py-0 overflow-y-auto enhanced-data-table" style="max-height: 65vh">
+            <div v-else class="my-0 py-0 overflow-y-auto enhanced-data-table items-list-scroll">
               <v-data-table :headers="getItemsHeaders()" :items="filtered_items" item-key="item_code" item-value="item-"
-                class="elevation-1" :items-per-page="itemsPerPage" hide-default-footer @click:row="click_item_row">
+                class="elevation-1 posmati-items-table" :items-per-page="itemsPerPage" hide-default-footer
+                @click:row="click_item_row" :row-props="getRowProps">
                 <template v-slot:item.rate="{ item }">
-                  <span class="text-primary font-weight-medium">{{ currencySymbol(item.currency) }}
+                  <span class="font-weight-medium" style="color: #34495E;">{{ currencySymbol(item.currency) }}
                     {{ formatCurrency(item.rate) }}</span>
                 </template>
                 <template v-slot:item.actual_qty="{ item }">
-                  <span class="font-weight-medium" :class="getStockColorClass(item.actual_qty)">
+                  <span class="font-weight-medium" :style="getStockColorStyle(item.actual_qty)">
                     {{ formatFloat(item.actual_qty) }}
                   </span>
                 </template>
@@ -134,9 +160,9 @@
             v-model="item_group" 
             v-on:update:model-value="search_onchange"
             prepend-inner-icon="mdi-tag-outline"
-            color="primary">
+            color="grey-darken-2">
             <template v-slot:selection="{ item }">
-              <v-chip size="small" color="primary" variant="tonal">
+              <v-chip size="small" variant="tonal" class="posmati-chip-neutral">
                 {{ item.title }}
               </v-chip>
             </template>
@@ -147,53 +173,51 @@
         <v-col cols="12">
           <v-row no-gutters align="center" class="enhanced-bottom-controls flex-nowrap pr-4">
             <v-col cols="4">
-              <div class="enhanced-view-toggle">
-                <button 
-                  class="enhanced-view-btn" 
+              <div class="posmati-view-toggle">
+                <button
+                  class="btn-toggle"
                   :class="{ active: items_view === 'list' }"
                   @click="items_view = 'list'">
-                  <v-icon size="16" class="mr-1">mdi-format-list-bulleted</v-icon>
+                  <v-icon size="16">mdi-format-list-bulleted</v-icon>
                   <span class="enhanced-btn-label">{{ __("List") }}</span>
                 </button>
-                <button 
-                  class="enhanced-view-btn" 
+                <button
+                  class="btn-toggle"
                   :class="{ active: items_view === 'card' }"
                   @click="items_view = 'card'">
-                  <v-icon size="16" class="mr-1">mdi-view-grid-outline</v-icon>
+                  <v-icon size="16">mdi-view-grid-outline</v-icon>
                   <span class="enhanced-btn-label">{{ __("Card") }}</span>
                 </button>
               </div>
             </v-col>
             
             <v-col cols="4">
-              <v-btn 
-                block 
-                color="primary" 
-                variant="tonal" 
+              <v-btn
+                block
+                variant="flat"
                 @click="show_coupons"
-                class="enhanced-action-btn"
+                class="btn-secondary"
                 prepend-icon="mdi-ticket-percent-outline">
-                <v-badge 
-                  :content="couponsCount" 
-                  color="success" 
+                <v-badge
+                  :content="couponsCount"
+                  color="success"
                   :model-value="couponsCount > 0"
                   inline>
                   <span class="enhanced-btn-label">{{ __("Coupons") }}</span>
                 </v-badge>
               </v-btn>
             </v-col>
-            
+
             <v-col cols="4">
-              <v-btn 
-                block 
-                color="primary" 
-                variant="tonal" 
+              <v-btn
+                block
+                variant="flat"
                 @click="show_offers"
-                class="enhanced-action-btn"
+                class="btn-secondary"
                 prepend-icon="mdi-sale">
-                <v-badge 
-                  :content="`${offersCount}/${appliedOffersCount}`" 
-                  color="success" 
+                <v-badge
+                  :content="`${offersCount}/${appliedOffersCount}`"
+                  color="success"
                   :model-value="offersCount > 0"
                   inline>
                   <span class="enhanced-btn-label">{{ __("Offers") }}</span>
@@ -233,6 +257,8 @@ export default {
     customer: null,
     new_line: false,
     qty: 1,
+    selectedItemIdx: null,
+    selectedListItemCode: null,
   }),
 
   watch: {
@@ -389,10 +415,26 @@ export default {
 
       return items_headers;
     },
-    click_item_row(event, { item }) {
-      this.add_item(item)
+    getRowProps({ item }) {
+      return {
+        class: this.selectedListItemCode === item.item_code ? 'list-item-selected' : ''
+      };
     },
-    add_item(item) {
+    click_item_row(event, { item }) {
+      this.selectedListItemCode = item.item_code;
+      setTimeout(() => {
+        this.selectedListItemCode = null;
+      }, 400);
+      this.add_item(item, null);
+    },
+    add_item(item, idx = null) {
+      if (idx !== null) {
+        this.selectedItemIdx = idx;
+        setTimeout(() => {
+          this.selectedItemIdx = null;
+        }, 400);
+      }
+
       item = { ...item };
         if (item.has_variants) {
           this.eventBus.emit("open_variants_model", [item, this.items]);
@@ -609,6 +651,13 @@ export default {
       if (qty <= 5) return 'text-orange-darken-2';
       return 'text-green-darken-2';
     },
+
+    // Returns inline style with design system colors
+    getStockColorStyle(qty) {
+      if (qty <= 0) return { color: '#F44336' };  // Vivid Red - Out of stock
+      if (qty <= 5) return { color: '#FF9800' };  // Safety Amber - Low stock
+      return { color: '#4CAF50' };                 // Grass Green - In stock
+    },
   },
 
   computed: {
@@ -767,19 +816,38 @@ export default {
 </script>
 
 <style scoped>
+/* Main container - flex column to stack selection card and controls */
 .enhanced-items-container {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
+/* Main content card - takes remaining space above controls */
 .selection {
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
+/* Footer controls - fixed at bottom */
 .enhanced-controls {
   flex-shrink: 0;
+}
+
+/*
+ * Scrollable areas for items list/grid
+ * Height = viewport - navbar(72) - search(70) - itemsgroup(70) - buttons(56) - margins(32) = 300px
+ */
+.items-grid-scroll,
+.items-list-scroll {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+/* Card grid - align items to top-left */
+.items-grid-scroll {
+  align-content: flex-start;
 }
 
 .enhanced-btn-label {
@@ -860,107 +928,102 @@ export default {
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
 }
 
-.enhanced-item-card {
-  background: var(--itemselect-color-bg-card);
-  border-radius: 16px;
-  overflow: hidden;
-  transition: all 0.3s ease;
+/* Product Card */
+.posmati-product-card {
+  background: var(--posmati-clean-white);
+  border: 1px solid var(--posmati-border-gray);
+  border-radius: var(--posmati-radius-lg);
   cursor: pointer;
-  border: 1px solid var(--itemselect-color-bg-empty);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.enhanced-item-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  border-color: var(--itemselect-color-border);
-}
-
-.enhanced-item-card.enhanced-out-of-stock {
-  opacity: 0.6;
-  filter: grayscale(30%);
-}
-
-.enhanced-item-image {
-  position: relative;
+  transition: all 0.2s ease;
   overflow: hidden;
-  height: 120px;
-  background: linear-gradient(135deg, var(--itemselect-color-bg-container) 0%, var(--itemselect-color-border) 100%);
 }
 
-.enhanced-item-image img {
-  transition: transform 0.3s ease;
+.posmati-product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--posmati-shadow-md);
+  border-color: var(--posmati-vibrant-teal);
 }
 
-.enhanced-item-card:hover .enhanced-item-image img {
-  transform: scale(1.05);
+.posmati-product-card.out-of-stock {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.enhanced-item-badge {
+/* Product Image */
+.posmati-product-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--posmati-light-gray);
+}
+
+.posmati-product-image {
+  width: 100%;
+  height: 100%;
+}
+
+/* Stock Badge */
+.posmati-stock-badge {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: var(--itemselect-color-success);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font: var(--posmati-font-support);
+  font-weight: 700;
+  color: var(--posmati-clean-white);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.enhanced-item-badge.out-of-stock {
-  background: var(--itemselect-color-error);
+.badge-success { background: var(--posmati-grass-green); }
+.badge-warning { background: var(--posmati-safety-amber); }
+.badge-error { background: var(--posmati-vivid-red); }
+
+/* Product Info */
+.posmati-product-info {
+  padding: var(--posmati-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.enhanced-item-badge.low-stock {
-  background: var(--itemselect-color-warning);
-}
-
-.enhanced-item-info {
-  padding: 1rem;
-}
-
-.enhanced-item-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--itemselect-color-text-main);
-  margin-bottom: 0.5rem;
+/* Product Name */
+.posmati-product-name {
+  font: var(--posmati-font-headline);
+  color: var(--posmati-deep-slate);
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: 41px; /* 2 lines */
 }
 
-.enhanced-item-price {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--itemselect-color-success);
-  margin-bottom: 0.25rem;
+/* Product Price */
+.posmati-product-price {
+  font: var(--posmati-font-body-medium);
+  color: var(--posmati-vibrant-teal);
 }
 
-.enhanced-item-stock {
-  font-size: 0.8rem;
-  color: var(--itemselect-color-text-secondary);
+/* Product Stock */
+.posmati-product-stock {
+  font: var(--posmati-font-support);
+  color: var(--posmati-text-secondary);
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 6px;
 }
 
-.enhanced-stock-indicator {
-  width: 8px;
-  height: 8px;
+.stock-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--itemselect-color-success);
 }
 
-.enhanced-stock-indicator.low-stock {
-  background: var(--itemselect-color-warning);
-}
-
-.enhanced-stock-indicator.out-of-stock {
-  background: var(--itemselect-color-error);
-}
+.dot-success { background: var(--posmati-grass-green); }
+.dot-warning { background: var(--posmati-safety-amber); }
+.dot-error { background: var(--posmati-vivid-red); }
 
 .enhanced-controls {
   background: var(--itemselect-color-bg-card);
@@ -969,35 +1032,14 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.enhanced-view-toggle {
+/* View Toggle */
+.posmati-view-toggle {
   display: flex;
-  background: var(--itemselect-color-bg-empty);
-  border-radius: 8px;
+  background: var(--posmati-light-gray);
+  border-radius: var(--posmati-radius-sm);
   padding: 4px;
   width: 100%;
-}
-
-.enhanced-view-btn {
-  flex: 1;
-  padding: 0.5rem 0.75rem;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  color: var(--itemselect-color-text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-}
-
-.enhanced-view-btn.active {
-  background: var(--itemselect-color-bg-card);
-  color: var(--itemselect-color-primary);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
-  font-weight: 600;
+  gap: 4px;
 }
 
 .enhanced-action-btn {
