@@ -6,3 +6,7 @@ tags
 posawesome/docs/current
 node_modules
 posawesome/public/dist
+
+# Documentation files (keep locally, don't commit)
+docs/*.md
+*.md
