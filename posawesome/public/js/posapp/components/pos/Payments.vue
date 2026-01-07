@@ -1064,92 +1064,87 @@ export default {
         textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
       );
     },
-    request_payment() {
-      this.phone_dialog = false;
-      const vm = this;
-      if (!this.invoice_doc.contact_mobile) {
-        toast.error(__(`Pleas Set Customer Mobile Number`));
+    async request_payment(){
+      this.phone_dialog=false;
+      const vm=this;
+
+      if(!this.invoice_doc.contact_mobile){
+        toast.error(__('Please set customer mobile number'));
         this.eventBus.emit("open_edit_customer");
         this.back_to_invoice();
         return;
       }
-      this.eventBus.emit("freeze", {
-        title: __(`Waiting for payment... `),
+      this.eventBus.emit("freeze",{
+        title: __(`Waiting for payment... `)
       });
-      this.invoice_doc.payments.forEach((payment) => {
-        payment.amount = flt(payment.amount);
-      });
-      let formData = { ...this.invoice_doc };
-      formData["total_change"] = -this.diff_payment;
-      formData["paid_change"] = this.paid_change;
-      formData["credit_change"] = -this.credit_change;
-      formData["redeemed_customer_credit"] = this.redeemed_customer_credit;
-      formData["customer_credit_dict"] = this.customer_credit_dict;
-      formData["is_cashback"] = this.is_cashback;
+      try{
+        this.invoice_doc.payments.forEach((payment)=>{
+          payment.amount=flt(payment.amount);
+        });
 
-      frappe
-        .call({
-          method: "posawesome.posawesome.api.posapp.update_invoice",
-          args: {
-            data: formData,
+        let formData={...this.invoice_doc};
+        formData['total_change']=-this.diff_payment;
+        formData['paid_change']=this.paid_change;
+        formData['credit_change']=-this.credit_change;
+        formData['redeemed_customer_credit']=this.redeemed_customer_credit;
+        formData['customer_credit_dict']=this.customer_credit_dict;
+        formData['is_cashback']=this.is_cashback;
+
+        await frappe.call({
+          method:"posawesome.posawesome.api.posapp.update_invoice",
+          args:{
+            data:formData,
           },
-          async: false,
-          callback: function (r) {
-            if (r.message) {
-              vm.invoice_doc = r.message;
+          async:false,
+          callback:function(r){
+            if(r.message){
+              vm.invoice_doc=r.message;
             }
           },
-        })
-        .then(() => {
-          frappe
-            .call({
-              method: "posawesome.posawesome.api.posapp.create_payment_request",
-              args: {
-                doc: vm.invoice_doc,
-              },
-            })
-            .fail(() => {
-              this.eventBus.emit("unfreeze");
-              toast.error(__(`Payment request failed`));
-            })
-            .then(({ message }) => {
-              const payment_request_name = message.name;
-              setTimeout(() => {
-                frappe.db
-                  .get_value("Payment Request", payment_request_name, [
-                    "status",
-                    "grand_total",
-                  ])
-                  .then(({ message }) => {
-                    if (message.status != "Paid") {
-                      this.eventBus.emit("unfreeze");
-                      toast.error(
-                        __(
-                          `Payment Request took too long to respond. Please try requesting for payment again`
-                        )
-                      );
-                    } else {
-                      this.eventBus.emit("unfreeze");
-                      toast.success(
-                        __("Payment of {0} received successfully.", [
-                          vm.formatCurrency(
-                            message.grand_total,
-                            vm.invoice_doc.currency,
-                            0
-                          ),
-                        ])
-                      );
-                      frappe.db
-                        .get_doc("Sales Invoice", vm.invoice_doc.name)
-                        .then((doc) => {
-                          vm.invoice_doc = doc;
-                          vm.submit(null, true);
-                        });
-                    }
-                  });
-              }, 30000);
-            });
         });
+
+        const {message}=await frappe.call({
+          method:"posawesome.posawesome.api.posapp.create_payment_request",
+          args:{
+            doc:vm.invoice_doc,
+          },
+        });
+
+        const payment_request_name=message.name;
+
+        setTimeout(async ()=>{
+          const {message}=await frappe.db.get_value(
+            "Payment Request",
+            payment_request_name,
+            ["status","grand_total"]
+          );
+          if(message.status!="Paid"){
+            this.eventBus.emit("unfreeze");
+            toast.error(
+              __(
+                `Payment Request took too long to respond. Please try requesting for payment again`
+              )
+            );
+            return;
+          }
+          this.eventBus.emit("unfreeze");
+          toast.success(
+            __("Payment of {0} received successfully.",[
+              vm.formatCurrency(
+                message.grand_total,
+                vm.invoice_doc.currency,
+                0
+              ),
+            ])
+          );
+          const doc=await frappe.db.get_doc("Sales Invoice",vm.invoice_doc.name);
+          vm.invoice_doc=doc;
+          vm.submit(null,true);
+        },30000);
+      } catch(error){
+        this.eventBus.emit("unfreeze");
+        toast.error(__(`Payment request failed`));
+      }
     },
     get_mpesa_modes() {
       const vm = this;
