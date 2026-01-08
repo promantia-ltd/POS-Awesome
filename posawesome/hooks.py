@@ -270,4 +270,10 @@ fixtures = [
         "filters": [["name", "in", ("Sales Invoice-posa_pos_opening_shift-no_copy",
                                     "POS Profile-posa_tax_inclusive-hidden")]],
     },
+    {
+        "doctype": "Workspace",
+        "filters": [
+            ["name", "=", "POSpire"]
+        ]
+    }
 ]
