@@ -18,6 +18,7 @@ frappe.PosApp.posapp = class {
 
     }
     make_body() {
+        document.title = "POSpire";
         this.$el = this.$parent.find('.main-section');
         const vuetify = createVuetify(
             {
