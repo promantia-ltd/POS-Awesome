@@ -4,27 +4,42 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" class="modern-nav-icon"></v-app-bar-nav-icon>
       <v-toolbar-title @click="go_desk" class="stylish-brand">
         <div class="brand-container-modern hover-vibrant">
-          <div class="brand-icon">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="8" y="14" width="20" height="14" rx="3" fill="#34495E" opacity="0.2"/>
-              <rect x="6" y="11" width="20" height="14" rx="3" fill="#34495E" opacity="0.4"/>
-              <rect x="4" y="8" width="20" height="14" rx="3" fill="#34495E"/>
-              <rect x="7" y="11" width="10" height="3" rx="1.5" fill="#00BCD4"/>
-              <circle cx="8.5" cy="17.5" r="1" fill="#E2E8F0"/>
-              <circle cx="12" cy="17.5" r="1" fill="#E2E8F0"/>
-              <circle cx="15.5" cy="17.5" r="1" fill="#E2E8F0"/>
-              <circle cx="28" cy="12" r="5" fill="url(#accentGradient)"/>
-              <path d="M26 12L27.5 13.5L30.5 10.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <defs>
-                <linearGradient id="accentGradient" x1="23" y1="7" x2="33" y2="17" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#00BCD4"/>
-                  <stop offset="1" stop-color="#0097A7"/>
-                </linearGradient>
-              </defs>
-            </svg>
+          <!-- Client branding (left) -->
+          <div class="client-brand-section">
+            <div class="brand-icon" v-if="company_img && company_img !== '/assets/erpnext/images/erpnext-logo.svg'">
+              <v-avatar size="36" class="client-logo">
+                <v-img :src="company_img"></v-img>
+              </v-avatar>
+            </div>
+            <span class="client-brand-name">{{ company }}</span>
           </div>
-          <div class="brand-text">
-            <span class="brand-name-primary">POS</span><span class="brand-name-accent">pire</span>
+
+          <!-- Divider -->
+          <div class="brand-divider"></div>
+
+          <!-- POSpire branding (right) -->
+          <div class="pospire-brand-section">
+            <span class="powered-by-text">Powered by</span>
+            <div class="pospire-logo-animated">
+              <svg width="24" height="24" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="pospire-icon">
+                <rect x="4" y="8" width="20" height="14" rx="3" fill="#34495E"/>
+                <rect x="7" y="11" width="10" height="3" rx="1.5" fill="#00BCD4"/>
+                <circle cx="8.5" cy="17.5" r="1" fill="#E2E8F0"/>
+                <circle cx="12" cy="17.5" r="1" fill="#E2E8F0"/>
+                <circle cx="15.5" cy="17.5" r="1" fill="#E2E8F0"/>
+                <circle cx="28" cy="12" r="5" fill="url(#accentGradient2)" class="pulse-circle"/>
+                <path d="M26 12L27.5 13.5L30.5 10.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                  <linearGradient id="accentGradient2" x1="23" y1="7" x2="33" y2="17" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#00BCD4"/>
+                    <stop offset="1" stop-color="#0097A7"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span class="pospire-name">
+                <span class="pospire-pos">POS</span><span class="pospire-pire">pire</span>
+              </span>
+            </div>
           </div>
         </div>
       </v-toolbar-title>
@@ -310,14 +325,15 @@ export default {
 
 /* Brand Container */
 .brand-container-modern {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 12px;
+  padding: 6px 16px;
   background: linear-gradient(135deg, rgba(0, 188, 212, 0.08) 0%, rgba(52, 73, 94, 0.05) 100%);
   border-radius: 10px;
   border: 1px solid rgba(0, 188, 212, 0.15);
   transition: all 0.3s ease;
+  width: fit-content;
 }
 
 .brand-container-modern:hover {
@@ -344,6 +360,130 @@ export default {
 .brand-text {
   display: flex;
   align-items: baseline;
+}
+
+/* White-label branding styles */
+.client-brand-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.client-brand-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #34495E;
+  line-height: 1.2;
+}
+
+.client-logo {
+  border: 1px solid #e2e8f0;
+  background: white;
+}
+
+.brand-divider {
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(180deg, transparent, #cbd5e1, transparent);
+  margin: 0 12px;
+}
+
+/* POSpire branding section */
+.pospire-brand-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.powered-by-text {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.pospire-logo-animated {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pospire-icon {
+  transition: transform 0.3s ease;
+}
+
+.pospire-brand-section:hover .pospire-icon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.pospire-name {
+  display: flex;
+  align-items: baseline;
+}
+
+.pospire-pos {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #34495E;
+  letter-spacing: -0.3px;
+}
+
+.pospire-pire {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: -0.2px;
+  transition: color 0.3s ease;
+}
+
+.pospire-brand-section:hover .pospire-pire {
+  color: #00BCD4;
+}
+
+/* Pulse animation for POSpire checkmark circle */
+.pulse-circle {
+  animation: pospirePulse 2s ease-in-out infinite;
+  transform-origin: 28px 12px;
+}
+
+@keyframes pospirePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.15);
+  }
+}
+
+/* Shimmer effect on hover */
+.pospire-brand-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.pospire-brand-section:hover::after {
+  left: 100%;
+}
+
+.pospire-brand-section {
+  position: relative;
+  overflow: hidden;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .brand-pos-modern {
