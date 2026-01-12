@@ -420,7 +420,7 @@ export default {
       const vm = this;
       vm.loading = true;
       frappe.call({
-        method: 'posawesome.posawesome.api.posapp.search_invoices_for_return',
+        method: 'posawesome.pospire.api.posapp.search_invoices_for_return',
         args: {
           invoice_name: vm.invoice_name,
           company: vm.company,

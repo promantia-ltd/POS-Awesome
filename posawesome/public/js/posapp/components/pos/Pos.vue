@@ -76,7 +76,7 @@ export default {
   methods: {
     check_opening_entry() {
       return frappe
-        .call('posawesome.posawesome.api.posapp.check_opening_shift', {
+        .call('posawesome.pospire.api.posapp.check_opening_shift', {
           user: frappe.session.user,
         })
         .then((r) => {
@@ -98,7 +98,7 @@ export default {
     get_closing_data() {
       return frappe
         .call(
-          'posawesome.posawesome.doctype.pos_closing_shift.pos_closing_shift.make_closing_shift_from_opening',
+          'posawesome.pospire.doctype.pos_closing_shift.pos_closing_shift.make_closing_shift_from_opening',
           {
             opening_shift: this.pos_opening_shift,
           }
@@ -114,7 +114,7 @@ export default {
     submit_closing_pos(data) {
       frappe
         .call(
-          'posawesome.posawesome.doctype.pos_closing_shift.pos_closing_shift.submit_closing_shift',
+          'posawesome.pospire.doctype.pos_closing_shift.pos_closing_shift.submit_closing_shift',
           {
             closing_shift: data,
           }
@@ -131,7 +131,7 @@ export default {
     },
     get_offers(pos_profile) {
       return frappe
-        .call('posawesome.posawesome.api.posapp.get_offers', {
+        .call('posawesome.pospire.api.posapp.get_offers', {
           profile: pos_profile,
         })
         .then((r) => {

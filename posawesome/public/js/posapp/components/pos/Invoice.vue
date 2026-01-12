@@ -1285,7 +1285,7 @@ export default {
         );
       }
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.get_sales_person_names",
+        method: "posawesome.pospire.api.posapp.get_sales_person_names",
         callback: function (r) {
           if (r.message) {
             vm.sales_persons = r.message;
@@ -1537,7 +1537,7 @@ export default {
       var vm = this;
       if (doc.name && this.pos_profile.posa_allow_delete) {
         await frappe.call({
-          method: "posawesome.posawesome.api.posapp.delete_invoice",
+          method: "posawesome.pospire.api.posapp.delete_invoice",
           args: { invoice: doc.name },
           async: true,
           callback: function (r) {
@@ -1715,7 +1715,7 @@ export default {
       if (this.invoice_doc.doctype == "Sales Order") {
         await frappe.call({
           method:
-            "posawesome.posawesome.api.posapp.create_sales_invoice_from_order",
+            "posawesome.pospire.api.posapp.create_sales_invoice_from_order",
           args: {
             sales_order: this.invoice_doc.name,
           },
@@ -1856,7 +1856,7 @@ export default {
     update_invoice(doc) {
       var vm = this;
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.update_invoice",
+        method: "posawesome.pospire.api.posapp.update_invoice",
         args: {
           data: doc,
         },
@@ -1873,7 +1873,7 @@ export default {
     update_invoice_from_order(doc) {
       var vm = this;
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.update_invoice_from_order",
+        method: "posawesome.pospire.api.posapp.update_invoice_from_order",
         args: {
           data: doc,
         },
@@ -1933,7 +1933,7 @@ export default {
         var sales_invoice_item_doc = {};
         frappe.call({
           method:
-            "posawesome.posawesome.api.posapp.get_sales_invoice_child_table",
+            "posawesome.pospire.api.posapp.get_sales_invoice_child_table",
           args: {
             sales_invoice: this.invoice_doc.name,
             sales_invoice_item: sales_invoice_item.name,
@@ -2118,7 +2118,7 @@ export default {
     get_draft_invoices() {
       var vm = this;
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.get_draft_invoices",
+        method: "posawesome.pospire.api.posapp.get_draft_invoices",
         args: {
           pos_opening_shift: this.pos_opening_shift.name,
         },
@@ -2134,7 +2134,7 @@ export default {
     get_draft_orders() {
       var vm = this;
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.search_orders",
+        method: "posawesome.pospire.api.posapp.search_orders",
         args: {
           company: this.pos_profile.company,
           currency: this.pos_profile.currency,
@@ -2163,7 +2163,7 @@ export default {
       var vm = this;
       if (!vm.pos_profile) return;
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.get_items_details",
+        method: "posawesome.pospire.api.posapp.get_items_details",
         async: false,
         args: {
           pos_profile: vm.pos_profile,
@@ -2206,7 +2206,7 @@ export default {
       }
       var vm = this;
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.get_item_detail",
+        method: "posawesome.pospire.api.posapp.get_item_detail",
         args: {
           warehouse: this.pos_profile.warehouse,
           doc: this.get_invoice_doc(),
@@ -2300,7 +2300,7 @@ export default {
       var vm = this;
       if (this.customer) {
         frappe.call({
-          method: "posawesome.posawesome.api.posapp.get_customer_info",
+          method: "posawesome.pospire.api.posapp.get_customer_info",
           args: {
             customer: vm.customer,
           },
@@ -3435,7 +3435,7 @@ export default {
       this.selected_delivery_charge = "";
       frappe.call({
         method:
-          "posawesome.posawesome.api.posapp.get_applicable_delivery_charges",
+          "posawesome.pospire.api.posapp.get_applicable_delivery_charges",
         args: {
           company: this.pos_profile.company,
           pos_profile: this.pos_profile.name,

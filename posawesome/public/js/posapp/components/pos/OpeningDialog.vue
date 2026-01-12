@@ -160,7 +160,7 @@ export default {
     get_opening_dialog_data() {
       const vm = this;
       frappe.call({
-        method: 'posawesome.posawesome.api.posapp.get_opening_dialog_data',
+        method: 'posawesome.pospire.api.posapp.get_opening_dialog_data',
         args: {},
         callback: function (r) {
           if (r.message) {
@@ -197,7 +197,7 @@ export default {
             : Number(p.amount),
       }));
       return frappe
-        .call('posawesome.posawesome.api.posapp.create_opening_voucher', {
+        .call('posawesome.pospire.api.posapp.create_opening_voucher', {
           pos_profile: this.pos_profile,
           company: this.company,
           balance_details,

@@ -92,7 +92,7 @@ export default {
     search() {
       const vm = this;
       frappe.call({
-        method: 'posawesome.posawesome.api.m_pesa.get_mpesa_draft_payments',
+        method: 'posawesome.pospire.api.m_pesa.get_mpesa_draft_payments',
         args: {
           company: this.company,
           mode_of_payment: this.mode_of_payment,
@@ -112,7 +112,7 @@ export default {
       if (this.selected.length > 0) {
         const selected_payment = this.selected[0].name;
         frappe.call({
-          method: 'posawesome.posawesome.api.m_pesa.submit_mpesa_payment',
+          method: 'posawesome.pospire.api.m_pesa.submit_mpesa_payment',
           args: {
             mpesa_payment: selected_payment,
             customer: this.customer,

@@ -8,7 +8,7 @@ export default {
   methods: {
     hardwareConfiguration(pos_name) {
       return frappeCall(
-        "posawesome.posawesome.api.hardware_manager.get_hardware_manager_setting",
+        "posawesome.pospire.api.hardware_manager.get_hardware_manager_setting",
         { pos_profile_name: pos_name }
       );
     },
@@ -16,7 +16,7 @@ export default {
     async hardwareURL(api_name) {
       try {
         const url = await frappeCall(
-          "posawesome.posawesome.api.hardware_manager.hardware_url",
+          "posawesome.pospire.api.hardware_manager.hardware_url",
           { api_name }
         );
         if (!url) {
@@ -38,7 +38,7 @@ export default {
 
         // Generate XML using default template for Sales Invoice
         const xmlPayload = await frappeCall(
-          "posawesome.posawesome.api.hardware_manager.generate_print_xml",
+          "posawesome.pospire.api.hardware_manager.generate_print_xml",
           {
             doc_type: "Sales Invoice",
             sales_invoice_name: invoice_name,

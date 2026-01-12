@@ -324,7 +324,7 @@ export default {
       
       // Always fetch fresh data from server
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.get_items",
+        method: "posawesome.pospire.api.posapp.get_items",
         args: {
           pos_profile: vm.pos_profile,
           price_list: vm.customer_price_list,
@@ -379,7 +379,7 @@ export default {
       } else {
         const vm = this;
         frappe.call({
-          method: "posawesome.posawesome.api.posapp.get_items_groups",
+          method: "posawesome.pospire.api.posapp.get_items_groups",
           args: {},
           callback: function (r) {
             if (r.message) {
@@ -563,7 +563,7 @@ export default {
       // set debugger
       const vm = this;
       frappe.call({
-        method: "posawesome.posawesome.api.posapp.get_items_details",
+        method: "posawesome.pospire.api.posapp.get_items_details",
         args: {
           pos_profile: vm.pos_profile,
           items_data: items,
