@@ -94,13 +94,13 @@ after_uninstall = "posawesome.uninstall.after_uninstall"
 
 doc_events = {
     "Sales Invoice": {
-        "validate": "posawesome.posawesome.api.invoice.validate",
-        "before_submit": "posawesome.posawesome.api.invoice.before_submit",
-        "before_cancel": "posawesome.posawesome.api.invoice.before_cancel",
+        "validate": "posawesome.pospire.api.invoice.validate",
+        "before_submit": "posawesome.pospire.api.invoice.before_submit",
+        "before_cancel": "posawesome.pospire.api.invoice.before_cancel",
     },
     "Customer": {
-        "validate": "posawesome.posawesome.api.customer.validate",
-        "after_insert": "posawesome.posawesome.api.customer.after_insert",
+        "validate": "posawesome.pospire.api.customer.validate",
+        "after_insert": "posawesome.pospire.api.customer.after_insert",
     },
 }
 
@@ -274,6 +274,12 @@ fixtures = [
         "doctype": "Workspace",
         "filters": [
             ["name", "=", "POSpire"]
+        ]
+    },
+    {
+        "doctype": "Module Def",
+        "filters": [
+            ["name", "in", ["POS Awesome", "POSpire"]]
         ]
     }
 ]
