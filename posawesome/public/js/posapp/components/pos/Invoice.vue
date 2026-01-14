@@ -1170,6 +1170,10 @@ export default {
   },
 
   methods: {
+    onInvoiceCreated(data){
+      // Clear expanded item rows after invoice creation to reset UI selection safely
+      this.expanded = [];
+    },
     // total field
     updateItemTotal(item, newTotal) {
       if (!item || item.qty <= 0) return;
@@ -3458,6 +3462,7 @@ export default {
 
   mounted() {
     //
+    this.eventBus.on("invoice_created",this.onInvoiceCreated);
     this.get_sales_person_names();
     if (this.invoice_doc && this.invoice_doc.inclusive_tax === undefined) {
       this.invoice_doc.inclusive_tax = this.inclusive_tax;
@@ -3549,6 +3554,7 @@ export default {
     this.eventBus.off("update_invoice_offers");
     this.eventBus.off("update_invoice_coupons");
     this.eventBus.off("set_all_items");
+    this.eventBus.off("invoice_created", this.onInvoiceCreated);
   },
   created() {
     document.addEventListener("keydown", this.shortOpenPayment.bind(this));
