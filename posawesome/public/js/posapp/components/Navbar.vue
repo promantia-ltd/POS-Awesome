@@ -209,6 +209,12 @@ export default {
         true
       );
     },
+    onInvoiceCreated(data) {
+    console.log('invoice_created received:', data);
+    } ,
+  },
+  beforeUnmount() {
+  this.eventBus.off('invoice_created', this.onInvoiceCreated);
   },
   created: function () {
     this.$nextTick(function () {
@@ -235,6 +241,7 @@ export default {
       this.eventBus.on('set_last_invoice', (data) => {
         this.last_invoice = data;
       });
+      this.eventBus.on('invoice_created',this.onInvoiceCreated);
       this.eventBus.on('freeze', (data) => {
         this.freeze = true;
         this.freezeTitle = data.title;

@@ -828,6 +828,10 @@ export default {
             toast.error("Error submitting invoice");
             return;
           }
+          vm.eventBus.emit("invoice_created",{
+            id:r.message.name,
+            status:r.message.status||"Submitteed",
+          });
           if (print) {
             vm.handlePrint(vm.invoice_doc.name);
           }
