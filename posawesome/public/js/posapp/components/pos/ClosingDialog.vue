@@ -154,7 +154,7 @@ export default {
             ? 0
             : Number(p.closing_amount),
       }));
-      this.eventBus.emit('submit_closing_pos', this.dialog_data);
+      this.$emit('submit-closing-pos', this.dialog_data);
       this.closingDialog = false;
       this.is_loading = false;
     },

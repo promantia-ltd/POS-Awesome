@@ -1,6 +1,6 @@
 <template>
   <div fluid class="mt-2 pos-page">
-    <ClosingDialog></ClosingDialog>
+   <ClosingDialog @submit-closing-pos="submit_closing_pos"></ClosingDialog>
     <Drafts></Drafts>
     <SalesOrders></SalesOrders>
     <Returns></Returns>
@@ -179,9 +179,6 @@ export default {
       this.eventBus.on('open_closing_dialog', () => {
         this.get_closing_data();
       });
-      this.eventBus.on('submit_closing_pos', (data) => {
-        this.submit_closing_pos(data);
-      });
     });
   },
   beforeUnmount() {
@@ -192,7 +189,6 @@ export default {
     this.eventBus.off('show_coupons');
     this.eventBus.off('show_payment');
     this.eventBus.off('open_closing_dialog');
-    this.eventBus.off('submit_closing_pos');
   },
 };
 </script>
