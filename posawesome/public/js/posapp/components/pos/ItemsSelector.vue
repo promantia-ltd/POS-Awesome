@@ -24,6 +24,16 @@
             hide-details></v-checkbox>
         </v-col>
         <v-col cols="12" class="pt-0 mt-0">
+          <!--Error Stae -->
+          <div v-if="error" class="enhanced-error-state">
+            <v-icon size="48" color="error">mdi-alert-circle-outline</v-icon>
+            <div class="enhanced-error-title">
+              Something went wrong
+            </div>
+            <div class="enhanced-error-description">
+              {{ error }}
+            </div>
+          </div>
           <div fluid class="items enhanced-scrollbar" v-if="items_view == 'card'">
             <!-- Empty State for Card View -->
             <div v-if="!loading && filtered_items.length === 0" class="enhanced-empty-state enhanced-fade-in">
@@ -204,6 +214,16 @@
         </v-col>
       </v-row>
     </v-card>
+    <!-- Debug pannel-->
+     <div class="debug-panel" style="margin-top: 12px; padding: 8px; font-size: 12px; background: #f5f5f5; border: 1px dashed #ccc;">
+      <strong>Debug Panel</strong>
+      <div>Query:{{ first_search }}</div>
+      <div>Loading::{{ loading }}</div>
+      <div>Error:{{ error }}</div>
+      <div>Active Index:{{ activeIndex }}</div>
+      <div>Request ID:{{ requestId }}</div>
+      <div>Results Count:{{ filtered_items.length }}</div>
+     </div>
   </div>
 </template>
 
@@ -233,10 +253,16 @@ export default {
     customer: null,
     new_line: false,
     qty: 1,
+    error:null,
+    activeIndex: -1,
+    requestId: 0,
+
   }),
 
   watch: {
     filtered_items(new_value, old_value) {
+      // 🔹 Reset active selection when results change
+      this.activeIndex = -1;
       if (!this.pos_profile.pose_use_limit_search) {
         if (new_value.length != old_value.length) {
           this.update_items_details(new_value);
@@ -263,7 +289,9 @@ export default {
         return;
       }
       const vm = this;
+      const currentRequestId = ++this.requestId;
       this.loading = true;
+      this.error=null;
       let search = this.get_search(this.first_search);
       let gr = "";
       let sr = "";
@@ -283,7 +311,6 @@ export default {
         try {
           vm.items = JSON.parse(localStorage.getItem("items_storage"));
           this.eventBus.emit("set_all_items", vm.items);
-          vm.loading = false;
           
           // Immediately update stock for cached items
           vm.$nextTick(() => {
@@ -292,7 +319,6 @@ export default {
             }
           });
         } catch (e) {
-          vm.loading = false;
         }
       }
       
@@ -307,10 +333,15 @@ export default {
           customer: vm.customer,
         },
         callback: function (r) {
+          if(currentRequestId !== vm.requestId) {
+            return;
+          }
+          vm.loading = false;
           if (r.message) {
+            vm.error = null;
             vm.items = r.message;
             vm.eventBus.emit("set_all_items", vm.items);
-            vm.loading = false;
+            
             
             // Update localStorage if enabled
             if (
@@ -336,6 +367,9 @@ export default {
             if (vm.pos_profile.pose_use_limit_search) {
               vm.enter_event();
             }
+          }
+          else{
+            vm.error="Failed to load items";
           }
         },
       });
