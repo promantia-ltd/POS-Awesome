@@ -275,9 +275,69 @@ export default {
     new_line() {
       this.eventBus.emit("set_new_line", this.new_line);
     },
+    first_search(newValue){
+      if(!newValue || newValue.length<2){
+        this.debouncedFetchItems.cancel();
+        this.items=[];
+        return;
+      }
+      this.debouncedFetchItems(newValue);
+    },
   },
 
   methods: {
+        fetchItems(query) {
+      if (!this.pos_profile) {
+        return;
+      }
+
+      const vm = this;
+      const currentRequestId = ++vm.requestId;
+      vm.loading = true;
+      vm.error = null;
+
+      let gr = "";
+      let sr = "";
+
+      if (query) {
+        sr = query;
+      }
+
+      if (vm.item_group !== "ALL") {
+        gr = vm.item_group.toLowerCase();
+      }
+
+      frappe.call({
+        method: "posawesome.posawesome.api.posapp.get_items",
+        args: {
+          pos_profile: vm.pos_profile,
+          price_list: vm.customer_price_list,
+          item_group: gr,
+          search_value: sr,
+          customer: vm.customer,
+        },
+        callback: function (r) {
+          if(currentRequestId !== vm.requestId) {
+            return;
+          }
+          vm.loading = false;
+
+          if (r && r.message) {
+            vm.items = r.message;
+            vm.eventBus.emit("set_all_items", vm.items);
+          } else {
+            vm.error = "Failed to load items";
+          }
+        },
+        error: function () {
+          if(currentRequestId !== vm.requestId) {
+            return;
+          }
+          vm.loading = false;
+          vm.error = "Failed to load items";
+        }
+      });
+    },
     show_offers() {
       this.eventBus.emit("show_offers", "true");
     },
@@ -766,6 +826,12 @@ export default {
   },
 
   created: function () {
+    this.debouncedFetchItems=_.debounce(
+      (query)=>{
+        this.fetchItems(query);
+      },
+      300
+    );
     this.$nextTick(function () { });
     this.eventBus.on("register_pos_profile", (data) => {
       this.pos_profile = data.pos_profile;
