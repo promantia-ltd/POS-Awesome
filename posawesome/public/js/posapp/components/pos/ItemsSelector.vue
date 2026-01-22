@@ -1,5 +1,5 @@
 <template>
-  <div class="enhanced-items-container">
+  <div class="enhanced-items-container" tabindex="0"  @keydown="handleKeydown">
     <v-card class="selection mx-auto" elevation="2" rounded="lg">
       <v-progress-linear :active="loading" :indeterminate="loading" absolute :location="top"
         color="info"></v-progress-linear>
@@ -9,7 +9,9 @@
             <v-icon class="enhanced-search-icon" size="20" color="grey-darken-1">mdi-magnify</v-icon>
             <v-text-field density="compact" clearable autofocus variant="outlined" color="primary"
               placeholder="Search by name, code, barcode, serial or batch number..."
-              bg-color="white" hide-details v-model="debounce_search" @keydown.esc="esc_event"
+              bg-color="white" hide-details v-model="debounce_search" 
+              @keydown="handleKeydown"
+              @keydown.esc="esc_event"
               @keydown.enter="search_onchange" ref="debounce_search"
               class="enhanced-search-field"></v-text-field>
           </div>
@@ -53,13 +55,15 @@
             </div>
             <!-- Items Grid -->
             <v-row v-else density="compact" class="overflow-y-auto pa-2" style="max-height: 67vh">
-              <v-col v-for="(item, idx) in filtered_items" :key="idx" cols="12" sm="12" md="6" lg="4" xl="3" class="pa-6">
+              <v-col v-for="(item, idx) in filtered_items" :key="idx"   :ref="el => itemRefs[idx] = el" cols="12" sm="12" md="6" lg="4" xl="3" class="pa-6">
                 <v-card 
                   hover 
                   color="blue-grey-lighten-5"
                   @click="add_item(item)" 
                   class="enhanced-item-card"
-                  :class="{ 'enhanced-out-of-stock': item.actual_qty <= 0 }">
+                  :class="{ 'enhanced-out-of-stock': item.actual_qty <= 0,
+                            'keyboard-active-row': idx === activeIndex
+                  }">
                   <div class="enhanced-item-image">
                     <v-img :src="item.image ||
                       '/assets/posawesome/js/posapp/components/pos/placeholder-image.png'
@@ -103,8 +107,8 @@
               </button>
             </div>
             <!-- Data Table -->
-            <div v-else class="my-0 py-0 overflow-y-auto enhanced-data-table" style="max-height: 65vh">
-              <v-data-table :headers="getItemsHeaders()" :items="filtered_items" item-key="item_code" item-value="item-"
+            <div v-else ref="listContainer" class="my-0 py-0 overflow-y-auto enhanced-data-table" style="max-height: 65vh">
+               <v-data-table :headers="getItemsHeaders()" :items="filtered_items" item-key="item_code" item-value="item_code"
                 class="elevation-1" :items-per-page="itemsPerPage" hide-default-footer @click:row="click_item_row">
                 <template v-slot:item.rate="{ item }">
                   <span class="text-primary font-weight-medium">{{ currencySymbol(item.currency) }}
@@ -256,10 +260,35 @@ export default {
     error:null,
     activeIndex: -1,
     requestId: 0,
+    isAddingByKeyboard: false,
+    itemRefs: [],
 
   }),
 
   watch: {
+    activeIndex(newIndex){
+      if(newIndex < 0)
+        return;
+
+      this.$nextTick(()=>{
+        if (this.items_view === 'card') {
+        const el=this.itemRefs[newIndex];
+        if(el && el.$el){
+          el.$el.scrollIntoView({
+            behavior:"smooth",
+            block:"center"
+          });
+        }
+      }
+      if(this.items_view === 'list'){
+        const container = this.$refs.listContainer;
+        const rowHeight = 52;
+        if(container){
+          container.scrollTop=newIndex * rowHeight;
+        }
+      }
+      });
+    },
     filtered_items(new_value, old_value) {
       // 🔹 Reset active selection when results change
       this.activeIndex = -1;
@@ -286,7 +315,71 @@ export default {
   },
 
   methods: {
-        fetchItems(query) {
+    handleKeydown(event) {
+      this.$refs.debounce_search?.focus();
+       console.log("KEY PRESSED:", event.key);
+      if (event.key === "ArrowDown") {
+        if (!this.filtered_items || this.filtered_items.length === 0) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const lastIndex = this.filtered_items.length - 1;
+
+        if (this.activeIndex < lastIndex) {
+          this.activeIndex++;
+        }
+      }
+
+      if (event.key === "ArrowUp") {
+        if (!this.filtered_items || this.filtered_items.length === 0) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (this.activeIndex > -1) {
+          this.activeIndex--;
+        }
+      }
+
+      if (event.key === "Enter") {
+        if (this.activeIndex === -1) {
+          return;
+        }
+
+        event.preventDefault();
+
+        if (this.isAddingByKeyboard) {
+          return;
+        }
+
+        const item = this.filtered_items[this.activeIndex];
+        this.add_item(item);
+        if (!item) {
+          return;
+        }
+
+        this.isAddingByKeyboard = true;
+        this.add_item(item);
+        this.activeIndex = -1;
+
+        setTimeout(() => {
+          this.isAddingByKeyboard = false;
+          this.$refs.debounce_search.focus();
+        }, 150);
+      }
+
+      if(event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        this.esc_event();
+      }
+    },
+  fetchItems(query) {
       if (!this.pos_profile) {
         return;
       }
@@ -483,7 +576,8 @@ export default {
 
       return items_headers;
     },
-    click_item_row(event, { item }) {
+    click_item_row(event, { item, index }) {
+      this.activeIndex = index;
       this.add_item(item)
     },
     add_item(item) {
@@ -610,6 +704,7 @@ export default {
       this.first_search = null;
       this.qty = 1;
       this.$refs.debounce_search.focus();
+      activeIndex = -1;
     },
     update_items_details(items) {
       // set debugger
@@ -696,6 +791,7 @@ export default {
       this.first_search = null;
       this.debounce_search = null;
       this.$refs.debounce_search.focus();
+      activeIndex = -1;
     },
     
     getStockColorClass(qty) {
@@ -867,6 +963,11 @@ export default {
 </script>
 
 <style scoped>
+.keyboard-active-row {
+  background-color: #e3f2fd !important;
+  outline: 2px solid #2196f3;
+}
+
 .enhanced-items-container {
   display: flex;
   flex-direction: column;
