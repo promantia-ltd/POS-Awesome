@@ -27,7 +27,7 @@
         </v-col>
         <v-col cols="12" class="pt-0 mt-0">
           <!--Error Stae -->
-          <div v-if="error" class="enhanced-error-state">
+          <div v-if="uxState === 'error'" class="enhanced-error-state">
             <v-icon size="48" color="error">mdi-alert-circle-outline</v-icon>
             <div class="enhanced-error-title">
               Something went wrong
@@ -35,10 +35,18 @@
             <div class="enhanced-error-description">
               {{ error }}
             </div>
+            <!--Retry Button -->
+            <v-btn color="primary" variant="tonal" class="mt-4" @click="retryFetchItems">
+              Retry
+            </v-btn>
           </div>
+          <!--Loading State-->
+          <div v-if="uxState==='loading'" class="enhanced-loading-state">
+            <v-skeleton-loader v-for="n in 6" :key="n" type="card" class="mb-3"/>
+            </div>
           <div fluid class="items enhanced-scrollbar" v-if="items_view == 'card'">
             <!-- Empty State for Card View -->
-            <div v-if="!loading && filtered_items.length === 0" class="enhanced-empty-state enhanced-fade-in">
+            <div v-if="uxState === 'empty'" class="enhanced-empty-state enhanced-fade-in">
               <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
               <div class="enhanced-empty-state-title">
                 {{ first_search ? 'No items found for your search' : 'No items to display' }}
@@ -91,7 +99,7 @@
           </div>
           <div fluid class="items enhanced-scrollbar" v-if="items_view == 'list'">
             <!-- Empty State for List View -->
-            <div v-if="!loading && filtered_items.length === 0" class="enhanced-empty-state enhanced-fade-in">
+            <div v-if="uxState === 'empty'" class="enhanced-empty-state enhanced-fade-in">
               <v-icon size="64" color="grey-lighten-1">mdi-format-list-bulleted</v-icon>
               <div class="enhanced-empty-state-title">
                 {{ first_search ? 'No items match your search' : 'No items available' }}
@@ -315,6 +323,11 @@ export default {
   },
 
   methods: {
+    retryFetchItems() {
+      this.error=null;
+      this.requestId++;
+      this.search_onchange();
+    },
     handleKeydown(event) {
       this.$refs.debounce_search?.focus();
        console.log("KEY PRESSED:", event.key);
@@ -802,6 +815,18 @@ export default {
   },
 
   computed: {
+    uxState(){
+      if(this.error){
+        return 'error';
+      }
+      if(this.loading){
+        return "loading";
+      }
+      if(!this.items || this.items.length===0){
+        return "empty";
+      }
+      return "ready";
+    },
     filtered_items() {
       this.search = this.get_search(this.first_search);
       if (!this.pos_profile.pose_use_limit_search) {
