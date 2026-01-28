@@ -857,7 +857,6 @@ export default {
       }finally{
         vm.is_loading=false;
       }
-      console.log(this.is_sucessful_invoice);
     },
     async handlePrint(invoice_name) {
       try {

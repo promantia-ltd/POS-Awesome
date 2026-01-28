@@ -270,7 +270,7 @@ export default {
     requestId: 0,
     isAddingByKeyboard: false,
     itemRefs: [],
-
+    allItems: [],
   }),
 
   watch: {
@@ -330,7 +330,6 @@ export default {
     },
     handleKeydown(event) {
       this.$refs.debounce_search?.focus();
-       console.log("KEY PRESSED:", event.key);
       if (event.key === "ArrowDown") {
         if (!this.filtered_items || this.filtered_items.length === 0) {
           return;
@@ -371,7 +370,6 @@ export default {
         }
 
         const item = this.filtered_items[this.activeIndex];
-        this.add_item(item);
         if (!item) {
           return;
         }
@@ -392,12 +390,19 @@ export default {
         this.esc_event();
       }
     },
-  fetchItems(query) {
+    fetchItems(query) {
       if (!this.pos_profile) {
         return;
       }
-
       const vm = this;
+      if (!query || query.trim() === "") {
+        vm.activeIndex = -1;
+        vm.loading = false;
+        vm.error = null;
+        vm.items=vm.allItems;
+        this.eventBus.emit("set_all_items", this.items);
+        return;
+      }
       const currentRequestId = ++vm.requestId;
       vm.loading = true;
       vm.error = null;
@@ -713,11 +718,16 @@ export default {
       return search_term;
     },
     esc_event() {
-      this.search = null;
-      this.first_search = null;
+      this.search = '';
+      this.first_search = '';
       this.qty = 1;
-      this.$refs.debounce_search.focus();
-      activeIndex = -1;
+      this.activeIndex = -1;
+      this.loading = false;
+      this.error = null;
+      this.fetchItems('');  
+      this.$nextTick(()=>{
+        this.$refs.debounce_search?.focus();
+      });
     },
     update_items_details(items) {
       // set debugger
