@@ -826,7 +826,8 @@ export default {
           }
           vm.customer_credit_dict = [];
           vm.redeem_customer_credit = false;
-          vm.is_cashback = true;
+          // Reset is_cashback based on POS Profile setting
+          vm.is_cashback = vm.pos_profile && vm.pos_profile.use_cashback == 1 ? true : false;
           vm.sales_person = "";
 
           vm.eventBus.emit("set_last_invoice", vm.invoice_doc.name);
@@ -1328,6 +1329,12 @@ export default {
         }
         if (invoice_doc.is_return) {
           this.is_return = true;
+          // Initialize is_cashback based on POS Profile setting for returns
+          if (this.pos_profile && this.pos_profile.use_cashback == 0) {
+            this.is_cashback = false;
+          } else if (this.pos_profile && this.pos_profile.use_cashback == 1) {
+            this.is_cashback = true;
+          }
           invoice_doc.payments.forEach((payment) => {
             payment.amount = 0;
             payment.base_amount = 0;
@@ -1343,6 +1350,12 @@ export default {
       });
       this.eventBus.on("register_pos_profile", (data) => {
         this.pos_profile = data.pos_profile;
+        // Initialize is_cashback based on POS Profile setting
+        if (this.pos_profile.use_cashback == 0) {
+          this.is_cashback = false;
+        } else {
+          this.is_cashback = true;
+        }
         this.get_mpesa_modes();
       });
       this.eventBus.on("add_the_new_address", (data) => {
@@ -1362,7 +1375,8 @@ export default {
       if (this.customer != customer) {
         this.customer_credit_dict = [];
         this.redeem_customer_credit = false;
-        this.is_cashback = true;
+        // Reset is_cashback based on POS Profile setting
+        this.is_cashback = this.pos_profile && this.pos_profile.use_cashback == 1 ? true : false;
       }
     });
     this.eventBus.on("set_pos_settings", (data) => {
