@@ -24,18 +24,23 @@
     </v-dialog>
     <v-card style="max-height: 70vh; height: 70vh" class="cards my-0 py-0 mt-3 bg-grey-lighten-5">
       <v-row align="center" class="items px-2 py-1">
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="7" class="pb-2 pr-0">
-          <Customer></Customer>
-        </v-col>
-        <v-col v-if="!pos_profile.posa_allow_sales_order" cols="10" class="pb-2">
+        <v-col :cols="pos_profile.posa_allow_sales_order ? 7 : 10" class="pb-2 pr-0">
           <Customer></Customer>
         </v-col>
         <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
-          <v-select density="compact" hide-details variant="outlined" color="primary" bg-color="white"
-            :items="invoiceTypes" :label="frappe._('Type')" v-model="invoiceType"
-            :disabled="invoiceType == 'Return'"></v-select>
+          <v-select
+            density="compact"
+            hide-details
+            variant="outlined"
+            color="primary"
+            bg-color="white"
+            :items="invoiceTypes"
+            :label="frappe._('Type')"
+            v-model="invoiceType"
+            :disabled="invoiceType == 'Return'"
+          ></v-select>
         </v-col>
-         <!-- Inclusive Tax Switch -->
+        <!-- Inclusive Tax Switch -->
         <v-col cols="2" class="pb-0 mb-0 pt-0 d-flex align-center">
           <v-switch
             v-model="inclusive_tax"
@@ -78,13 +83,29 @@
           <v-menu ref="invoice_posting_date" v-model="invoice_posting_date" :close-on-content-click="false"
             transition="scale-transition" density="default">
             <template v-slot:activator="{ props }">
-              <v-text-field v-model="posting_date" :label="frappe._('Posting Date')" readonly variant="outlined"
-                density="compact" bg-color="white" clearable color="primary" hide-details v-bind="props"></v-text-field>
+                          <v-text-field
+              v-model="posting_date"
+              :label="frappe._('Posting Date')"
+              readonly
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+              clearable
+              color="primary"
+              hide-details
+              v-bind="props"
+            />
             </template>
-            <v-date-picker v-model="posting_date" no-title scrollable color="primary" :min="frappe.datetime.add_days(frappe.datetime.now_date(true), -7)
-              " :max="frappe.datetime.add_days(frappe.datetime.now_date(true), 7)"
-              @input="invoice_posting_date = false">
-            </v-date-picker>
+            <v-date-picker
+              v-model="raw_posting_date"
+              no-title
+              scrollable
+              color="primary"
+              :min="frappe.datetime.add_days(frappe.datetime.now_date(true), -7)"
+              :max="frappe.datetime.add_days(frappe.datetime.now_date(true), 7)"
+              @update:model-value="onPostingDateChange"
+              @input="invoice_posting_date = false"
+            />
           </v-menu>
         </v-col>
       </v-row>
@@ -130,17 +151,17 @@
           </template>
           <template v-slot:item.amount="{ item }">
             <v-text-field
-                      density="compact"
-                      variant="outlined"
-                      color="primary"
-                      :label="frappe._('')"
-                      bg-color="white"
-                      hide-details
-                      :prefix="currencySymbol(pos_profile.currency)"
-                      :model-value="formatCurrency(item.qty * item.rate || 0.00)"
-                      @change="[updateItemTotal(item, $event),  resetDiscountOnQtyChange(item),]" 
-                      :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
-                    ></v-text-field>
+                  density="compact"
+                  variant="outlined"
+                  color="primary"
+                  :label="frappe._('')"
+                  bg-color="white"
+                  hide-details
+                  :prefix="currencySymbol(pos_profile.currency)"
+                  :model-value="formatCurrency(item.qty * item.rate || 0.00)"
+                  @change="updateItemTotal(item, $event)"
+                  :disabled="!pos_profile.custom_allow_user_to_edit_item_total"
+                ></v-text-field>
           </template>
           <template v-slot:item.posa_is_offer="{ item }">
             <v-checkbox-btn :model-value="!!item.posa_is_offer || !!item.posa_is_replace" class="center"
@@ -241,30 +262,26 @@
                   ></v-text-field>
                 </v-col>
                 <v-col cols="4">
-                  <v-text-field density="compact" variant="outlined" color="primary"
-                    :label="frappe._('Discount Amount')" bg-color="white" hide-details
-                    :model-value="formatCurrency(item.discount_amount)" :rules="[isNumber]" @change="
-                      [
-                        setFormatedCurrency(
-                          item,
-                          'discount_amount',
-                          null,
-                          true,
-                          $event
-                        ),
-                        ,
-                        pos_profile.custom_allow_user_to_edit_item_total
-                          ? applyCustomDiscount(item, $event)
-                          : calc_prices(item, $event)
-                      ]
-                      " :prefix="currencySymbol(pos_profile.currency)" id="discount_amount" :disabled="!!item.posa_is_offer ||
-                        !!item.posa_is_replace ||
-                        !!item.posa_offer_applied ||
-                        !pos_profile.posa_allow_user_to_edit_item_discount ||
-                        !!invoice_doc.is_return
-                        ? true
-                        : false
-                        "></v-text-field>
+                  <v-text-field
+                    density="compact"
+                    variant="outlined"
+                    color="primary"
+                    :label="frappe._('Discount Amount')"
+                    bg-color="white"
+                    hide-details
+                    :model-value="formatCurrency(item.discount_amount)"
+                    :rules="[isNumber]"
+                    @change="handleDiscountAmountChange(item, $event)"
+                    :prefix="currencySymbol(pos_profile.currency)"
+                    id="discount_amount"
+                    :disabled="!!item.posa_is_offer ||
+                      !!item.posa_is_replace ||
+                      !!item.posa_offer_applied ||
+                      !pos_profile.posa_allow_user_to_edit_item_discount ||
+                      !!invoice_doc.is_return
+                      ? true
+                      : false"
+                  ></v-text-field>
                 </v-col>
                 <v-col cols="4">
                   <v-text-field density="compact" variant="outlined" color="primary"
@@ -295,7 +312,7 @@
                 <v-col cols="4" v-if="item.has_serial_no == 1 || item.serial_no">
                   <v-text-field density="compact" variant="outlined" color="primary" :label="frappe._('Serial No QTY')"
                     bg-color="white" hide-details v-model="item.serial_no_selected_count" type="number"
-                    disabled></v-text-field>
+                    readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" v-if="item.has_serial_no == 1 || item.serial_no">
                   <v-autocomplete v-model="item.serial_no_selected" :items="item.serial_no_data" item-title="serial_no"
@@ -305,12 +322,12 @@
                 <v-col cols="4" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-text-field density="compact" variant="outlined" color="primary"
                     :label="frappe._('Batch No. Available QTY')" bg-color="white" hide-details
-                    :model-value="formatFloat(item.actual_batch_qty)" disabled></v-text-field>
+                    :model-value="formatFloat(item.actual_batch_qty)" readonly></v-text-field>
                 </v-col>
                 <v-col cols="4" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-text-field density="compact" variant="outlined" color="primary"
                     :label="frappe._('Batch No Expiry Date')" bg-color="white" hide-details
-                    v-model="item.batch_no_expiry_date" disabled></v-text-field>
+                    v-model="item.batch_no_expiry_date" readonly></v-text-field>
                 </v-col>
                 <v-col cols="8" v-if="item.has_batch_no == 1 || item.batch_no">
                   <v-autocomplete v-model="item.batch_no" :items="item.batch_no_data" item-title="batch_no"
@@ -433,7 +450,8 @@
           <v-row no-gutters class="pa-1 pt-2 pl-0">
             <v-col cols="6" class="pa-1">
               <v-btn block class="pa-0" color="accent" theme="dark" @click="save_and_clear_invoice">
-                {{ __("Save and Clear") }}</v-btn>
+                {{ __("Save and Clear") }}
+              </v-btn>
             </v-col>
             <v-col cols="6" class="pa-1">
               <v-btn block class="pa-0" color="warning" theme="dark" @click="get_draft_invoices">{{
@@ -509,7 +527,8 @@ export default {
       delivery_charges_rate: 0,
       selected_delivery_charge: "",
       invoice_posting_date: false,
-      posting_date: frappe.datetime.nowdate(),
+      raw_posting_date: new Date(), 
+      posting_date: frappe.datetime.now_date(), 
       items_headers: [
         {
           title: __("Name"),
@@ -575,19 +594,59 @@ export default {
   methods: {
     // total field
     updateItemTotal(item, newTotal) {
-    if (!item || item.qty <= 0) return;
-    newTotal = newTotal.srcElement.value;
-    if ( typeof(newTotal) == "undefined" || newTotal == null || newTotal == "") {
-      newTotal = 0;
-    }
-    const parsedTotal = this.flt(this.parseFormattedCurrency(newTotal), this.currency_precision);
-    item.rate = this.flt(parsedTotal / item.qty, this.currency_precision);
-    
-    // Mark the item as modified so it doesn't reset
-    item.modified = true;    
-    item.amount = parsedTotal;
-    //this.set(this.items, this.items.indexOf(item), item);
+      if (!item || item.qty <= 0) return;
+      newTotal = newTotal.srcElement.value;
+      if (typeof newTotal === "undefined" || newTotal === null || newTotal === "") {
+        newTotal = 0;
+      }
+      const parsedTotal = this.flt(this.parseFormattedCurrency(newTotal), this.currency_precision);
+      item.rate = this.flt(parsedTotal / item.qty, this.currency_precision);
+      item.discount_amount = this.flt(
+        this.flt(item.price_list_rate) - this.flt(item.rate),
+        this.currency_precision
+      );
+      item.discount_percentage = this.flt(
+        (this.flt(item.discount_amount) / this.flt(item.price_list_rate)) * 100,
+        this.currency_precision
+      );
+      item.item_total = parsedTotal;
+      item.modified = true;
+      this.$forceUpdate();
     },
+    formatPostingDate(date) {
+    const d = new Date(date);
+    if (isNaN(d)) return '';
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0'); 
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`; 
+  },
+  handleDiscountAmountChange(item, event) {
+    let value = event.target.value;
+    if (!value || isNaN(value)) {
+      value = 0;
+    }
+    const newValue = this.flt(this.parseFormattedCurrency(value), this.currency_precision) || 0;
+    item.discount_amount = newValue;
+
+    const syntheticEvent = {
+      target: {
+        id: "discount_amount",
+        _value: newValue.toString()
+      },
+      srcElement: {
+        _value: newValue.toString()
+      }
+    };
+    this.calc_prices(item, syntheticEvent, syntheticEvent);
+  },
+  onPostingDateChange(date) {
+    this.posting_date = this.formatPostingDate(date); 
+    this.raw_posting_date = date;                     
+    this.invoice_posting_date = false; 
+  },
     format_discount_input() {
     if (!isNaN(this.additional_discount_percentage)) {
       this.additional_discount_percentage = this.formatFloat(this.additional_discount_percentage, 2);
@@ -846,6 +905,18 @@ export default {
       // Sales Person
       new_item.sales_person = "";
       //
+      // Apply customer discount immediately
+      if (this.pos_profile.posa_apply_customer_discount && this.customer_info && this.customer_info.posa_discount > 0 && this.customer_info.posa_discount <= 100) {
+        if (new_item.posa_is_offer == 0 && !new_item.posa_is_replace && new_item.posa_offer_applied == 0) {
+          if (new_item.max_discount > 0) {
+            new_item.discount_percentage = new_item.max_discount < this.customer_info.posa_discount ? new_item.max_discount : this.customer_info.posa_discount;
+          } else {
+            new_item.discount_percentage = this.customer_info.posa_discount;
+          }
+          this.calc_item_price(new_item);
+        }
+      }
+      //
       return new_item;
     },
 
@@ -911,6 +982,11 @@ export default {
       this.items.forEach((item) => {
         if (!item.posa_row_id) {
           item.posa_row_id = this.makeid(20);
+        }
+        // Detect if rate was customized by comparing with price_list_rate
+        // Set modified flag to prevent auto-update from overriding custom rates
+        if (item.rate && item.price_list_rate && flt(item.rate) !== flt(item.price_list_rate)) {
+          item.modified = true;
         }
         if (item.batch_no) {
           this.set_batch_qty(item, item.batch_no);
@@ -999,6 +1075,11 @@ export default {
         this.items.forEach((item) => {
           if (!item.posa_row_id) {
             item.posa_row_id = this.makeid(20);
+          }
+          // Detect if rate was customized by comparing with price_list_rate
+          // Set modified flag to prevent auto-update from overriding custom rates
+          if (item.rate && item.price_list_rate && flt(item.rate) !== flt(item.price_list_rate)) {
+            item.modified = true;
           }
           if (item.batch_no) {
             this.set_batch_qty(item, item.batch_no);
@@ -1642,9 +1723,12 @@ export default {
               if (
                 !item.is_free_item &&
                 !item.posa_is_offer &&
-                !item.posa_is_replace
+                !item.posa_is_replace &&
+                !item.modified  // Don't override rate for manually modified items
               ) {
-                item.price_list_rate = data.price_list_rate;
+                if (data.price_list_rate > 0) {
+                  item.price_list_rate = data.price_list_rate;
+                }
               }
             }
             item.last_purchase_rate = data.last_purchase_rate;
@@ -1657,6 +1741,7 @@ export default {
             (item.has_serial_no = data.has_serial_no),
               (item.has_batch_no = data.has_batch_no),
               vm.calc_item_price(item);
+            vm.$forceUpdate();
           }
         },
       });
@@ -1685,6 +1770,8 @@ export default {
             vm.update_price_list();
           },
         });
+      } else {
+        vm.customer_info = {};
       }
     },
 
@@ -1727,93 +1814,119 @@ export default {
 
     resetDiscountOnQtyChange(item) {
       item.discount_amount = 0.00; // Reset discount amount
-      item.modified = true; // Mark as modified
-      this.$forceUpdate();
+      item.discount_percentage = 0; 
+       this.$forceUpdate();
       //this.set(this.items, this.items.indexOf(item), item);
     },
 
     applyCustomDiscount(item, value) {
-      if (value < 0) {
-        item.discount_amount = 0;
-      } else {
-        // Get item total from the field
-        const itemTotal = this.parseFormattedCurrency(document.getElementById("total").value);
-
-        // Subtract discount amount from item total and update RATE
-        item.rate = flt(item.rate) - flt(value);
-        item.discount_amount = this.flt(value, this.currency_precision);
-        
-        // Mark the item as modified
-        item.modified = true;
-        this.$forceUpdate();
-        //this.set(this.items, this.items.indexOf(item), item);
-      }
-    },
-
-    calc_prices(item, value, $event) {
-      newValue = value.srcElement._value 
-      if ( typeof(newValue) == "undefined" || newValue == null || newValue == "") {
+      let newValue = this.parseFormattedCurrency(value);
+      if (typeof newValue === "undefined" || newValue === null || newValue === "") {
         newValue = 0;
-       }
-      newValue = this.flt(this.parseFormattedCurrency(newValue), this.currency_precision);
-      if (event.target.id === "rate" || event.target.id === "gridRate") {
-        item.discount_percentage = 0;
-        if (newValue < item.price_list_rate) {
-          item.rate = newValue;
-          item.discount_amount = this.flt(
-            this.flt(item.price_list_rate) - this.flt(newValue),
-            this.currency_precision
-          );
-        } else if (newValue < 0) {
-          item.rate = item.price_list_rate;
-          item.discount_amount = 0;
-        } else if (newValue > item.price_list_rate) {
-          item.rate = newValue;
-          item.discount_amount = 0;
-        }
-      } else if (event.target.id === "discount_amount") {
-        if (newValue < 0) {
-          item.discount_amount = 0;
-          item.discount_percentage = 0;
-        } else {
-          item.rate = flt(item.price_list_rate) - flt(newValue);
-          item.discount_percentage = 0;
-        }
-      } else if (event.target.id === "discount_percentage") {
-        if (newValue < 0) {
-          item.discount_amount = 0;
-          item.discount_percentage = 0;
-        } else {
-          item.rate = this.flt(
-            flt(item.price_list_rate) -
-            (flt(item.price_list_rate) * flt(newValue)) / 100,
-            this.currency_precision
-          );
-          item.discount_amount = this.flt(
-            flt(item.price_list_rate) - flt(+item.rate),
-            this.currency_precision
-          );
-        }
       }
-    },
+      newValue = this.flt(newValue, this.currency_precision);
 
+      const syntheticEvent = {
+        target: {
+          id: "discount_amount",
+          _value: newValue.toString()
+        },
+        srcElement: {
+          _value: newValue.toString()
+        }
+      };
+      this.calc_prices(item, syntheticEvent, syntheticEvent);
+    },
+    calc_prices(item, value, $event) {
+        let newValue = value?.srcElement?._value || 0;
+
+        if (typeof newValue === "undefined" || newValue === null || newValue === "") {
+          newValue = 0;
+        }
+
+        newValue = this.flt(this.parseFormattedCurrency(newValue), this.currency_precision);
+
+        if ($event?.target?.id === "rate" || $event?.target?.id === "gridRate") {
+          item.discount_percentage = 0;
+          if (newValue < item.price_list_rate) {
+            item.rate = newValue;
+            item.discount_amount = this.flt(
+              this.flt(item.price_list_rate) - this.flt(newValue),
+              this.currency_precision
+            );
+          } else if (newValue < 0) {
+            item.rate = item.price_list_rate;
+            item.discount_amount = 0;
+          } else if (newValue > item.price_list_rate) {
+            item.rate = newValue;
+            item.discount_amount = 0;
+          }
+        // Mark item as modified to preserve custom rate during draft load
+        item.modified = true;
+        } else if ($event?.target?.id === "discount_amount") {
+          if (newValue < 0) {
+            item.discount_amount = 0;
+            item.discount_percentage = 0;
+            item.rate = item.price_list_rate;
+          } else {
+            item.discount_amount = newValue;
+            item.rate = this.flt(
+              this.flt(item.price_list_rate) - this.flt(newValue),
+              this.currency_precision
+            );
+            item.discount_percentage = this.flt(
+              (this.flt(newValue) / this.flt(item.price_list_rate)) * 100,
+              this.currency_precision
+            );
+          }
+        // Mark item as modified to preserve custom rate during draft load
+        item.modified = true;
+        } else if ($event?.target?.id === "discount_percentage") {
+          if (newValue < 0) {
+            item.discount_amount = 0;
+            item.discount_percentage = 0;
+            item.rate = item.price_list_rate;
+          } else {
+            item.discount_percentage = newValue;
+            item.rate = this.flt(
+              this.flt(item.price_list_rate) -
+                (this.flt(item.price_list_rate) * this.flt(newValue)) / 100,
+              this.currency_precision
+            );
+            item.discount_amount = this.flt(
+              this.flt(item.price_list_rate) - this.flt(item.rate),
+              this.currency_precision
+            );
+          }
+        // Mark item as modified to preserve custom rate during draft load
+        item.modified = true;
+        }
+
+      item.item_total = this.flt(this.flt(item.qty) * this.flt(item.rate), this.currency_precision);
+      item.modified = true; // Mark as modified to preserve changes
+      this.$forceUpdate();
+      },
     calc_item_price(item) {
-      if (!item.posa_offer_applied) {
+      if (!item.posa_offer_applied && !item.modified) {
         if (item.price_list_rate) {
           item.rate = item.price_list_rate;
         }
       }
       if (item.discount_percentage) {
+        // Use current rate as base if item is modified, otherwise use price_list_rate
+        const base_rate = item.modified ? item.rate : item.price_list_rate;
         item.rate =
-          flt(item.price_list_rate) -
-          (flt(item.price_list_rate) * flt(item.discount_percentage)) / 100;
+          flt(base_rate) -
+          (flt(base_rate) * flt(item.discount_percentage)) / 100;
         item.discount_amount = this.flt(
-          flt(item.price_list_rate) - flt(item.rate),
+          flt(base_rate) - flt(item.rate),
           this.currency_precision
         );
       } else if (item.discount_amount) {
+        // Use current rate as base if item is modified, otherwise use price_list_rate
+        const base_rate = item.modified ? item.rate : item.price_list_rate;
         item.rate = this.flt(
-          flt(item.price_list_rate) - flt(item.discount_amount),
+          flt(base_rate) - flt(item.discount_amount),
           this.currency_precision
         );
       }
@@ -2784,6 +2897,7 @@ export default {
       this.invoiceType = this.pos_profile.posa_default_sales_order
         ? "Order"
         : "Invoice";
+      this.fetch_customer_details();
     });
      this.eventBus.on("auto_set_delivery_charge", () => {
       if (
@@ -2881,10 +2995,35 @@ export default {
       this.close_payments();
       this.eventBus.emit("set_customer", this.customer);
       this.fetch_customer_details();
-      this.set_delivery_charges();
+      this.set_delivery_charges()
+      // Loop through items once and handle both update_item_detail and discount reset
+      this.items.forEach(item => {
+        this.update_item_detail(item);
+        if (item.posa_offer_applied == 0) {
+          item.discount_percentage = 0;
+          item.discount_amount = 0;
+          this.calc_item_price(item);
+        }
+      });
+
+      this.$forceUpdate();
     },
-    customer_info() {
-      this.eventBus.emit("set_customer_info_to_edit", this.customer_info);
+    customer_info(newVal) {
+      this.eventBus.emit("set_customer_info_to_edit", newVal);
+      if (this.customer && this.customer !== this.pos_profile.customer &&
+          this.pos_profile.posa_apply_customer_discount && newVal.posa_discount > 0 && newVal.posa_discount <= 100) {
+        this.items.forEach(item => {
+          if (item.posa_is_offer == 0 && !item.posa_is_replace && item.posa_offer_applied == 0) {
+            if (item.max_discount > 0) {
+              item.discount_percentage = item.max_discount < newVal.posa_discount ? item.max_discount : newVal.posa_discount;
+            } else {
+              item.discount_percentage = newVal.posa_discount;
+            }
+            this.calc_item_price(item);
+          }
+        });
+        this.$forceUpdate();
+      }
     },
     expanded(data_value) {
       // this.update_items_details(data_value);
@@ -2939,7 +3078,7 @@ export default {
 }
 .small-switch .v-label {
   margin-left: -6px; 
-  margin-top: 20px; /* Adjust this value as needed */
+  margin-top: 20px; 
   display: block;
 }
 </style>

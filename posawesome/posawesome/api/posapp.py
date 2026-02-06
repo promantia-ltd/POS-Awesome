@@ -439,6 +439,19 @@ def get_customer_names(pos_profile):
         return _get_customer_names(pos_profile)
 
 
+def clear_customer_cache(pos_profile_doc):
+    """Clear customer cache after customer creation/update"""
+    try:
+        # Use wildcard pattern to match all cached customer queries for this POS profile
+        # The redis_cache creates keys in format: module.function::hash(args)
+        # We need to clear all variations of get_customer_names cache
+        cache_key_pattern = "posawesome.posawesome.api.posapp.get_customer_names.<locals>.__get_customer_names"
+        frappe.cache().delete_keys(cache_key_pattern)
+        
+    except Exception as e:
+        frappe.log_error(f"Error clearing customer cache: {str(e)}", "POSAwesome Customer Cache Clear")
+
+
 @frappe.whitelist()
 def get_sales_person_names():
     sales_persons = frappe.get_list(
@@ -533,11 +546,26 @@ def update_invoice(data):
         add_taxes_from_tax_template(item, invoice_doc)
 
     if invoice_doc.get("inclusive_tax"):
+        invoice_doc.ignore_pricing_rule = 1
+        invoice_doc.apply_discount_on = "Grand Total"
 
         if invoice_doc.get("taxes"):
             for tax in invoice_doc.taxes:
                 tax.included_in_rate = 1
                 tax.included_in_print_rate = 1
+
+        if data.get("grand_total"):
+            invoice_doc.grand_total = data["grand_total"]
+            invoice_doc.rounded_total = data["grand_total"]
+            invoice_doc.base_grand_total = data["grand_total"]
+            invoice_doc.base_rounded_total = data["grand_total"]
+            invoice_doc.run_method("calculate_taxes_and_totals")
+
+        if data.get("paid_amount"):
+            invoice_doc.paid_amount = data["paid_amount"]
+            invoice_doc.change_amount = 0
+            invoice_doc.base_change_amount = 0
+    else:
         invoice_doc.run_method("calculate_taxes_and_totals")
 
     today_date = getdate()
@@ -549,7 +577,6 @@ def update_invoice(data):
 
     invoice_doc.save()
     return invoice_doc
-
 
 @frappe.whitelist()
 def submit_invoice(invoice, data):
@@ -637,7 +664,14 @@ def submit_invoice(invoice, data):
             update_modified=False,
         )
 
-    if frappe.get_value("POS Profile", invoice_doc.pos_profile, "posa_allow_submissions_in_background_job"):
+    # Store the setting value before processing
+    allow_background_submission = frappe.get_value(
+        "POS Profile",
+        invoice_doc.pos_profile,
+        "posa_allow_submissions_in_background_job"
+    )
+
+    if allow_background_submission:
         invoices_list = frappe.get_all(
             "Sales Invoice",
             filters={
@@ -694,7 +728,8 @@ def submit_invoice(invoice, data):
         "name": invoice_doc.name,
         "status": invoice_doc.docstatus,
         "return_against": invoice_doc.return_against,
-        "update_outstanding_for_self": invoice_doc.update_outstanding_for_self
+        "update_outstanding_for_self": invoice_doc.update_outstanding_for_self,
+        "submitted_in_background": allow_background_submission or False,
     }
 
 
@@ -1101,6 +1136,8 @@ def create_customer(
             else:
                 customer.territory = "All Territories"
             customer.save()
+            # Clear customer cache after creation
+            clear_customer_cache(pos_profile_doc)
             return {"name": customer.name}
         else:
             frappe.throw(_("Customer already exists"))
@@ -1121,6 +1158,8 @@ def create_customer(
             set_customer_info(customer_doc.name, "mobile_no", mobile_no)
         if email_id != customer_doc.email_id:
             set_customer_info(customer_doc.name, "email_id", email_id)
+        # Clear customer cache after update
+        clear_customer_cache(pos_profile_doc)
         return {"name": customer_doc.name}
 
     
