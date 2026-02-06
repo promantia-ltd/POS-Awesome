@@ -609,6 +609,12 @@ def submit_invoice(invoice, data):
     if invoice_doc.is_return and invoice_doc.return_against :
         invoice_doc.update_outstanding_for_self = 0 if is_cashback else 1
 
+        # For store credit (non-cashback), clear payments so outstanding stays negative
+        # For cashback, keep payment records as they track the refund back to the customer
+        if not is_cashback:
+            invoice_doc.payments = []
+            invoice_doc.paid_amount = 0
+
     if data.get("credit_change") and is_cashback:
         advance_payment_entry = frappe.get_doc({
             "doctype": "Payment Entry",
