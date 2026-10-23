@@ -211,7 +211,7 @@
             </v-row>
           </strong>
           <div class="pb-6 pr-6" style="position: absolute; bottom: 0; width: 100%">
-            <v-btn block color="primary" theme="dark" @click="submit">
+            <v-btn block color="primary" theme="dark" @click="submit" :loading="submitting" :disabled="submitting">
               {{ __("Submit") }}
             </v-btn>
           </div>
@@ -243,6 +243,7 @@ export default {
       invoices_loading: false,
       unallocated_payments_loading: false,
       mpesa_payments_loading: false,
+      submitting: false,
       payment_methods: [],
       outstanding_invoices: [],
       unallocated_payments: [],
@@ -584,6 +585,8 @@ export default {
       this.set_payment_methods();
     },
     submit() {
+      // block double-click: each extra call creates another Payment Entry
+      if (this.submitting) return;
       const customer = this.customer_name;
       const vm = this;
       if (!customer) {
@@ -628,11 +631,15 @@ export default {
         this.total_selected_mpesa_payments
       );
 
+      this.submitting = true;
       frappe.call({
         method: "posawesome.posawesome.api.payment_entry.process_pos_payment",
         args: { payload },
         freeze: true,
         freeze_message: __("Processing Payment"),
+        always: function () {
+          vm.submitting = false;
+        },
         callback: function (r) {
           if (r.message) {
             frappe.utils.play_sound("submit");
